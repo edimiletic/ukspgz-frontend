@@ -1,0 +1,61 @@
+<app-header></app-header>
+<div class="main-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/home">Početna stranica</a></li>
+      <li><a class="active" href="/assigned">Moje utakmice</a></li>
+      <li><a href="/absence">Odsustvo</a></li>
+      <li><a href="/expenses">Putni troškovi</a></li>
+      <li><a href="/rules">Dokumenti</a></li>
+      <li><a href="#">Ispiti</a></li>
+      <li><a href="#">Upute za korištenje sustava</a></li>
+    </ul>
+  </nav>
+  <!-- Content -->
+  <section class="content">
+    <div class="description">
+      <h2>Nominacije</h2>
+      <div class="sub-links">
+        <p><strong>Nominacije koje čekaju odluku:</strong></p>
+        <p>No games</p>
+        <p><strong>Potvrđene nominacije:</strong> </p>
+        <p>No games</p>
+      </div>
+    </div>
+    <div class="description">
+      <h3>Povijest utakmica</h3>
+      <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Vrijeme</th>
+            <th>Mjesto</th>
+            <th>Natjecanje</th>
+            <th>Ekipe</th>
+            <th>Ostali sutci</th>
+            <th>Status</th>
+            <th>Arbitrator reports</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>May 25, 2025</td>
+            <td>18:00</td>
+            <td>Dvorana Mladosti</td>
+            <td>National League</td>
+            <td>Team A vs Team B</td>
+            <td>Judge 1, Judge 2</td>
+            <td>Confirmed</td>
+            <td>Available</td>
+          </tr>
+          <!-- Add more rows as needed -->
+        </tbody>
+      </table>
+      </div>
+        <button class="btn btn-primary mt-3">Pretraži</button>
+      </div>
+  </section>
+</div>
+<app-footer></app-footer>

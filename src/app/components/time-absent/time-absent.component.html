@@ -1,0 +1,85 @@
+<app-header></app-header>
+<div class="main-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <ul>
+            <li><a href="/home">Početna stranica</a></li>
+            <li><a href="/assigned">Moje utakmice</a></li>
+            <li><a class="active" href="/absence">Odsustvo</a></li>
+            <li><a href="/expenses">Putni troškovi</a></li>
+            <li><a href="/rules">Dokumenti</a></li>
+            <li><a href="#">Ispiti</a></li>
+            <li><a href="#">Upute za korištenje sustava</a></li>
+        </ul>
+    </nav>
+    <!-- Content -->
+    <section class="content">
+        <div class="page-header">
+            <h2>Odsustvo</h2>
+            <div class="page-actions">
+                <button class="btn btn-primary">Kreiraj</button>
+            </div>
+        </div>
+
+        <div class="alert alert-success">
+            <i class="icon-message"></i>
+            <strong>Message:</strong> Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac.
+            Neće vam biti dodijeljene utakmice za ta razdoblja.
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>ID</label>
+                    <input type="text" class="form-control" placeholder="">
+                </div>
+                <div class="filter-group">
+                    <label>Početak odsudstva</label>
+                    <input type="text" class="form-control" placeholder="">
+                </div>
+                <div class="filter-group">
+                    <label>Kraj odsudstva</label>
+                    <input type="text" class="form-control" placeholder="">
+                </div>
+                <div class="filter-group">
+                    <label>Sudac</label>
+                    <input type="text" class="form-control" placeholder="">
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-primary filter-btn">Filtriraj</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-info">
+            <span>Ukupno unosa: 0</span>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Početak odsudstva</th>
+                        <th>Kraj odsutstva</th>
+                        <th>Sudac</th>
+                        <th>Opcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <td>789</td>
+                    <td>1.7.2024.</td>
+                    <td>3.7.2024.</td>
+                    <td>Miletić</td>
+                    <td>
+                        <div class="action-buttons">
+                            <div class="btn-icon btn-edit">✏️</div>
+                            <div class="btn-icon btn-info">🗑️</div>
+                        </div>
+                    </td>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+<app-footer></app-footer>
