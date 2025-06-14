@@ -5,13 +5,14 @@ import { GamesAssignedComponent } from './components/games-assigned/games-assign
 import { TimeAbsentComponent } from './components/time-absent/time-absent.component';
 import { ExpensesComponent } from './components/expenses/expenses.component';
 import { BasketRulesComponent } from './components/basket-rules/basket-rules.component';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
 {path: 'login', component: AuthComponent},
 {path: '', redirectTo:'/login', pathMatch:'full'},
-{path: 'home', component: HomeComponent},
-{path: 'assigned', component: GamesAssignedComponent},
-{path: 'absence', component: TimeAbsentComponent},
-{path: 'expenses', component: ExpensesComponent},
-{path: 'rules', component: BasketRulesComponent}
+{path: 'home', component: HomeComponent, canActivate: [AuthGuard]},
+{path: 'assigned', component: GamesAssignedComponent, canActivate: [AuthGuard]},
+{path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
+{path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
+{path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]}
 ];
