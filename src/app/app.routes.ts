@@ -6,6 +6,7 @@ import { TimeAbsentComponent } from './components/time-absent/time-absent.compon
 import { ExpensesComponent } from './components/expenses/expenses.component';
 import { BasketRulesComponent } from './components/basket-rules/basket-rules.component';
 import { AuthGuard } from './guards/auth.guard';
+import { ExpenseReportDetailsComponent } from './components/expense-report-details/expense-report-details.component';
 
 export const routes: Routes = [
 {path: 'login', component: AuthComponent},
@@ -14,5 +15,6 @@ export const routes: Routes = [
 {path: 'assigned', component: GamesAssignedComponent, canActivate: [AuthGuard]},
 {path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
 {path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
+{path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard]},
 {path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]}
 ];

@@ -1,0 +1,26 @@
+    <div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Potvrdi brisanje</h3>
+          <button class="btn-close" (click)="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="warning-text">
+            Jeste li sigurni da želite obrisati ovaj putni trošak?
+          </p>
+          <div class="modal-actions">
+            <button class="btn btn-outline-secondary" (click)="closeModal()">
+              Odustani
+            </button>
+            <button
+              class="btn btn-danger"
+              [disabled]="isDeleting"
+              (click)="confirmDelete()"
+            >
+              <span *ngIf="isDeleting">Brisanje...</span>
+              <span *ngIf="!isDeleting">Obriši</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

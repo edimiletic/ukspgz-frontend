@@ -1,0 +1,48 @@
+    <div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Kreiraj odsustvo</h3>
+          <button class="btn-close" (click)="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Početak odsudstva <span class="required">*</span></label>
+            <input 
+              type="date" 
+              class="form-control"
+              [(ngModel)]="startDate"
+              [min]="todayDate"
+              (change)="onStartDateChange()"
+              required>
+          </div>
+          <div class="form-group">
+            <label>Kraj odsudstva <span class="required">*</span></label>
+            <input 
+              type="date" 
+              class="form-control"
+              [(ngModel)]="endDate"
+              [min]="minEndDate"
+              [disabled]="!startDate"
+              required>
+          </div>
+          <div class="form-group">
+            <label>Razlog</label>
+            <textarea 
+              class="form-control" 
+              rows="3" 
+              [(ngModel)]="reason"
+              placeholder="Unesite razlog odsustva..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" (click)="closeModal()">Odustani</button>
+          <button 
+            class="btn btn-primary" 
+            [disabled]="!isFormValid() || isSubmitting"
+            (click)="saveAbsence()">
+            <span *ngIf="isSubmitting">Spremanje...</span>
+            <span *ngIf="!isSubmitting">Spremi</span>
+          </button>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,24 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Potvrdi predaju</h3>
+      <button class="btn-close" (click)="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="warning-text">
+        Je ste li sigurni da želite predati ove putne troškove?
+      </p>
+      <button class="btn btn-outline-secondary" (click)="closeModal()">
+        Odustani
+      </button>
+      <button
+        class="btn btn-danger"
+        [disabled]="isSubmitting"
+        (click)="confirmSubmit()"
+      >
+        <span *ngIf="isSubmitting">Predavanje...</span>
+        <span *ngIf="!isSubmitting">Predaj</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -26,11 +26,11 @@
     <div class="user-data">
       <h3>Osobni Podatci</h3>
       <ul>
-        <li><strong>Korisničko ime:</strong> edimiletic</li>
-        <li><strong>Ime:</strong> Edi Miletic</li>
-        <li><strong>ID:</strong> 39000000000</li>
-        <li><strong>Email:</strong> edi.miletic&#64;gmail.com</li>
-        <li><strong>Uloga:</strong> Referee</li>
+        <li><strong>Korisničko ime:</strong> {{user?.username}}</li>
+        <li><strong>Ime:</strong> {{user?.name}} {{user?.surname}}</li>
+        <li><strong>ID:</strong> {{user?.personalCode}}</li>
+        <li><strong>Email:</strong> {{user?.email}}</li>
+        <li><strong>Uloga:</strong> {{user?.role}}</li>
       </ul>
     </div>
   </section>

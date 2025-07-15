@@ -1,0 +1,194 @@
+<app-header></app-header>
+<div class="main-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <ul>
+            <li><a href="/home">Početna stranica</a></li>
+            <li><a href="/assigned">Moje utakmice</a></li>
+            <li><a href="/absence">Odsustvo</a></li>
+            <li><a class="active" href="/expenses">Putni troškovi</a></li>
+            <li><a href="/rules">Dokumenti</a></li>
+            <li><a href="#">Ispiti</a></li>
+            <li><a href="#">Upute za korištenje sustava</a></li>
+        </ul>
+    </nav>
+    
+    <section class="content">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Učitavanje izvješća...</p>
+        </div>
+
+        <!-- Report Content -->
+        <div *ngIf="report && !isLoading" class="report-container">
+            <!-- Page Header with Title and Print Button -->
+            <div class="page-header">
+                <h1 class="page-title">{{ getPageTitle() }}</h1>
+                <button class="btn-print" (click)="onPrint()" title="Isprintaj">
+                    <i class="fas fa-print"></i>
+                </button>
+            </div>
+
+            <!-- Warning Alert -->
+            <div *ngIf="showWarning()" class="warning-alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{ getWarningMessage() }}</span>
+            </div>
+
+            <!-- Report Details Table -->
+            <div class="report-details">
+                <div class="detail-row">
+                    <div class="detail-label">ID</div>
+                    <div class="detail-value">{{ report.id }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Tip izvješća</div>
+                    <div class="detail-value">{{ report.type }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Godina i Mjesec</div>
+                    <div class="detail-value">{{ report.month }} {{ report.year }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Ukupan iznos</div>
+                    <div class="detail-value">{{ getFormattedAmount() }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Stvoreno</div>
+                    <div class="detail-value">{{ getFormattedDate() }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Stanje</div>
+                    <div class="detail-value">
+                        <span [class]="getConditionClass()">{{ getConditionText() }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" (click)="onSubmitReport()">Predaj</button>
+                <button class="btn btn-danger" (click)="onDeleteReport()">Izbriši</button>
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Troškovi</h2>
+                    <button class="btn-add" title="Dodaj stavku" (click)="onAddExpense()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="section-content">
+                    <div *ngIf="!report.expenses || report.expenses.length === 0" class="no-data">
+                        Nema postojećih troškova
+                    </div>
+                    <div *ngIf="report.expenses && report.expenses.length > 0" class="expenses-table-container">
+                        <table class="expenses-table">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Vrsta</th>
+                                    <th>Kratki Opis</th>
+                                    <th>Ukupna Cijena</th>
+                                    <th>Akcija</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let expense of report.expenses; trackBy: trackByExpenseItemId">
+                                    <td>{{ formatExpenseDate(expense.date) }}</td>
+                                    <td>{{ getExpenseTypeDisplay(expense) }}</td>
+                                    <td>{{ expense.description }}</td>
+                                    <td class="amount-cell">{{ formatAmount(expense.amount) }}</td>
+                                    <td>
+                                        <div class="expense-actions">
+                                            <button 
+                                                *ngIf="showDeleteButton()" 
+                                                class="btn-icon btn-delete" 
+                                                title="Obriši stavku"
+                                                [disabled]="!canDeleteExpenseItem()"
+                                                (click)="deleteExpenseItem(expense._id!)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            <span 
+                                                *ngIf="!showDeleteButton()" 
+                                                class="no-action-text"
+                                                title="Ne možete obrisati stavke iz predanih izvješća">
+                                                -
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Total Amount Row -->
+                        <div class="total-amount-section">
+                            <div class="total-amount-row">
+                                <span class="total-label">Ukupan Iznos Svih Stavki:</span>
+                                <span class="total-value">{{ getTotalExpensesAmount() }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Show loading message or redirect back if no report and not loading -->
+        <div *ngIf="!report && !isLoading" class="no-report-container">
+            <div class="no-report-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Izvješće nije pronađeno.</p>
+                <button class="btn btn-primary" (click)="goBack()">Povratak na listu</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
+
+<!-- Modals -->
+<app-modal-expense-report-details
+ [isOpen]="isAddExpenseModalOpen"
+  (close)="closeAddExpenseModal()"
+  (save)="onExpenseSaved($event)">
+</app-modal-expense-report-details>
+
+<app-delete-expenses-modal 
+  [isOpen]="isDeleteModalOpen"
+  [expenseToDelete]="report"
+  (close)="closeDeleteModal()"
+  (deleteConfirmed)="onDeleteConfirmed($event)">
+</app-delete-expenses-modal>
+
+<app-submit-modal-expense
+  [isOpen]="isSubmitModalOpen"
+  [report]="report"
+  (close)="closeSubmitModal()"
+  (submitConfirmed)="onSubmitConfirmed($event)"
+  (error)="onSubmitError($event)">
+</app-submit-modal-expense>
+
+<!-- Delete Expense Item Confirmation Modal -->
+<app-delete-item-modal
+  [isOpen]="isDeleteExpenseItemModalOpen"
+  [expenseItemId]="expenseItemToDelete"
+  (close)="closeDeleteExpenseItemModal()"
+  (deleteConfirmed)="onDeleteExpenseItemConfirmed($event)">
+</app-delete-item-modal>
+
+<app-footer></app-footer>

@@ -1,3 +1,4 @@
+// expenses.component.scss
 :host {
   display: block;
   font-family: "Segoe UI", sans-serif;
@@ -15,14 +16,11 @@
   background-color: #34495e;
   color: white;
   padding: 0.5rem;
-
   ul {
     list-style: none;
     padding: 0;
-
     li {
       margin: 1rem 0;
-
       a {
         color: white;
         text-decoration: none;
@@ -30,11 +28,9 @@
         display: block;
         border-radius: 4px;
         transition: background-color 0.2s ease;
-
         &:hover {
           background-color: rgba(255, 255, 255, 0.1);
         }
-
         &.active {
           background-color: #2980b9;
           font-weight: 600;
@@ -54,12 +50,10 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-
   h2 {
     margin: 0;
     color: #2c3e50;
   }
-
   .page-actions {
     display: flex;
     gap: 0.5rem;
@@ -78,17 +72,14 @@
   display: flex;
   gap: 1rem;
   align-items: end;
-
   .filter-group {
     flex: 1;
-
     label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
       color: #2c3e50;
     }
-
     .form-control {
       width: 100%;
       padding: 0.5rem;
@@ -96,7 +87,6 @@
       border-radius: 4px;
       font-size: 0.9rem;
     }
-
     .filter-btn {
       margin-top: 1.5rem;
     }
@@ -163,12 +153,125 @@
 }
 
 .btn-info {
-  background-color: #17a2b8;
+  background-color: #dc3545;
 }
 
-// // Icon placeholders (you can replace with actual icon font)
-// [class^="icon-"] {
-//   width: 16px;
-//   height: 16px;
-//   display: inline-block;
-// }
+.text-center {
+  text-align: center;
+}
+
+// Button styles
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background-color: #2980b9;
+  }
+}
+
+// Toast Notification Styles
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9999;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  min-width: 320px;
+  max-width: 400px;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  animation: slideInLeft 0.4s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+}
+
+.toast-emoji {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+// Toast Animation
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Report link styles
+.report-link {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #2980b9;
+    text-decoration: underline;
+  }
+}

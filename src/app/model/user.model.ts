@@ -1,5 +1,7 @@
 // src/app/models/user.model.ts
 
+export type UserRole = 'Admin' | 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
+
 export interface User {
   username: string;
   name: string;
@@ -9,4 +11,5 @@ export interface User {
   birthdate: string;       // ISO format, e.g., '1990-01-01'
   personalCode: string;    // e.g., national ID number
   address: string;
+  role: UserRole;
 }

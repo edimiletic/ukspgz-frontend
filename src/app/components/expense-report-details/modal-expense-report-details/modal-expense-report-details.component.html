@@ -1,0 +1,178 @@
+<!-- add-expense-modal.component.html -->
+<div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>Dodaj Trošak</h3>
+      <button class="close-btn" (click)="onClose()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Error Message in Modal -->
+      <div *ngIf="errorMessage" class="alert alert-error">
+        {{ errorMessage }}
+      </div>
+
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="expenseType">Vrsta troškova</label>
+            <div class="select-wrapper">
+              <select 
+                id="expenseType" 
+                class="form-control" 
+                [(ngModel)]="expenseData.type"
+                name="expenseType"
+                required
+                [disabled]="isLoading"
+                (ngModelChange)="onExpenseTypeChange()">
+                <option value="">Odaberite vrstu troška</option>
+                <option 
+                  *ngFor="let type of expenseTypes" 
+                  [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+              <i class="fas fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="date">Datum</label>
+            <input 
+              type="date" 
+              id="date" 
+              class="form-control" 
+              [(ngModel)]="expenseData.date"
+              name="date"
+              required
+              [disabled]="isLoading"
+              [max]="getTodayDate()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Kratki Opis</label>
+          <textarea 
+            id="description" 
+            class="form-control textarea-control" 
+            [(ngModel)]="expenseData.description"
+            name="description"
+            required
+            [disabled]="isLoading"
+            placeholder="Unesite kratki opis troška..."
+            rows="3">
+          </textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="unit">Mjerna Jedinica</label>
+            <div class="select-wrapper">
+              <select 
+                id="unit" 
+                class="form-control" 
+                [(ngModel)]="expenseData.unit"
+                name="unit"
+                required
+                [disabled]="isLoading || isUnitFieldDisabled()">
+                <option value="">Odaberite jedinicu</option>
+                <option 
+                  *ngFor="let unit of units" 
+                  [value]="unit">
+                  {{ unit }}
+                </option>
+              </select>
+              <i class="fas fa-chevron-down select-arrow"></i>
+            </div>
+            <small *ngIf="isAutomobileTransport()" class="auto-set-text">
+              Automatski postavljeno za prijevoz automobilom
+            </small>
+            <small *ngIf="isTicketTransport()" class="auto-set-text">
+              Automatski postavljeno za putničke karte
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Količina</label>
+            <input 
+              type="number" 
+              id="quantity" 
+              class="form-control" 
+              [(ngModel)]="expenseData.quantity"
+              name="quantity"
+              required
+              [disabled]="isLoading"
+              min="0"
+              step="1"
+              placeholder="0">
+          </div>
+
+          <div class="form-group">
+            <label for="unitPrice">Cijena Jedinice (€)</label>
+            <input 
+              type="number" 
+              id="unitPrice" 
+              class="form-control" 
+              [(ngModel)]="expenseData.unitPrice"
+              name="unitPrice"
+              required
+              [disabled]="isLoading || isAutomobileTransport()"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00">
+            <small *ngIf="isAutomobileTransport()" class="auto-set-text">
+              Fiksna cijena: 0.31 € po kilometru
+            </small>
+            <small *ngIf="isTicketTransport()" class="auto-set-text">
+              Unesite cijenu putničke karte
+            </small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="competition">Natjecanje</label>
+          <div class="select-wrapper">
+            <select 
+              id="competition" 
+              class="form-control" 
+              [(ngModel)]="expenseData.competition"
+              name="competition"
+              required
+              [disabled]="isLoading">
+              <option value="">Odaberite natjecanje</option>
+              <option 
+                *ngFor="let competition of competitions" 
+                [value]="competition">
+                {{ competition }}
+              </option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Total Amount Display -->
+        <div class="total-section" *ngIf="expenseData.quantity > 0 && expenseData.unitPrice > 0">
+          <div class="total-display">
+            <strong>Ukupan Iznos: {{ getFormattedTotal() }}</strong>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button 
+        class="btn btn-secondary" 
+        (click)="onClose()"
+        [disabled]="isLoading">
+        Odustani
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="onSave()"
+        [disabled]="!isFormValid() || isLoading">
+        <span *ngIf="isLoading">Spremanje...</span>
+        <span *ngIf="!isLoading">Spremi</span>
+      </button>
+    </div>
+  </div>
+</div>

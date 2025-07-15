@@ -177,7 +177,7 @@
 }
 
 .btn-info {
-  background-color: #17a2b8;
+  background-color: #dc3545;
 }
 .content > .btn {
   padding: 0.5rem 1rem;
@@ -215,11 +215,46 @@
   }
 }
 
+// Add these styles to your existing time-absent.component.scss
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  color: #666;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.table tbody tr .no-data {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 2rem;
+}
 
 
-// // Icon placeholders (you can replace with actual icon font)
-// [class^="icon-"] {
-//   width: 16px;
-//   height: 16px;
-//   display: inline-block;
-// }

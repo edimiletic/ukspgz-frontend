@@ -1,3 +1,4 @@
+<!-- expenses.component.html -->
 <app-header></app-header>
 <div class="main-layout">
     <!-- Sidebar -->
@@ -14,12 +15,15 @@
     </nav>
     <section class="content">
         <div class="page-header">
-            <h2>Expenditure Reports</h2>
+            <h2>Putni troškovi</h2>
             <div class="page-actions">
-                <button class="btn btn-primary">Kreiraj</button>
+                <button 
+                    class="btn btn-primary" 
+                    (click)="openModal()">
+                    Kreiraj
+                </button>
             </div>
         </div>
-
         <div class="filter-section">
             <div class="filter-row">
                 <div class="filter-group">
@@ -28,10 +32,6 @@
                 </div>
                 <div class="filter-group">
                     <label>Vrsta</label>
-                    <input type="text" class="form-control" placeholder="">
-                </div>
-                <div class="filter-group">
-                    <label>Korisnik</label>
                     <input type="text" class="form-control" placeholder="">
                 </div>
                 <div class="filter-group">
@@ -52,9 +52,8 @@
             </div>
         </div>
         <div class="table-info">
-            <span>Ukupno unosa: 1</span>
+            <span>Ukupno unosa: {{ travelExpenses.length }}</span>
         </div>
-
         <div class="table-container">
             <table class="table">
                 <thead>
@@ -69,23 +68,59 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>🔍 691</td>
-                        <td>Judge's expenditure report</td>
-                        <td>Edi Miletić</td>
-                        <td>2024</td>
-                        <td>4</td>
-                        <td>Checked/confirmed</td>
+                    <tr *ngFor="let expense of travelExpenses; trackBy: trackByExpenseId">
+                        <td>{{ expense.id }}</td>
+                        <td>{{ expense.type }}</td>
+                        <td>{{ expense.userName }} {{ expense.userSurname }}</td>
+                        <td>{{ expense.year }}</td>
+                        <td>{{ expense.month }}</td>
+                        <td>{{ expense.state }}</td>
                         <td>
                             <div class="action-buttons">
-                                <div class="btn-icon btn-edit">✏️</div>
-                                <div class="btn-icon btn-info">🗑️</div>
+                                <div class="btn-icon btn-edit" title="Uredi"
+                                (click)="editTravelExpense(expense)"><i class="fa-solid fa-pen"></i></div>
+                                <div 
+                                    class="btn-icon btn-info" 
+                                    title="Obriši"
+                                    (click)="openDeleteModal(expense)"> <i class="fas fa-trash"></i></div>
                             </div>
                         </td>
+                    </tr>
+                    <tr *ngIf="travelExpenses.length === 0">
+                        <td colspan="7" class="text-center">Nema podataka za prikaz</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </section>
 </div>
+
+<!-- Modal Component -->
+<app-expenses-modal 
+  [isOpen]="isModalOpen"
+  (close)="closeModal()"
+  (success)="onReportCreated($event)">
+</app-expenses-modal>
+
+<app-delete-expenses-modal 
+  [isOpen]="isDeleteModalOpen"
+  [expenseToDelete]="expenseToDelete"
+  (close)="closeDeleteModal()"
+  (deleteConfirmed)="onDeleteConfirmed($event)">
+</app-delete-expenses-modal>
+
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
+
 <app-footer></app-footer>
