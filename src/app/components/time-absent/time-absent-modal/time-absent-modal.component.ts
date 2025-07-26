@@ -24,6 +24,7 @@ export class TimeAbsentModalComponent {
   @Input() isOpen = false;
   @Output() closeModalEvent = new EventEmitter<void>();
   @Output() absenceSaved = new EventEmitter<void>();
+  @Output() error = new EventEmitter<string>(); // Add error event emitter
 
   startDate: string = '';
   endDate: string = '';
@@ -56,6 +57,7 @@ export class TimeAbsentModalComponent {
       },
       error: (error) => {
         console.error('Error fetching current user:', error);
+        this.error.emit('Greška pri dohvaćanju korisničkih podataka.');
       }
     });
   }
@@ -100,10 +102,40 @@ export class TimeAbsentModalComponent {
       },
       error: (error) => {
         console.error('Error creating absence:', error);
-        // You might want to show an error message to the user here
         this.isSubmitting = false;
+        this.error.emit(this.getCreateErrorMessage(error));
       }
     });
+  }
+
+  private getCreateErrorMessage(error: any): string {
+    if (error.error?.error) {
+      const backendError = error.error.error;
+      
+      if (backendError.includes('already exists') || backendError.includes('overlaps')) {
+        return 'Već postoji odsustvo za odabrani vremenski period.';
+      } else if (backendError.includes('invalid date')) {
+        return 'Neispravni datumi. Molimo provjerite unos.';
+      } else if (backendError.includes('past date')) {
+        return 'Ne možete kreirati odsustvo za prošli datum.';
+      } else if (backendError.includes('validation')) {
+        return 'Neispravni podaci. Molimo provjerite sve unose.';
+      } else if (backendError.includes('Access denied')) {
+        return 'Nemate dozvolu za kreiranje odsustva.';
+      } else {
+        return backendError;
+      }
+    }
+    
+    if (error.status === 409) {
+      return 'Već postoji odsustvo za odabrani vremenski period.';
+    } else if (error.status === 400) {
+      return 'Neispravni podaci. Molimo provjerite unos.';
+    } else if (error.status === 403) {
+      return 'Nemate dozvolu za kreiranje odsustva.';
+    }
+    
+    return 'Greška pri kreiranju odsustva. Molimo pokušajte ponovo.';
   }
 
   closeModal() {

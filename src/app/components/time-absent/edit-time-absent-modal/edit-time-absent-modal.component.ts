@@ -15,6 +15,7 @@ export class EditTimeAbsentModalComponent implements OnChanges {
   @Input() absenceToEdit: Absence | null = null;
   @Output() closeModalEvent = new EventEmitter<void>();
   @Output() absenceUpdated = new EventEmitter<void>();
+  @Output() error = new EventEmitter<string>(); // Add error event emitter
 
   editForm = {
     startDate: '',
@@ -126,8 +127,43 @@ export class EditTimeAbsentModalComponent implements OnChanges {
       error: (error) => {
         console.error('Error updating absence:', error);
         this.isSubmitting = false;
+        this.error.emit(this.getUpdateErrorMessage(error));
       }
     });
+  }
+
+  private getUpdateErrorMessage(error: any): string {
+    if (error.error?.error) {
+      const backendError = error.error.error;
+      
+      if (backendError.includes('already exists') || backendError.includes('overlaps')) {
+        return 'Odabrani vremenski period se preklapa s postojećim odsusnim.';
+      } else if (backendError.includes('invalid date')) {
+        return 'Neispravni datumi. Molimo provjerite unos.';
+      } else if (backendError.includes('past date')) {
+        return 'Ne možete ažurirati odsustvo za prošli datum.';
+      } else if (backendError.includes('validation')) {
+        return 'Neispravni podaci. Molimo provjerite sve unose.';
+      } else if (backendError.includes('Access denied')) {
+        return 'Nemate dozvolu za ažuriranje odsustva.';
+      } else if (backendError.includes('not found')) {
+        return 'Odsustvo nije pronađeno.';
+      } else {
+        return backendError;
+      }
+    }
+    
+    if (error.status === 409) {
+      return 'Odabrani vremenski period se preklapa s postojećim odsusnim.';
+    } else if (error.status === 400) {
+      return 'Neispravni podaci. Molimo provjerite unos.';
+    } else if (error.status === 403) {
+      return 'Nemate dozvolu za ažuriranje odsustva.';
+    } else if (error.status === 404) {
+      return 'Odsustvo nije pronađeno.';
+    }
+    
+    return 'Greška pri ažuriranju odsustva. Molimo pokušajte ponovo.';
   }
 
   closeModal() {

@@ -12,50 +12,175 @@
       <li><a href="#">Upute za korištenje sustava</a></li>
     </ul>
   </nav>
+  
   <!-- Content -->
   <section class="content">
-    <div class="description">
-      <h2>Nominacije</h2>
-      <div class="sub-links">
-        <p><strong>Nominacije koje čekaju odluku:</strong></p>
-        <p>No games</p>
-        <p><strong>Potvrđene nominacije:</strong> </p>
-        <p>No games</p>
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Učitavanje utakmica...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!isLoading">
+      <!-- Pending Nominations Section -->
+      <div class="description">
+        <h2>Nominacije koje čekaju odluku</h2>
+        <div *ngIf="pendingGames.length === 0" class="no-games">
+          <p>Nema nominacija na čekanju</p>
+        </div>
+        <div *ngIf="pendingGames.length > 0" class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Vrijeme</th>
+                <th>Mjesto</th>
+                <th>Natjecanje</th>
+                <th>Ekipe</th>
+                <th>Moja uloga</th>
+                <th>Sudački tim</th>
+                <th>Akcije</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let game of pendingGames">
+                <td>{{ formatDate(game.date) }}</td>
+                <td>{{ game.time }}</td>
+                <td>{{ game.venue }}</td>
+                <td>{{ game.competition }}</td>
+                <td>{{ getTeamsDisplay(game) }}</td>
+                <td>{{ getMyRole(game) }}</td>
+                <td>
+                  <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
+                  </div>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn btn-success btn-sm" (click)="acceptAssignment(game._id)" title="Prihvati">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" (click)="rejectAssignment(game._id)" title="Odbij">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Confirmed Nominations Section -->
+      <div class="description">
+        <h2>Potvrđene nominacije</h2>
+        <div *ngIf="confirmedGames.length === 0" class="no-games">
+          <p>Nema potvrđenih nominacija</p>
+        </div>
+        <div *ngIf="confirmedGames.length > 0" class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Vrijeme</th>
+                <th>Mjesto</th>
+                <th>Natjecanje</th>
+                <th>Ekipe</th>
+                <th>Moja uloga</th>
+                <th>Sudački tim</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let game of confirmedGames">
+                <td>{{ formatDate(game.date) }}</td>
+                <td>{{ game.time }}</td>
+                <td>{{ game.venue }}</td>
+                <td>{{ game.competition }}</td>
+                <td>{{ getTeamsDisplay(game) }}</td>
+                <td>{{ getMyRole(game) }}</td>
+                <td>
+                  <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge status-accepted">Potvrđeno</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Game History Section -->
+      <div class="description">
+        <h3>Povijest utakmica</h3>
+        <div *ngIf="gameHistory.length === 0" class="no-games">
+          <p>Nema povijesti utakmica</p>
+        </div>
+        <div *ngIf="gameHistory.length > 0" class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Vrijeme</th>
+                <th>Mjesto</th>
+                <th>Natjecanje</th>
+                <th>Ekipe</th>
+                <th>Moja uloga</th>
+                <th>Sudački tim</th>
+                <th>Status</th>
+                <th>Rezultat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let game of gameHistory" [class]="getStatusClass(game)">
+                <td>{{ formatDate(game.date) }}</td>
+                <td>{{ game.time }}</td>
+                <td>{{ game.venue }}</td>
+                <td>{{ game.competition }}</td>
+                <td>{{ getTeamsDisplay(game) }}</td>
+                <td>{{ getMyRole(game) }}</td>
+                <td>
+                  <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
+                  </div>
+                </td>
+                <td>
+                  <span [class]="getStatusClass(game)">
+                    {{ getStatusDisplay(game) }}
+                  </span>
+                </td>
+                <td>{{ getScoreDisplay(game) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <div class="description">
-      <h3>Povijest utakmica</h3>
-      <div class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Datum</th>
-            <th>Vrijeme</th>
-            <th>Mjesto</th>
-            <th>Natjecanje</th>
-            <th>Ekipe</th>
-            <th>Ostali sutci</th>
-            <th>Status</th>
-            <th>Arbitrator reports</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>May 25, 2025</td>
-            <td>18:00</td>
-            <td>Dvorana Mladosti</td>
-            <td>National League</td>
-            <td>Team A vs Team B</td>
-            <td>Judge 1, Judge 2</td>
-            <td>Confirmed</td>
-            <td>Available</td>
-          </tr>
-          <!-- Add more rows as needed -->
-        </tbody>
-      </table>
-      </div>
-        <button class="btn btn-primary mt-3">Pretraži</button>
-      </div>
   </section>
 </div>
+
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
+
+<!-- Rejection Modal -->
+<app-rejection-modal
+  [isOpen]="isRejectionModalOpen"
+  [gameInfo]="gameToReject"
+  (close)="closeRejectionModal()"
+  (reject)="onRejectionConfirmed($event)">
+</app-rejection-modal>
+
 <app-footer></app-footer>

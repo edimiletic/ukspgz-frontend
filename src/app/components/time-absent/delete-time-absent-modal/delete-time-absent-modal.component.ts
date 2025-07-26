@@ -14,6 +14,7 @@ export class DeleteTimeAbsentModalComponent {
   @Input() absenceToDelete: Absence | null = null;
   @Output() closeModalEvent = new EventEmitter<void>();
   @Output() absenceDeleted = new EventEmitter<void>();
+  @Output() error = new EventEmitter<string>(); // Add error event emitter
 
   isDeleting = false;
 
@@ -42,9 +43,37 @@ export class DeleteTimeAbsentModalComponent {
       error: (error) => {
         console.error('Error deleting absence:', error);
         this.isDeleting = false;
-        // You might want to show an error message to the user here
+        this.error.emit(this.getDeleteErrorMessage(error));
       }
     });
+  }
+
+  private getDeleteErrorMessage(error: any): string {
+    if (error.error?.error) {
+      const backendError = error.error.error;
+      
+      if (backendError.includes('cannot delete active')) {
+        return 'Ne možete obrisati aktivno odsustvo.';
+      } else if (backendError.includes('cannot delete past')) {
+        return 'Ne možete obrisati završeno odsustvo.';
+      } else if (backendError.includes('Access denied')) {
+        return 'Nemate dozvolu za brisanje odsustva.';
+      } else if (backendError.includes('not found')) {
+        return 'Odsustvo nije pronađeno.';
+      } else {
+        return backendError;
+      }
+    }
+    
+    if (error.status === 400) {
+      return 'Ne možete obrisati ovo odsustvo.';
+    } else if (error.status === 403) {
+      return 'Nemate dozvolu za brisanje odsustva.';
+    } else if (error.status === 404) {
+      return 'Odsustvo nije pronađeno.';
+    }
+    
+    return 'Greška pri brisanju odsustva. Molimo pokušajte ponovo.';
   }
 
   closeModal() {
