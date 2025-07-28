@@ -3,6 +3,15 @@ import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from './../model/
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+// Interface for the paginated response from backend
+interface PaginatedAbsenceResponse {
+  absences: Absence[];
+  totalPages: number;
+  currentPage: number;
+  total: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -30,9 +39,28 @@ export class AbsenceService {
     });
   }
 
-  // Get all absences (admin functionality)
-  getAllAbsences(): Observable<Absence[]> {
-    return this.http.get<Absence[]>(`${this.apiUrl}/absence`, {
+  // Get all absences (admin functionality) - Updated to handle pagination
+  getAllAbsences(page = 1, limit = 100): Observable<Absence[]> {
+    return this.http.get<PaginatedAbsenceResponse>(`${this.apiUrl}/absence?page=${page}&limit=${limit}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    }).pipe(
+      map(response => response.absences) // Extract just the absences array
+    );
+  }
+
+  // Get all absences with pagination info (for future use)
+  getAllAbsencesPaginated(page = 1, limit = 10, filters?: any): Observable<PaginatedAbsenceResponse> {
+    let queryParams = `page=${page}&limit=${limit}`;
+    
+    if (filters) {
+      if (filters.userPersonalCode) queryParams += `&userPersonalCode=${filters.userPersonalCode}`;
+      if (filters.startDate) queryParams += `&startDate=${filters.startDate}`;
+      if (filters.endDate) queryParams += `&endDate=${filters.endDate}`;
+    }
+
+    return this.http.get<PaginatedAbsenceResponse>(`${this.apiUrl}/absence?${queryParams}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
@@ -41,7 +69,7 @@ export class AbsenceService {
 
   // Update an existing absence
   updateAbsence(absenceData: AbsenceUpdateRequest): Observable<Absence> {
-    return this.http.put<Absence>(`${this.apiUrl}/absence/${absenceData.id}`, absenceData, {
+    return this.http.put<Absence>(`${this.apiUrl}/absence/${absenceData._id}`, absenceData, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
@@ -49,7 +77,7 @@ export class AbsenceService {
   }
 
   // Delete an absence
-  deleteAbsence(absenceId: number): Observable<void> {
+  deleteAbsence(absenceId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/absence/${absenceId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -58,7 +86,7 @@ export class AbsenceService {
   }
 
   // Get absence by ID
-  getAbsenceById(absenceId: number): Observable<Absence> {
+  getAbsenceById(absenceId: string): Observable<Absence> {
     return this.http.get<Absence>(`${this.apiUrl}/absence/${absenceId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`

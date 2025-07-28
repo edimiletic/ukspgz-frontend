@@ -15,21 +15,28 @@
     <!-- Content -->
     <section class="content">
         <div class="page-header">
-            <h2>Odsustvo</h2>
+            <h2>{{ isAdmin ? 'Odsustvo - Svi korisnici' : 'Odsustvo' }}</h2>
             <div class="page-actions">
-                <button class="btn btn-primary" (click)="openModal()">Kreiraj</button>
+                <button class="btn btn-primary" (click)="openModal()" *ngIf="!isAdmin">Kreiraj</button>
             </div>
         </div>
         <div class="alert alert-success">
             <i class="icon-message"></i>
-            <strong>Message:</strong> Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac.
-            Neće vam biti dodijeljene utakmice za ta razdoblja.
+            <strong>{{ isAdmin ? 'Admin View:' : 'Message:' }}</strong> 
+            {{ isAdmin ? 
+               'Pregled odsustva svih sudaca. Možete vidjeti kada sudci neće biti dostupni za utakmice.' : 
+               'Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac. Neće vam biti dodijeljene utakmice za ta razdoblja.' 
+            }}
         </div>
         <div class="filter-section">
             <div class="filter-row">
                 <div class="filter-group">
                     <label>ID</label>
                     <input type="text" class="form-control" placeholder="">
+                </div>
+                <div class="filter-group" *ngIf="isAdmin">
+                    <label>Korisnik</label>
+                    <input type="text" class="form-control" placeholder="Pretraži po imenu">
                 </div>
                 <div class="filter-group">
                     <label>Početak odsudstva</label>
@@ -52,27 +59,33 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th *ngIf="isAdmin">Korisnik</th>
                         <th>Početak odsudstva</th>
                         <th>Kraj odsutstva</th>
                         <th>Razlog</th>
-                        <th>Opcije</th>
+                        <th *ngIf="!isAdmin">Opcije</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngFor="let absence of absences">
-                        <td>{{ absence.id }}</td>
+                        <td>{{ absence._id }}</td>
+                        <td *ngIf="isAdmin">{{ absence.userName }}</td>
                         <td>{{ formatDate(absence.startDate) }}</td>
                         <td>{{ formatDate(absence.endDate) }}</td>
                         <td>{{ absence.reason || '-' }}</td>
-                        <td>
+                        <td *ngIf="!isAdmin">
                             <div class="action-buttons">
-                                <div class="btn-icon btn-edit" (click)="openEditModal(absence)"><i class="fa-solid fa-pen"></i></div>
-                                <div class="btn-icon btn-info" (click)="openDeleteModal(absence)"> <i class="fas fa-trash"></i></div>
+                                <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </div>
+                                <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                    <i class="fas fa-trash"></i>
+                                </div>
                             </div>
                         </td>
                     </tr>
                     <tr *ngIf="absences.length === 0">
-                        <td colspan="5" class="no-data">Nema unesenih podataka</td>
+                        <td [attr.colspan]="isAdmin ? 5 : 6" class="no-data">Nema unesenih podataka</td>
                     </tr>
                 </tbody>
             </table>
@@ -100,12 +113,13 @@
 
 <app-footer></app-footer>
 
-<!-- Modals -->
+<!-- Modals - Only show for non-admin users -->
 <app-time-absent-modal 
   [isOpen]="isModalOpen" 
   (closeModalEvent)="closeModal()"
   (absenceSaved)="onAbsenceSaved()"
-  (error)="onModalError($event)">
+  (error)="onModalError($event)"
+  *ngIf="!isAdmin">
 </app-time-absent-modal>
 
 <app-delete-time-absent-modal
@@ -113,7 +127,8 @@
   [absenceToDelete]="absenceToDelete"
   (closeModalEvent)="closeDeleteModal()"
   (absenceDeleted)="onAbsenceDeleted()"
-  (error)="onModalError($event)">
+  (error)="onModalError($event)"
+  *ngIf="!isAdmin">
 </app-delete-time-absent-modal>
 
 <app-edit-time-absent-modal
@@ -121,5 +136,6 @@
   [absenceToEdit]="absenceToEdit"
   (closeModalEvent)="closeEditModal()"
   (absenceUpdated)="onAbsenceUpdated()"
-  (error)="onModalError($event)">
+  (error)="onModalError($event)"
+  *ngIf="!isAdmin">
 </app-edit-time-absent-modal>

@@ -108,7 +108,7 @@ export class EditTimeAbsentModalComponent implements OnChanges {
     this.isSubmitting = true;
 
     const updateData: AbsenceUpdateRequest = {
-      id: this.absenceToEdit.id,
+      _id: this.absenceToEdit._id,
       reason: this.editForm.reason.trim() || undefined
     };
 

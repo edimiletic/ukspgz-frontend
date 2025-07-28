@@ -122,7 +122,22 @@
   margin-bottom: 1rem;
   color: #666;
   font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .admin-badge {
+    background-color: #e74c3c;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 }
+
 .table-container {
   background-color: white;
   border-radius: 4px;
@@ -170,15 +185,37 @@
   color: white;
   font-size: 0.8rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
 .btn-edit {
   background-color: #3498db;
+
+  &:hover {
+    background-color: #2980b9;
+  }
 }
 
 .btn-info {
   background-color: #dc3545;
+
+  &:hover {
+    background-color: #c82333;
+  }
 }
+
+.btn-view {
+  background-color: #17a2b8;
+
+  &:hover {
+    background-color: #138496;
+  }
+}
+
 .content > .btn {
   padding: 0.5rem 1rem;
   border: none;
@@ -214,8 +251,6 @@
     font-size: 0.8rem;
   }
 }
-
-// Add these styles to your existing time-absent.component.scss
 
 .loading-container {
   display: flex;
@@ -256,7 +291,6 @@
   font-style: italic;
   padding: 2rem;
 }
-
 
 // Toast Notification Styles
 .toast-container {
