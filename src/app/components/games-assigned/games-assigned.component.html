@@ -1,3 +1,4 @@
+<!-- Updated src/app/components/games-assigned/games-assigned.component.html -->
 <app-header></app-header>
 <div class="main-layout">
   <!-- Sidebar -->
@@ -15,6 +16,14 @@
   
   <!-- Content -->
   <section class="content">
+    <!-- Admin Create Game Button -->
+    <div *ngIf="isAdmin() && !isLoading" class="admin-actions">
+      <button class="btn btn-primary btn-create-game" (click)="openCreateGameModal()">
+        <i class="fas fa-plus"></i>
+        Kreiraj Utakmicu
+      </button>
+    </div>
+
     <!-- Loading State -->
     <div *ngIf="isLoading" class="loading-container">
       <div class="loading-spinner"></div>
@@ -25,9 +34,11 @@
     <div *ngIf="!isLoading">
       <!-- Pending Nominations Section -->
       <div class="description">
-        <h2>Nominacije koje čekaju odluku</h2>
+        <h2 *ngIf="!isAdmin()">Nominacije koje čekaju odluku</h2>
+        <h2 *ngIf="isAdmin()">Nadolazeće Utakmice</h2>
         <div *ngIf="pendingGames.length === 0" class="no-games">
-          <p>Nema nominacija na čekanju</p>
+          <p *ngIf="!isAdmin()">Nema nominacija na čekanju</p>
+          <p *ngIf="isAdmin()">Nema nadolazećih utakmica</p>
         </div>
         <div *ngIf="pendingGames.length > 0" class="table-container">
           <table class="table">
@@ -38,9 +49,11 @@
                 <th>Mjesto</th>
                 <th>Natjecanje</th>
                 <th>Ekipe</th>
-                <th>Moja uloga</th>
+                <th *ngIf="!isAdmin()">Moja uloga</th>
                 <th>Sudački tim</th>
-                <th>Akcije</th>
+                <th *ngIf="!isAdmin()">Akcije</th>
+                <th *ngIf="isAdmin()">Status</th>
+                <th *ngIf="isAdmin()">Akcije</th>
               </tr>
             </thead>
             <tbody>
@@ -50,12 +63,12 @@
                 <td>{{ game.venue }}</td>
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
-                <td>{{ getMyRole(game) }}</td>
+                <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td>
                 <td>
                   <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
                   </div>
                 </td>
-                <td>
+                <td *ngIf="!isAdmin()">
                   <div class="action-buttons">
                     <button class="btn btn-success btn-sm" (click)="acceptAssignment(game._id)" title="Prihvati">
                       <i class="fas fa-check"></i>
@@ -65,14 +78,29 @@
                     </button>
                   </div>
                 </td>
+                <td *ngIf="isAdmin()">
+                  <span [class]="getStatusClass(game)">
+                    {{ getStatusDisplay(game) }}
+                  </span>
+                </td>
+                <td *ngIf="isAdmin()">
+                  <div class="admin-action-buttons">
+                    <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Confirmed Nominations Section -->
-      <div class="description">
+      <!-- Confirmed Nominations Section - Only show for non-admin users -->
+      <div class="description" *ngIf="!isAdmin()">
         <h2>Potvrđene nominacije</h2>
         <div *ngIf="confirmedGames.length === 0" class="no-games">
           <p>Nema potvrđenih nominacija</p>
@@ -127,10 +155,10 @@
                 <th>Mjesto</th>
                 <th>Natjecanje</th>
                 <th>Ekipe</th>
-                <th>Moja uloga</th>
                 <th>Sudački tim</th>
                 <th>Status</th>
-                <th>Rezultat</th>
+                <!-- <th>Rezultat</th> -->
+                <th *ngIf="isAdmin()">Akcije</th>
               </tr>
             </thead>
             <tbody>
@@ -140,7 +168,7 @@
                 <td>{{ game.venue }}</td>
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
-                <td>{{ getMyRole(game) }}</td>
+                <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td>
                 <td>
                   <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
                   </div>
@@ -150,7 +178,17 @@
                     {{ getStatusDisplay(game) }}
                   </span>
                 </td>
-                <td>{{ getScoreDisplay(game) }}</td>
+                <!-- <td>{{ getScoreDisplay(game) }}</td> -->
+                <td *ngIf="isAdmin()">
+                  <div class="admin-action-buttons">
+                    <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -182,5 +220,20 @@
   (close)="closeRejectionModal()"
   (reject)="onRejectionConfirmed($event)">
 </app-rejection-modal>
+
+<!-- Create Game Modal -->
+<app-create-game-modal
+  [isOpen]="isCreateGameModalOpen"
+  (close)="closeCreateGameModal()"
+  (gameCreated)="onGameCreated($event)">
+</app-create-game-modal>
+
+<!-- Confirmation Modal -->
+<app-delete-game-modal
+  [isOpen]="isConfirmationModalOpen"
+  [confirmationData]="confirmationData"
+  (close)="closeConfirmationModal()"
+  (confirm)="onDeleteConfirmed($event)">
+</app-delete-game-modal>
 
 <app-footer></app-footer>

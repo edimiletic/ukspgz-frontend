@@ -3,6 +3,7 @@
 export type UserRole = 'Admin' | 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
 
 export interface User {
+  _id: string;
   username: string;
   name: string;
   surname: string;

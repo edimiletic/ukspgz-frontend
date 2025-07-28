@@ -764,3 +764,265 @@
     padding: 0;
   }
 }
+
+// Add these styles to your existing games-assigned.component.scss
+// Add these styles to your existing games-assigned.component.scss
+
+// Admin Actions
+.admin-actions {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  .btn-create-game {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+      background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
+    }
+
+    &:active {
+      transform: translateY(-1px);
+    }
+
+    i {
+      font-size: 1.1rem;
+      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+    }
+  }
+
+  // Responsive design for admin actions
+  @media (max-width: 768px) {
+    justify-content: center;
+    padding: 1rem;
+
+    .btn-create-game {
+      width: 100%;
+      justify-content: center;
+      font-size: 0.95rem;
+      padding: 1rem 1.25rem;
+    }
+  }
+}
+
+// Admin Action Buttons in Tables
+.admin-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  
+  .btn {
+    padding: 0.4rem;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &.btn-sm {
+      font-size: 0.8rem;
+      width: 30px;
+      height: 30px;
+    }
+    
+    &.btn-warning {
+      background-color: #3498db;
+      color: white;
+      box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+      
+      // &:hover {
+      //   background-color: #e0a800;
+      //   transform: translateY(-1px);
+      //   box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4);
+      // }
+    }
+    
+    &.btn-danger {
+      background-color: #dc3545;
+      color: white;
+      box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+      
+      // &:hover {
+      //   background-color: #c82333;
+      //   transform: translateY(-1px);
+      //   box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+      // }
+    }
+    
+    i {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Additional admin-specific status styles
+.admin-status {
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  
+  &.status-scheduled {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+  }
+  
+  &.status-ongoing {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffcc02;
+  }
+  
+  &.status-completed {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+  
+  &.status-cancelled {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+  }
+}
+
+// Enhanced table styles for admin view
+.table {
+  // Admin-specific column adjustments
+  th:nth-child(6), 
+  td:nth-child(6) {
+    min-width: 200px; // Referee team column
+  }
+  
+  // Admin actions column
+  th:last-child,
+  td:last-child {
+    width: 100px;
+    text-align: center;
+  }
+  
+  // Admin status column
+  .admin-status-cell {
+    text-align: center;
+    
+    .status-badge {
+      display: inline-block;
+      min-width: 80px;
+    }
+  }
+}
+
+// Improved responsive design for admin features
+@media (max-width: 1024px) {
+  .admin-actions {
+    .btn-create-game {
+      font-size: 0.9rem;
+      padding: 0.75rem 1.25rem;
+      
+      i {
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .admin-action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+    
+    .btn {
+      width: 28px;
+      height: 28px;
+      
+      i {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-actions {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    
+    .btn-create-game {
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      letter-spacing: 0.25px;
+      
+      i {
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  .admin-action-buttons {
+    flex-direction: row;
+    gap: 0.25rem;
+    
+    .btn {
+      width: 26px;
+      height: 26px;
+      
+      i {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-actions {
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    
+    .btn-create-game {
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      letter-spacing: 0.25px;
+      
+      i {
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  // Stack admin buttons vertically on very small screens
+  .admin-action-buttons {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+}

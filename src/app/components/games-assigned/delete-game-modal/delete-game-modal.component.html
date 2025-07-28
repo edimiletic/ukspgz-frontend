@@ -1,0 +1,36 @@
+<!-- src/app/components/shared/confirmation-modal/confirmation-modal.component.html -->
+<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h3>{{ confirmationData.title }}</h3>
+      <button class="btn-close" (click)="closeModal()" [disabled]="isLoading">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <div class="warning-text" [innerHTML]="confirmationData.message"></div>
+      
+      <div class="button-group">
+        <button 
+          class="btn btn-outline-secondary" 
+          (click)="closeModal()"
+          [disabled]="isLoading">
+          {{ confirmationData.cancelText || 'Odustani' }}
+        </button>
+        
+        <button 
+          class="btn btn-danger"
+          [disabled]="isLoading"
+          (click)="confirmAction()">
+          <span *ngIf="isLoading">Brisanje...</span>
+          <span *ngIf="!isLoading">{{ confirmationData.confirmText || 'Obriši' }}</span>
+        </button>
+      </div>
+    </div>
+    
+  </div>
+</div>
