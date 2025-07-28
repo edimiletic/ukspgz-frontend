@@ -103,18 +103,21 @@ export interface GameFormData {
   venue: string;
   competition: string;
   notes: string;
+  status?: 'Scheduled' | 'Ongoing' | 'Completed' | 'Cancelled';
+
 }
 
 export interface RefereeAssignmentData {
+    _id?:string;
   userId: string;
   role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
   position?: number;
 }
 
 export interface RefereeSelection {
-  sudci: { userId: string; position: number }[];
+  sudci: { _id?:string;userId: string; position: number }[];
   delegat: string;
-  pomocniSudci: { userId: string; position: number }[];
+  pomocniSudci: { _id?:string;userId: string; position: number }[];
 }
 
 export class BasketballGameUtils {

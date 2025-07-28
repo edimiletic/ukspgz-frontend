@@ -18,6 +18,7 @@
   <section class="content">
     <!-- Admin Create Game Button -->
     <div *ngIf="isAdmin() && !isLoading" class="admin-actions">
+      <h1 class="admin-title">Sve Utakmice</h1>
       <button class="btn btn-primary btn-create-game" (click)="openCreateGameModal()">
         <i class="fas fa-plus"></i>
         Kreiraj Utakmicu
@@ -86,7 +87,7 @@
                 <td *ngIf="isAdmin()">
                   <div class="admin-action-buttons">
                     <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
-                      <i class="fas fa-edit"></i>
+                      <i class="fas fa-pen"></i>
                     </button>
                     <button class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
                       <i class="fas fa-trash"></i>
@@ -182,7 +183,7 @@
                 <td *ngIf="isAdmin()">
                   <div class="admin-action-buttons">
                     <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
-                      <i class="fas fa-edit"></i>
+                      <i class="fas fa-pen"></i>
                     </button>
                     <button class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
                       <i class="fas fa-trash"></i>
@@ -227,6 +228,14 @@
   (close)="closeCreateGameModal()"
   (gameCreated)="onGameCreated($event)">
 </app-create-game-modal>
+
+<!-- Edit Game Modal -->
+<app-edit-game-modal
+  [isOpen]="isEditGameModalOpen"
+  [game]="gameToEdit"
+  (close)="closeEditGameModal()"
+  (gameUpdated)="onGameUpdated($event)">
+</app-edit-game-modal>
 
 <!-- Confirmation Modal -->
 <app-delete-game-modal

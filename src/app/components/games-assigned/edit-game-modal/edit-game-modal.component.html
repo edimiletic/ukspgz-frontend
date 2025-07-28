@@ -1,0 +1,279 @@
+<!-- src/app/components/games-assigned/edit-game-modal/edit-game-modal.component.html -->
+<div class="modal-backdrop" *ngIf="isOpen" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2>
+        <span *ngIf="currentStep === 1">Uredi Utakmicu</span>
+        <span *ngIf="currentStep === 2">Uredi Sudce</span>
+      </h2>
+      <button class="close-btn" (click)="closeModal()" [disabled]="isLoading">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+        <span class="step-number">1</span>
+        <span class="step-title">Detalji Utakmice</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step" [class.active]="currentStep === 2">
+        <span class="step-number">2</span>
+        <span class="step-title">Uredi Sudce</span>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Step 1: Game Details -->
+      <div *ngIf="currentStep === 1" class="step-content">
+        <form class="game-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="homeTeam">Domaći Tim *</label>
+              <input 
+                type="text" 
+                id="homeTeam" 
+                [(ngModel)]="gameForm.homeTeam" 
+                name="homeTeam"
+                class="form-control"
+                placeholder="Unesite naziv domaćeg tima"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="awayTeam">Gostujući Tim *</label>
+              <input 
+                type="text" 
+                id="awayTeam" 
+                [(ngModel)]="gameForm.awayTeam" 
+                name="awayTeam"
+                class="form-control"
+                placeholder="Unesite naziv gostujućeg tima"
+                required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="date">Datum *</label>
+              <input 
+                type="date" 
+                id="date" 
+                [(ngModel)]="gameForm.date" 
+                name="date"
+                class="form-control"
+                [min]="getMinDate()"
+                required>
+            </div>
+            <div class="form-group">
+              <label for="time">Vrijeme *</label>
+              <input 
+                type="time" 
+                id="time" 
+                [(ngModel)]="gameForm.time" 
+                name="time"
+                class="form-control"
+                required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="venue">Mjesto *</label>
+            <input 
+              type="text" 
+              id="venue" 
+              [(ngModel)]="gameForm.venue" 
+              name="venue"
+              class="form-control"
+              placeholder="Unesite naziv dvorane ili mjesta"
+              required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="competition">Natjecanje *</label>
+              <select 
+                id="competition" 
+                [(ngModel)]="gameForm.competition" 
+                name="competition"
+                class="form-control"
+                required>
+                <option value="">Odaberite natjecanje</option>
+                <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="status">Status *</label>
+              <select 
+                id="status" 
+                [(ngModel)]="gameForm.status" 
+                name="status"
+                class="form-control"
+                required>
+                <option *ngFor="let status of statusOptions" [value]="status.value">
+                  {{ status.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Napomene</label>
+            <textarea 
+              id="notes" 
+              [(ngModel)]="gameForm.notes" 
+              name="notes"
+              class="form-control"
+              rows="3"
+              placeholder="Dodatne napomene o utakmici (opcionalno)"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: Referee Assignments -->
+      <div *ngIf="currentStep === 2" class="step-content">
+        <div class="referee-assignments">
+          
+          <!-- Loading Referees -->
+          <div *ngIf="isLoadingReferees" class="loading-referees">
+            <div class="loading-spinner"></div>
+            <p>Učitavanje sudaca...</p>
+          </div>
+
+          <div *ngIf="!isLoadingReferees" class="referee-sections">
+            
+            <!-- Sudci Section -->
+            <div class="referee-section">
+              <h3>Sudci (2-3 obavezno)</h3>
+              <div class="referee-list">
+                <div *ngFor="let sudac of selectedReferees.sudci; let i = index" class="referee-assignment">
+                  <label>Sudac {{ sudac.position }}</label>
+                  <div class="assignment-row">
+                    <select 
+                      [(ngModel)]="sudac.userId" 
+                      name="sudac_{{i}}"
+                      class="form-control">
+                      <option value="">Odaberite suca</option>
+                      <option *ngFor="let ref of getAvailableSudci(i)" [value]="ref._id">
+                        {{ ref.name }} {{ ref.surname }}
+                      </option>
+                    </select>
+                    <button 
+                      type="button" 
+                      class="btn btn-danger btn-sm" 
+                      (click)="removeSudac(i)"
+                      *ngIf="selectedReferees.sudci.length > 2"
+                      title="Ukloni suca">
+                      <i class="fas fa-minus"></i>
+                    </button>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-add" 
+                  (click)="addSudac()"
+                  *ngIf="selectedReferees.sudci.length < 3">
+                  <i class="fas fa-plus"></i> Dodaj suca
+                </button>
+              </div>
+            </div>
+
+            <!-- Delegat Section -->
+            <div class="referee-section">
+              <h3>Delegat (opcionalno)</h3>
+              <div class="referee-assignment">
+                <select 
+                  [(ngModel)]="selectedReferees.delegat" 
+                  name="delegat"
+                  class="form-control">
+                  <option value="">Odaberite delegata</option>
+                  <option *ngFor="let ref of getAvailableDelegati()" [value]="ref._id">
+                    {{ ref.name }} {{ ref.surname }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pomoćni Sudci Section -->
+            <div class="referee-section">
+              <h3>Pomoćni Sudci (2-3 obavezno)</h3>
+              <div class="referee-list">
+                <div *ngFor="let pomocni of selectedReferees.pomocniSudci; let i = index" class="referee-assignment">
+                  <label>Pomoćni Sudac {{ pomocni.position }}</label>
+                  <div class="assignment-row">
+                    <select 
+                      [(ngModel)]="pomocni.userId" 
+                      name="pomocni_{{i}}"
+                      class="form-control">
+                      <option value="">Odaberite pomoćnog suca</option>
+                      <option *ngFor="let ref of getAvailablePomocniSudci(i)" [value]="ref._id">
+                        {{ ref.name }} {{ ref.surname }}
+                      </option>
+                    </select>
+                    <button 
+                      type="button" 
+                      class="btn btn-danger btn-sm" 
+                      (click)="removePomocniSudac(i)"
+                      *ngIf="selectedReferees.pomocniSudci.length > 2"
+                      title="Ukloni pomoćnog suca">
+                      <i class="fas fa-minus"></i>
+                    </button>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn btn-secondary btn-add" 
+                  (click)="addPomocniSudac()"
+                  *ngIf="selectedReferees.pomocniSudci.length < 3">
+                  <i class="fas fa-plus"></i> Dodaj pomoćnog suca
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <div class="footer-buttons">
+        <!-- Step 1 buttons -->
+        <ng-container *ngIf="currentStep === 1">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
+            Odustani
+          </button>
+          <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="isLoading">
+            Dalje <i class="fas fa-arrow-right"></i>
+          </button>
+        </ng-container>
+
+        <!-- Step 2 buttons -->
+        <ng-container *ngIf="currentStep === 2">
+          <button type="button" class="btn btn-secondary" (click)="previousStep()" [disabled]="isLoading">
+            <i class="fas fa-arrow-left"></i> Nazad
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
+            Odustani
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-success" 
+            (click)="updateGame()" 
+            [disabled]="isLoading || isLoadingReferees">
+            <span *ngIf="!isLoading">
+              <i class="fas fa-save"></i> Spremi Promjene
+            </span>
+            <span *ngIf="isLoading">
+              <i class="fas fa-spinner fa-spin"></i> Spremanje...
+            </span>
+          </button>
+        </ng-container>

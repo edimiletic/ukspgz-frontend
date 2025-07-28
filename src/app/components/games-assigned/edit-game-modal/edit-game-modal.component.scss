@@ -1,4 +1,6 @@
-// src/app/components/games-assigned/create-game-modal/create-game-modal.component.scss
+// src/app/components/games-assigned/edit-game-modal/edit-game-modal.component.scss
+// This file uses the same styles as create-game-modal.component.scss
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -39,13 +41,13 @@
 
 // Modal Header
 .modal-header {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); // Same blue as create
   color: white;
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-//   border-bottom: 3px solid #2471a3;
+  border-bottom: 3px solid #2471a3;
 
   h2 {
     margin: 0;
@@ -114,7 +116,7 @@
 
     &.active {
       .step-number {
-        background: #3498db;
+        background: #3498db; // Same blue as create
         color: white;
       }
       .step-title {
@@ -199,7 +201,8 @@
         color: #dc3545;
       }
 
-      &[for="notes"]::after {
+      &[for="notes"]::after,
+      &[for="status"]::after {
         content: '';
       }
     }
@@ -215,7 +218,7 @@
 
       &:focus {
         outline: none;
-        border-color: #3498db;
+        border-color: #3498db; // Same blue as create
         box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
       }
 
@@ -245,7 +248,7 @@
       width: 40px;
       height: 40px;
       border: 3px solid #f3f3f3;
-      border-top: 3px solid #3498db;
+      border-top: 3px solid #3498db; // Same blue as create
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 1rem;
@@ -313,7 +316,7 @@
 
           &:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: #3498db; // Same blue as create
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
           }
         }
@@ -402,7 +405,7 @@
       }
 
       &.btn-primary {
-        background: #3498db;
+        background: #3498db; // Same blue as create
         color: white;
 
         &:hover:not(:disabled) {

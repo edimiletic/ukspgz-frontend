@@ -9,10 +9,11 @@ import { FormsModule } from '@angular/forms';
 import { RejectionModalComponent } from "./rejection-modal/rejection-modal.component";
 import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.component";
 import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
+import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 
 @Component({
   selector: 'app-games-assigned',
-  imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent],
+  imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss'
 })
@@ -41,6 +42,10 @@ export class GamesAssignedComponent implements OnInit {
 
   // Create game modal
   isCreateGameModalOpen = false;
+
+  // Edit game modal
+  isEditGameModalOpen = false;
+  gameToEdit: BasketballGame | null = null;
 
   // Confirmation modal for delete
   isConfirmationModalOpen = false;
@@ -97,6 +102,27 @@ export class GamesAssignedComponent implements OnInit {
   // Handle game creation success
   onGameCreated(newGame: BasketballGame) {
     this.showSuccess('Utakmica je uspješno kreirana i nominacije su poslane!');
+    this.loadMyGames(); // Refresh the games list
+  }
+
+  // Open edit game modal
+  openEditGameModal(game: BasketballGame) {
+    console.log('Opening edit modal for game:', game);
+    this.gameToEdit = game;
+    this.isEditGameModalOpen = true;
+    console.log('Edit modal state:', this.isEditGameModalOpen);
+    console.log('Game to edit:', this.gameToEdit);
+  }
+
+  // Close edit game modal
+  closeEditGameModal() {
+    this.isEditGameModalOpen = false;
+    this.gameToEdit = null;
+  }
+
+  // Handle game update success
+  onGameUpdated(updatedGame: BasketballGame) {
+    this.showSuccess('Utakmica je uspješno ažurirana!');
     this.loadMyGames(); // Refresh the games list
   }
 
@@ -465,8 +491,7 @@ export class GamesAssignedComponent implements OnInit {
   // Admin action methods
   editGame(game: BasketballGame): void {
     console.log('Edit game:', game);
-    // TODO: Implement edit game modal or navigation
-    this.showSuccess(`Uređivanje utakmice ${game.homeTeam} vs ${game.awayTeam} - funkcionalnost uskoro!`);
+    this.openEditGameModal(game);
   }
 
   deleteGame(game: BasketballGame): void {
