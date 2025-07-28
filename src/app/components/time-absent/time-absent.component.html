@@ -32,64 +32,307 @@
             <div class="filter-row">
                 <div class="filter-group">
                     <label>ID</label>
-                    <input type="text" class="form-control" placeholder="">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        placeholder="Pretraži po ID"
+                        [(ngModel)]="filterValues.id"
+                        (input)="onFilterChange()">
                 </div>
                 <div class="filter-group" *ngIf="isAdmin">
                     <label>Korisnik</label>
-                    <input type="text" class="form-control" placeholder="Pretraži po imenu">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        placeholder="Pretraži po imenu"
+                        [(ngModel)]="filterValues.userName"
+                        (input)="onFilterChange()">
                 </div>
                 <div class="filter-group">
-                    <label>Početak odsudstva</label>
-                    <input type="text" class="form-control" placeholder="">
+                    <label>Početak odsustva</label>
+                    <input 
+                        type="date" 
+                        class="form-control"
+                        placeholder="Točan datum početka"
+                        [(ngModel)]="filterValues.startDate"
+                        (change)="onFilterChange()">
                 </div>
                 <div class="filter-group">
-                    <label>Kraj odsudstva</label>
-                    <input type="text" class="form-control" placeholder="">
+                    <label>Završetak odsustva</label>
+                    <input 
+                        type="date" 
+                        class="form-control"
+                        placeholder="Točan datum završetka"
+                        [(ngModel)]="filterValues.endDate"
+                        (change)="onFilterChange()">
                 </div>
                 <div class="filter-group">
-                    <button class="btn btn-primary filter-btn">Filtriraj</button>
+                    <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
+                        <i class="fas fa-times"></i> Očisti
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="table-info">
+        <div class="table-info" *ngIf="!isAdmin">
             <span>Ukupno unosa: {{ absences.length }}</span>
+            <span *ngIf="hasActiveFilters" class="filter-status">
+                <i class="fas fa-filter"></i> Filteri aktivni
+            </span>
         </div>
-        <div class="table-container" *ngIf="!isLoading">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th *ngIf="isAdmin">Korisnik</th>
-                        <th>Početak odsudstva</th>
-                        <th>Kraj odsutstva</th>
-                        <th>Razlog</th>
-                        <th *ngIf="!isAdmin">Opcije</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let absence of absences">
-                        <td>{{ absence._id }}</td>
-                        <td *ngIf="isAdmin">{{ absence.userName }}</td>
-                        <td>{{ formatDate(absence.startDate) }}</td>
-                        <td>{{ formatDate(absence.endDate) }}</td>
-                        <td>{{ absence.reason || '-' }}</td>
-                        <td *ngIf="!isAdmin">
-                            <div class="action-buttons">
-                                <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
-                                    <i class="fa-solid fa-pen"></i>
-                                </div>
-                                <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
-                                    <i class="fas fa-trash"></i>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr *ngIf="absences.length === 0">
-                        <td [attr.colspan]="isAdmin ? 5 : 6" class="no-data">Nema unesenih podataka</td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <!-- Admin View: Three separate tables -->
+        <div *ngIf="isAdmin && !isLoading">
+            <!-- Filter status for admin -->
+            <div class="admin-filter-status" *ngIf="hasActiveFilters">
+                <span class="filter-indicator">
+                    <i class="fas fa-filter"></i> 
+                    Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
+                </span>
+            </div>
+            <!-- Future Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Buduća odsustva</h3>
+                    <span class="badge badge-future">{{ futureAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Korisnik</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of futureAbsences">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.userName }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                            </tr>
+                            <tr *ngIf="futureAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema budućih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ongoing Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Trenutna odsustva</h3>
+                    <span class="badge badge-ongoing">{{ ongoingAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Korisnik</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of ongoingAbsences" class="ongoing-row">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.userName }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                            </tr>
+                            <tr *ngIf="ongoingAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema trenutnih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Past Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Prošla odsustva</h3>
+                    <span class="badge badge-past">{{ pastAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Korisnik</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of pastAbsences" class="past-row">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.userName }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                            </tr>
+                            <tr *ngIf="pastAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema prošlih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+<!-- User View: Filter status and total count -->
+        <!-- <div class="table-info" *ngIf="!isAdmin">
+            <span>Ukupno unosa: {{ totalFilteredCount }}</span>
+            <span *ngIf="hasActiveFilters" class="filter-status">
+                <i class="fas fa-filter"></i> Filteri aktivni
+            </span>
+        </div> -->
+
+        <!-- User View: Three separate tables -->
+        <div *ngIf="!isAdmin && !isLoading">
+            <!-- Filter status for users -->
+            <div class="admin-filter-status" *ngIf="hasActiveFilters">
+                <span class="filter-indicator">
+                    <i class="fas fa-filter"></i> 
+                    Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
+                </span>
+            </div>
+            
+            <!-- Future Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Buduća odsustva</h3>
+                    <span class="badge badge-future">{{ futureAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                                <th>Opcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of futureAbsences">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </div>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="futureAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema budućih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ongoing Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Trenutna odsustva</h3>
+                    <span class="badge badge-ongoing">{{ ongoingAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                                <th>Opcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of ongoingAbsences" class="ongoing-row">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </div>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="ongoingAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema trenutnih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Past Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Prošla odsustva</h3>
+                    <span class="badge badge-past">{{ pastAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                                <th>Opcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of pastAbsences" class="past-row">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </div>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="pastAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema prošlih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div class="loading-container" *ngIf="isLoading">
             <div class="loading-spinner">Učitavanje...</div>
         </div>

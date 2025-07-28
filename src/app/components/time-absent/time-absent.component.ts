@@ -10,7 +10,7 @@ import { EditTimeAbsentModalComponent } from "./edit-time-absent-modal/edit-time
 import { User } from '../../model/user.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
-import { forkJoin } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 
 interface AbsenceWithUser extends Absence {
@@ -19,13 +19,24 @@ interface AbsenceWithUser extends Absence {
 
 @Component({
   selector: 'app-time-absent',
-  imports: [HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent],
+  imports: [HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule],
   templateUrl: './time-absent.component.html',
   styleUrl: './time-absent.component.scss'
 })
 export class TimeAbsentComponent {
- isModalOpen = false;
+isModalOpen = false;
   absences: AbsenceWithUser[] = [];
+  // Original data (unfiltered)
+  allAbsences: AbsenceWithUser[] = [];
+  allFutureAbsences: AbsenceWithUser[] = [];
+  allOngoingAbsences: AbsenceWithUser[] = [];
+  allPastAbsences: AbsenceWithUser[] = [];
+  
+  // Filtered data for display
+  futureAbsences: AbsenceWithUser[] = [];
+  ongoingAbsences: AbsenceWithUser[] = [];
+  pastAbsences: AbsenceWithUser[] = [];
+  
   isLoading = false;
   isDeleteModalOpen = false;
   isEditModalOpen = false;
@@ -33,6 +44,14 @@ export class TimeAbsentComponent {
   absenceToDelete: Absence | null = null;
   isAdmin = false;
   users: User[] = []; // Store users for name lookup
+
+  // Filter properties
+  filterValues = {
+    id: '',
+    userName: '',
+    startDate: '',
+    endDate: ''
+  };
  
   // Toast notification properties
   errorMessage = '';
@@ -72,7 +91,9 @@ export class TimeAbsentComponent {
       this.absenceService.getAllAbsences().subscribe({
         next: (absences: AbsenceWithUser[]) => {
           console.log('Admin absences loaded:', absences); // Debug log
-          this.absences = absences;
+          this.allAbsences = absences;
+          this.categorizeAbsences(absences);
+          this.applyFilters(); // Apply any existing filters
           this.isLoading = false;
         },
         error: (error) => {
@@ -82,11 +103,13 @@ export class TimeAbsentComponent {
         }
       });
     } else {
-      // Regular user: Load only their absences
+      // Regular user: Load only their absences and categorize them too
       this.absenceService.getCurrentUserAbsences().subscribe({
         next: (absences: Absence[]) => {
           console.log('User absences loaded:', absences); // Debug log
-          this.absences = absences;
+          this.allAbsences = absences;
+          this.categorizeAbsences(absences); // Also categorize user absences
+          this.applyFilters(); // Apply any existing filters
           this.isLoading = false;
         },
         error: (error) => {
@@ -96,6 +119,120 @@ export class TimeAbsentComponent {
         }
       });
     }
+  }
+
+  private categorizeAbsences(absences: AbsenceWithUser[]) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+
+    this.allFutureAbsences = [];
+    this.allOngoingAbsences = [];
+    this.allPastAbsences = [];
+
+    absences.forEach(absence => {
+      const startDate = new Date(absence.startDate);
+      const endDate = new Date(absence.endDate);
+      
+      // Reset time for accurate date comparison
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      if (startDate > today) {
+        // Future absence
+        this.allFutureAbsences.push(absence);
+      } else if (startDate <= today && endDate >= today) {
+        // Ongoing absence
+        this.allOngoingAbsences.push(absence);
+      } else {
+        // Past absence
+        this.allPastAbsences.push(absence);
+      }
+    });
+
+    // Sort each category
+    this.allFutureAbsences.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    this.allOngoingAbsences.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    this.allPastAbsences.sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+  }
+
+  applyFilters() {
+    // Filter each category for both admin and regular users
+    this.futureAbsences = this.filterAbsences(this.allFutureAbsences);
+    this.ongoingAbsences = this.filterAbsences(this.allOngoingAbsences);
+    this.pastAbsences = this.filterAbsences(this.allPastAbsences);
+    
+    // Also maintain the single absences array for backward compatibility
+    this.absences = this.filterAbsences(this.allAbsences);
+  }
+
+  private filterAbsences(absences: AbsenceWithUser[]): AbsenceWithUser[] {
+    return absences.filter(absence => {
+      // ID filter
+      if (this.filterValues.id && !absence._id.toLowerCase().includes(this.filterValues.id.toLowerCase())) {
+        return false;
+      }
+
+      // User name filter (admin only)
+      if (this.isAdmin && this.filterValues.userName && absence.userName && 
+          !absence.userName.toLowerCase().includes(this.filterValues.userName.toLowerCase())) {
+        return false;
+      }
+
+      // Start date filter - EXACT match
+      if (this.filterValues.startDate) {
+        const filterStartDate = new Date(this.filterValues.startDate);
+        const absenceStartDate = new Date(absence.startDate);
+        
+        // Compare only the date part (ignore time)
+        filterStartDate.setHours(0, 0, 0, 0);
+        absenceStartDate.setHours(0, 0, 0, 0);
+        
+        if (filterStartDate.getTime() !== absenceStartDate.getTime()) {
+          return false;
+        }
+      }
+
+      // End date filter - EXACT match
+      if (this.filterValues.endDate) {
+        const filterEndDate = new Date(this.filterValues.endDate);
+        const absenceEndDate = new Date(absence.endDate);
+        
+        // Compare only the date part (ignore time)
+        filterEndDate.setHours(0, 0, 0, 0);
+        absenceEndDate.setHours(0, 0, 0, 0);
+        
+        if (filterEndDate.getTime() !== absenceEndDate.getTime()) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  onFilterChange() {
+    this.applyFilters();
+  }
+
+  clearFilters() {
+    this.filterValues = {
+      id: '',
+      userName: '',
+      startDate: '',
+      endDate: ''
+    };
+    this.applyFilters();
+  }
+
+  // Check if any filters are active
+  get hasActiveFilters(): boolean {
+    return !!(this.filterValues.id || this.filterValues.userName || 
+              this.filterValues.startDate || this.filterValues.endDate);
+  }
+
+  // Get total count for display
+  get totalFilteredCount(): number {
+    return this.futureAbsences.length + this.ongoingAbsences.length + this.pastAbsences.length;
   }
 
   private mapAbsencesWithUserNames(absences: Absence[]): AbsenceWithUser[] {
