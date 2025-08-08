@@ -1,125 +1,512 @@
-<!-- expenses.component.html -->
 <app-header></app-header>
 <div class="main-layout">
-    <!-- Sidebar -->
-    <nav class="sidebar">
-        <ul>
-            <li><a href="/home">Početna stranica</a></li>
-            <li><a href="/assigned">Moje utakmice</a></li>
-            <li><a href="/absence">Odsustvo</a></li>
-            <li><a class="active" href="/expenses">Putni troškovi</a></li>
-            <li><a href="/rules">Dokumenti</a></li>
-            <li><a href="#">Ispiti</a></li>
-            <li><a href="#">Upute za korištenje sustava</a></li>
-        </ul>
-    </nav>
-    <section class="content">
-        <div class="page-header">
-            <h2>Putni troškovi</h2>
-            <div class="page-actions">
-                <button 
-                    class="btn btn-primary" 
-                    (click)="openModal()">
-                    Kreiraj
-                </button>
-            </div>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/home">Početna stranica</a></li>
+      <li><a href="/assigned">Moje utakmice</a></li>
+      <li><a href="/absence">Odsustvo</a></li>
+      <li><a class="active" href="/expenses">Putni troškovi</a></li>
+      <li><a href="/rules">Dokumenti</a></li>
+      <li><a href="#">Ispiti</a></li>
+      <li><a href="#">Upute za korištenje sustava</a></li>
+    </ul>
+  </nav>
+
+  <section class="content">
+    <div class="page-header">
+      <h2>Putni troškovi</h2>
+      <div class="page-actions" *ngIf="!isAdmin">
+        <button class="btn btn-primary" (click)="openModal()">Kreiraj</button>
+      </div>
+    </div>
+
+    <!-- Admin View - Three Tables -->
+    <div *ngIf="isAdmin" class="admin-view">
+      <div class="filter-section">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>ID</label>
+            <input
+              type="text"
+              placeholder="Pretraži po ID-u"
+
+              class="form-control"
+              [(ngModel)]="filterValues.id"
+              (input)="onFilterChange()"
+            />
+          </div>
+          <div class="filter-group" *ngIf="isAdmin">
+            <label>Vrsta</label>
+            <input
+              type="text"
+              placeholder="Pretraži po vrsti"
+
+              class="form-control"
+              [(ngModel)]="filterValues.type"
+              (input)="onFilterChange()"
+            />
+          </div>
+          <div class="filter-group">
+            <label>Korisnik</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Pretraži po korisniku"
+
+              [(ngModel)]="filterValues.userName"
+              [(ngModel)]="filterValues.userSurname"
+              (input)="onFilterChange()"
+            />
+          </div>
+          <div class="filter-group">
+            <label>Godina</label>
+            <select
+              class="form-control"
+              [(ngModel)]="filterValues.year"
+placeholder="Pretraži po godini"
+              (change)="onFilterChange()"
+            >
+              <option value="">Pretraži po mjesecu</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Mjesec</label>
+            <select
+              class="form-control"
+              [(ngModel)]="filterValues.month"
+              (change)="onFilterChange()"
+            >
+              <option value="">Pretraži po mjesecu</option>
+              <option value="Siječanj">Siječanj</option>
+              <option value="Veljača">Veljača</option>
+              <option value="Ožujak">Ožujak</option>
+              <option value="Travanj">Travanj</option>
+              <option value="Svibanj">Svibanj</option>
+              <option value="Lipanj">Lipanj</option>
+              <option value="Srpanj">Srpanj</option>
+              <option value="Kolovoz">Kolovoz</option>
+              <option value="Rujan">Rujan</option>
+              <option value="Listopad">Listopad</option>
+              <option value="Studeni">Studeni</option>
+              <option value="Prosinac">Prosinac</option>
+            </select>
+          </div>
+          <!-- <div class="filter-group">
+            <label>Datum Predavanja</label>
+            <input
+              type="date"
+              class="form-control"
+
+              [(ngModel)]="filterValues.submitDate"
+              (input)="onFilterChange()"
+            />
+          </div> -->
+          <div class="filter-group">
+            <button
+              class="btn btn-outline-secondary filter-btn"
+              (click)="clearFilters()"
+            >
+              <i class="fas fa-times"></i> Očisti
+            </button>
+          </div>
         </div>
-        <div class="filter-section">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>ID</label>
-                    <input type="text" class="form-control" placeholder="">
-                </div>
-                <div class="filter-group">
-                    <label>Vrsta</label>
-                    <input type="text" class="form-control" placeholder="">
-                </div>
-                <div class="filter-group">
-                    <label>Godina</label>
-                    <input type="text" class="form-control" placeholder="">
-                </div>
-                <div class="filter-group">
-                    <label>Mjesec</label>
-                    <input type="text" class="form-control" placeholder="">
-                </div>
-                <div class="filter-group">
-                    <label>Status</label>
-                    <input type="text" class="form-control" placeholder="">
-                </div>
-                <div class="filter-group">
-                    <button class="btn btn-primary filter-btn">Filtriraj</button>
-                </div>
-            </div>
-        </div>
-        <div class="table-info">
-            <span>Ukupno unosa: {{ travelExpenses.length }}</span>
+      </div>
+
+    <!-- Filter Status -->
+    <div *ngIf=" hasActiveFilters" class="admin-filter-status">
+      <span class="filter-indicator">
+        <i class="fas fa-filter"></i> 
+        Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
+      </span>
+    </div>
+
+      <!-- Submitted Reports Table (Predano) -->
+      <div class="table-section">
+        <div class="section-header submitted-header">
+          <h3><i class="fas fa-clock"></i> Predana izvješća za pregled</h3>
+          <span class="count-badge">{{ submittedExpenses.length }}</span>
         </div>
         <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Vrsta</th>
-                        <th>Korisnik</th>
-                        <th>Godina</th>
-                        <th>Mjesec</th>
-                        <th>Status</th>
-                        <th>Opcije</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let expense of travelExpenses; trackBy: trackByExpenseId">
-                        <td>{{ expense.id }}</td>
-                        <td>{{ expense.type }}</td>
-                        <td>{{ expense.userName }} {{ expense.userSurname }}</td>
-                        <td>{{ expense.year }}</td>
-                        <td>{{ expense.month }}</td>
-                        <td>{{ expense.state }}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <div class="btn-icon btn-edit" title="Uredi"
-                                (click)="editTravelExpense(expense)"><i class="fa-solid fa-pen"></i></div>
-                                <div 
-                                    class="btn-icon btn-info" 
-                                    title="Obriši"
-                                    (click)="openDeleteModal(expense)"> <i class="fas fa-trash"></i></div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr *ngIf="travelExpenses.length === 0">
-                        <td colspan="7" class="text-center">Nema podataka za prikaz</td>
-                    </tr>
-                </tbody>
-            </table>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vrsta</th>
+                <th>Korisnik</th>
+                <th>Godina</th>
+                <th>Mjesec</th>
+                <th>Iznos</th>
+                <th>Datum predavanja</th>
+                <th>Opcije</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="
+                  let expense of submittedExpenses;
+                  trackBy: trackByExpenseId
+                "
+              >
+                <td>{{ expense.id }}</td>
+                <td>{{ expense.type }}</td>
+                <td>{{ expense.userName }} {{ expense.userSurname }}</td>
+                <td>{{ expense.year }}</td>
+                <td>{{ expense.month }}</td>
+                <td class="amount-cell">
+                  {{ formatAmount(expense.totalAmount) }}
+                </td>
+                <td>{{ formatDate(expense.submittedAt!) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      class="btn-icon btn-view"
+                      title="Pregled"
+                      (click)="editTravelExpense(expense)"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-approve"
+                      title="Odobri"
+                      (click)="approveExpense(expense)"
+                    >
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-reject"
+                      title="Odbaci"
+                      (click)="rejectExpense(expense)"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="submittedExpenses.length === 0">
+                <td colspan="8" class="text-center">
+                  Nema predanih izvješća za pregled
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-    </section>
+      </div>
+
+      <!-- Approved Reports Table (Potvrđeno) -->
+      <div class="table-section">
+        <div class="section-header approved-header">
+          <h3><i class="fas fa-check-circle"></i> Odobrena izvješća</h3>
+          <span class="count-badge">{{ approvedExpenses.length }}</span>
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vrsta</th>
+                <th>Korisnik</th>
+                <th>Godina</th>
+                <th>Mjesec</th>
+                <th>Iznos</th>
+                <th>Datum odobravanja</th>
+                <th>Opcije</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="
+                  let expense of approvedExpenses;
+                  trackBy: trackByExpenseId
+                "
+              >
+                <td>{{ expense.id }}</td>
+                <td>{{ expense.type }}</td>
+                <td>{{ expense.userName }} {{ expense.userSurname }}</td>
+                <td>{{ expense.year }}</td>
+                <td>{{ expense.month }}</td>
+                <td class="amount-cell">
+                  {{ formatAmount(expense.totalAmount) }}
+                </td>
+                <td>{{ formatDate(expense.reviewedAt!) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      class="btn-icon btn-view"
+                      title="Pregled"
+                      (click)="editTravelExpense(expense)"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-reset"
+                      title="Vrati u pregled"
+                      (click)="resetToSubmitted(expense)"
+                    >
+                      <i class="fas fa-undo"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-reject"
+                      title="Odbaci"
+                      (click)="rejectExpense(expense)"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="approvedExpenses.length === 0">
+                <td colspan="8" class="text-center">Nema odobrenih izvješća</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rejected Reports Table (Odbijeno) -->
+      <div class="table-section">
+        <div class="section-header rejected-header">
+          <h3><i class="fas fa-times-circle"></i> Odbijena izvješća</h3>
+          <span class="count-badge">{{ rejectedExpenses.length }}</span>
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vrsta</th>
+                <th>Korisnik</th>
+                <th>Godina</th>
+                <th>Mjesec</th>
+                <th>Iznos</th>
+                <th>Datum odbijanja</th>
+                <th>Opcije</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="
+                  let expense of rejectedExpenses;
+                  trackBy: trackByExpenseId
+                "
+              >
+                <td>{{ expense.id }}</td>
+                <td>{{ expense.type }}</td>
+                <td>{{ expense.userName }} {{ expense.userSurname }}</td>
+                <td>{{ expense.year }}</td>
+                <td>{{ expense.month }}</td>
+                <td class="amount-cell">
+                  {{ formatAmount(expense.totalAmount) }}
+                </td>
+                <td>{{ formatDate(expense.reviewedAt!) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      class="btn-icon btn-view"
+                      title="Pregled"
+                      (click)="editTravelExpense(expense)"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-reset"
+                      title="Vrati u pregled"
+                      (click)="resetToSubmitted(expense)"
+                    >
+                      <i class="fas fa-undo"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-approve"
+                      title="Odobri"
+                      (click)="approveExpense(expense)"
+                    >
+                      <i class="fas fa-check"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="rejectedExpenses.length === 0">
+                <td colspan="8" class="text-center">Nema odbijenih izvješća</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regular User View - Single Table -->
+    <div *ngIf="!isAdmin" class="user-view">
+      <div class="filter-section">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>ID</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="filterValues.id"
+              (input)="onFilterChange()"
+            />
+          </div>
+          <div class="filter-group">
+            <label>Vrsta</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="filterValues.type"
+              (input)="onFilterChange()"
+            />
+          </div>
+          <div class="filter-group">
+            <label>Godina</label>
+            <select
+              class="form-control"
+              [(ngModel)]="filterValues.year"
+              [ariaPlaceholder]=""
+              (change)="onFilterChange()"
+            >
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Mjesec</label>
+            <select
+              class="form-control"
+              [ariaPlaceholder]=""
+              [(ngModel)]="filterValues.month"
+              (change)="onFilterChange()"
+            >
+              <option value="Siječanj">Siječanj</option>
+              <option value="Veljača">Veljača</option>
+              <option value="Ožujak">Ožujak</option>
+              <option value="Travanj">Travanj</option>
+              <option value="Svibanj">Svibanj</option>
+              <option value="Lipanj">Lipanj</option>
+              <option value="Srpanj">Srpanj</option>
+              <option value="Kolovoz">Kolovoz</option>
+              <option value="Rujan">Rujan</option>
+              <option value="Listopad">Listopad</option>
+              <option value="Studeni">Studeni</option>
+              <option value="Prosinac">Prosinac</option>
+            </select>
+          </div>
+          <div class="filter-group" *ngIf="!isAdmin">
+            <label>Status</label>
+            <select
+              class="form-control"
+              [(ngModel)]="filterValues.state"
+              [ariaPlaceholder]=""
+              (change)="onFilterChange()"
+            >
+              <option value="Skica">Skica</option>
+              <option value="Predano">Predano</option>
+              <option value="Potvrđeno">Potvrđeno</option>
+              <option value="Odbijeno">Odbijeno</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <button
+              class="btn btn-outline-secondary filter-btn"
+              (click)="clearFilters()"
+            >
+              <i class="fas fa-times"></i> Očisti
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="table-info">
+        <span>Ukupno unosa: {{ travelExpenses.length }}</span>
+      </div>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vrsta</th>
+              <!-- <th>Korisnik</th> -->
+              <th>Godina</th>
+              <th>Mjesec</th>
+              <th>Status</th>
+              <th>Opcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let expense of travelExpenses; trackBy: trackByExpenseId"
+            >
+              <td>{{ expense.id }}</td>
+              <td>{{ expense.type }}</td>
+              <!-- <td>{{ expense.userName }} {{ expense.userSurname }}</td> -->
+              <td>{{ expense.year }}</td>
+              <td>{{ expense.month }}</td>
+              <td>{{ expense.state }}</td>
+              <td>
+                <div class="action-buttons">
+                  <div
+                    class="btn-icon btn-edit"
+                    title="Uredi"
+                    (click)="editTravelExpense(expense)"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </div>
+                  <div
+                    *ngIf="expense.state === 'Skica'"
+                    class="btn-icon btn-info"
+                    title="Obriši"
+                    (click)="openDeleteModal(expense)"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="travelExpenses.length === 0">
+              <td colspan="7" class="text-center">Nema podataka za prikaz</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 </div>
 
 <!-- Modal Component -->
-<app-expenses-modal 
+<app-expenses-modal
   [isOpen]="isModalOpen"
   (close)="closeModal()"
-  (success)="onReportCreated($event)">
+  (success)="onReportCreated($event)"
+>
 </app-expenses-modal>
 
-<app-delete-expenses-modal 
+<app-delete-expenses-modal
   [isOpen]="isDeleteModalOpen"
   [expenseToDelete]="expenseToDelete"
   (close)="closeDeleteModal()"
-  (deleteConfirmed)="onDeleteConfirmed($event)">
+  (deleteConfirmed)="onDeleteConfirmed($event)"
+>
 </app-delete-expenses-modal>
 
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">
     <span class="toast-emoji">✅</span>
     <span class="toast-message">{{ successMessage }}</span>
-    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+    <button class="toast-close" (click)="clearMessages()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
-  
+
   <div *ngIf="errorMessage" class="toast toast-error">
     <span class="toast-emoji">❌</span>
     <span class="toast-message">{{ errorMessage }}</span>
-    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+    <button class="toast-close" (click)="clearMessages()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
 </div>
 

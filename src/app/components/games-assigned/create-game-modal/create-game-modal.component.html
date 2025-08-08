@@ -71,6 +71,7 @@
                 name="date"
                 class="form-control"
                 [min]="getMinDate()"
+                (change)="onDateChange()"
                 required>
             </div>
             <div class="form-group">
@@ -109,7 +110,7 @@
               <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
             </select>
           </div>
-
+<!-- 
           <div class="form-group">
             <label for="notes">Napomene</label>
             <textarea 
@@ -119,7 +120,7 @@
               class="form-control"
               rows="3"
               placeholder="Dodatne napomene o utakmici (opcionalno)"></textarea>
-          </div>
+          </div> -->
         </form>
       </div>
 
@@ -127,17 +128,22 @@
       <div *ngIf="currentStep === 2" class="step-content">
         <div class="referee-assignments">
           
-          <!-- Loading Referees -->
-          <div *ngIf="isLoadingReferees" class="loading-referees">
+          <!-- Loading Referees and Absences -->
+          <div *ngIf="isLoadingReferees || isLoadingAbsences" class="loading-referees">
             <div class="loading-spinner"></div>
-            <p>Učitavanje sudaca...</p>
+            <p>Učitavanje sudaca i provjera dostupnosti...</p>
           </div>
 
-          <div *ngIf="!isLoadingReferees" class="referee-sections">
+          <div *ngIf="!isLoadingReferees && !isLoadingAbsences" class="referee-sections">
             
             <!-- Sudci Section -->
             <div class="referee-section">
-              <h3>Sudci (2-3 obavezno)</h3>
+              <h3>
+                Sudci (2-3 obavezno)
+                <span *ngIf="gameForm.date && getUnavailableRefereesCount('Sudac') > 0" class="unavailable-count">
+                  ({{ getUnavailableRefereesCount('Sudac') }} nedostupno zbog odsusstva)
+                </span>
+              </h3>
               <div class="referee-list">
                 <div *ngFor="let sudac of selectedReferees.sudci; let i = index" class="referee-assignment">
                   <label>Sudac {{ sudac.position }}</label>
@@ -173,7 +179,12 @@
 
             <!-- Delegat Section -->
             <div class="referee-section">
-              <h3>Delegat (opcionalno)</h3>
+              <h3>
+                Delegat (opcionalno)
+                <span *ngIf="gameForm.date && getUnavailableRefereesCount('Delegat') > 0" class="unavailable-count">
+                  ({{ getUnavailableRefereesCount('Delegat') }} nedostupno zbog odsustva)
+                </span>
+              </h3>
               <div class="referee-assignment">
                 <select 
                   [(ngModel)]="selectedReferees.delegat" 
@@ -189,7 +200,12 @@
 
             <!-- Pomoćni Sudci Section -->
             <div class="referee-section">
-              <h3>Pomoćni Sudci (2-3 obavezno)</h3>
+              <h3>
+                Pomoćni Sudci (2-3 obavezno)
+                <span *ngIf="gameForm.date && getUnavailableRefereesCount('Pomoćni Sudac') > 0" class="unavailable-count">
+                  ({{ getUnavailableRefereesCount('Pomoćni Sudac') }} nedostupno zbog odsustva)
+                </span>
+              </h3>
               <div class="referee-list">
                 <div *ngFor="let pomocni of selectedReferees.pomocniSudci; let i = index" class="referee-assignment">
                   <label>Pomoćni Sudac {{ pomocni.position }}</label>
@@ -253,7 +269,7 @@
             type="button" 
             class="btn btn-success" 
             (click)="createGame()" 
-            [disabled]="isLoading || isLoadingReferees">
+            [disabled]="isLoading || isLoadingReferees || isLoadingAbsences">
             <span *ngIf="!isLoading">
               <i class="fas fa-check"></i> Kreiraj Utakmicu
             </span>

@@ -9,20 +9,98 @@
       <li><a href="/absence">Odsustvo</a></li>
       <li><a href="/expenses">Putni troškovi</a></li>
       <li><a href="/rules">Dokumenti</a></li>
-      <li><a href="#">Ispiti</a></li>
+      <li><a href="/exams">Ispiti</a></li>
       <li><a href="#">Upute za korištenje sustava</a></li>
     </ul>
   </nav>
   
   <!-- Content -->
   <section class="content">
-    <!-- Admin Create Game Button -->
-    <div *ngIf="isAdmin() && !isLoading" class="admin-actions">
+    <!-- Admin Title and Actions -->
+    <div *ngIf="isAdmin() && !isLoading" class="admin-header">
       <h1 class="admin-title">Sve Utakmice</h1>
       <button class="btn btn-primary btn-create-game" (click)="openCreateGameModal()">
         <i class="fas fa-plus"></i>
         Kreiraj Utakmicu
       </button>
+    </div>
+
+    <div *ngIf="!isAdmin() && !isLoading" class="header">
+      <h1 class="title">Sve Utakmice</h1>
+    </div>
+
+ <!-- Filter Section -->
+    <div *ngIf="!isLoading" class="filter-section">
+      <div class="filter-row">
+        <!-- <div class="filter-group">
+          <label>ID</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Pretraži po ID"
+            [(ngModel)]="filterValues.id"
+            (input)="onFilterChange()">
+        </div> -->
+                <div class="filter-group">
+          <label>Datum</label>
+          <input 
+            type="date" 
+            class="form-control"
+            [(ngModel)]="filterValues.date"
+            (change)="onFilterChange()">
+        </div>
+                <div class="filter-group">
+          <label>Mjesto</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Pretraži po mjestu"
+            [(ngModel)]="filterValues.venue"
+            (input)="onFilterChange()">
+        </div>
+        <div class="filter-group">
+          <label>Domaći Tim</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Pretraži po domaćem timu"
+            [(ngModel)]="filterValues.homeTeam"
+            (input)="onFilterChange()">
+        </div>
+        <div class="filter-group">
+          <label>Gostujući Tim</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Pretraži po gostujućem timu"
+            [(ngModel)]="filterValues.awayTeam"
+            (input)="onFilterChange()">
+        </div>
+
+        <div class="filter-group">
+          <label>Natjecanje</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Pretraži po natjecanju"
+            [(ngModel)]="filterValues.competition"
+            (input)="onFilterChange()">
+        </div>
+
+        <div class="filter-group">
+          <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
+            <i class="fas fa-times"></i> Očisti
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Status -->
+    <div *ngIf="!isLoading && hasActiveFilters" class="admin-filter-status">
+      <span class="filter-indicator">
+        <i class="fas fa-filter"></i> 
+        Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
+      </span>
     </div>
 
     <!-- Loading State -->
@@ -50,7 +128,7 @@
                 <th>Mjesto</th>
                 <th>Natjecanje</th>
                 <th>Ekipe</th>
-                <th *ngIf="!isAdmin()">Moja uloga</th>
+                <!-- <th *ngIf="!isAdmin()">Moja uloga</th> -->
                 <th>Sudački tim</th>
                 <th *ngIf="!isAdmin()">Akcije</th>
                 <th *ngIf="isAdmin()">Status</th>
@@ -64,7 +142,7 @@
                 <td>{{ game.venue }}</td>
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
-                <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td>
+                <!-- <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td> -->
                 <td>
                   <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
                   </div>
@@ -80,7 +158,7 @@
                   </div>
                 </td>
                 <td *ngIf="isAdmin()">
-                  <span [class]="getStatusClass(game)">
+                  <span class="status-badge" [ngClass]="getStatusClass(game)">
                     {{ getStatusDisplay(game) }}
                   </span>
                 </td>
@@ -115,7 +193,7 @@
                 <th>Mjesto</th>
                 <th>Natjecanje</th>
                 <th>Ekipe</th>
-                <th>Moja uloga</th>
+                <!-- <th>Moja uloga</th> -->
                 <th>Sudački tim</th>
                 <th>Status</th>
               </tr>
@@ -127,13 +205,15 @@
                 <td>{{ game.venue }}</td>
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
-                <td>{{ getMyRole(game) }}</td>
+                <!-- <td>{{ getMyRole(game) }}</td> -->
                 <td>
                   <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
                   </div>
                 </td>
                 <td>
-                  <span class="status-badge status-accepted">Potvrđeno</span>
+                  <span class="status-badge" [ngClass]="getStatusClass(game)">
+                    {{ getStatusDisplay(game) }}
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -156,7 +236,6 @@
                 <th>Mjesto</th>
                 <th>Natjecanje</th>
                 <th>Ekipe</th>
-                <th>Moja uloga</th>
                 <th>Sudački tim</th>
                 <th>Status</th>
                 <!-- <th>Rezultat</th> -->
@@ -164,28 +243,28 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of gameHistory" [class]="getStatusClass(game)">
+              <tr *ngFor="let game of gameHistory">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
-                <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td>
+                <!-- <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td> -->
                 <td>
                   <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
                   </div>
                 </td>
                 <td>
-                  <span [class]="getStatusClass(game)">
+                  <span class="status-badge" [ngClass]="getStatusClass(game)">
                     {{ getStatusDisplay(game) }}
                   </span>
                 </td>
                 <!-- <td>{{ getScoreDisplay(game) }}</td> -->
                 <td *ngIf="isAdmin()">
                   <div class="admin-action-buttons">
-                    <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
+                    <!-- <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
                       <i class="fas fa-pen"></i>
-                    </button>
+                    </button> -->
                     <button class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
                       <i class="fas fa-trash"></i>
                     </button>
@@ -200,6 +279,20 @@
   </section>
 </div>
 
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+</div>
 <!-- Toast Notifications -->
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">

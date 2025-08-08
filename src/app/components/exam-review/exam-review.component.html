@@ -1,0 +1,158 @@
+<!-- src/app/components/exam-review/exam-review.component.html -->
+<app-header></app-header>
+
+<div class="review-container" *ngIf="!loading && !error && reviewData; else loadingOrError">
+  <!-- Review Header -->
+  <div class="review-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h2>Pregled odgovora</h2>
+        <p>{{ reviewData.exam?.title || 'Sudački Ispit' }}</p>
+      </div>
+      <button class="back-btn" (click)="goBack()">
+        <i class="back-icon">←</i>
+        Povratak
+      </button>
+    </div>
+  </div>
+
+  <!-- Result Summary -->
+  <div class="result-summary">
+    <div class="summary-cards">
+      <div class="summary-card" [class]="reviewData.attempt.passed ? 'card-passed' : 'card-failed'">
+        <!-- <div class="card-icon">{{ reviewData.attempt.passed ? '🎉' : '📚' }}</div> -->
+        <div class="card-content">
+          <div class="card-title">{{ reviewData.attempt.passed ? 'POLOŽEN' : 'NEPOLOŽEN' }}</div>
+          <div class="card-subtitle">{{ getScorePercentage() }}% ({{ reviewData.attempt.score }}/25)</div>
+        </div>
+      </div>
+
+      <div class="summary-stats">
+        <div class="stat-item correct">
+          <span class="stat-icon">✅</span>
+          <span class="stat-value">{{ getCorrectCount() }}</span>
+          <span class="stat-label">Točno</span>
+        </div>
+        <div class="stat-item incorrect">
+          <span class="stat-icon">❌</span>
+          <span class="stat-value">{{ getIncorrectCount() }}</span>
+          <span class="stat-label">Netočno</span>
+        </div>
+        <div class="stat-item unanswered">
+          <span class="stat-icon">❔</span>
+          <span class="stat-value">{{ getUnansweredCount() }}</span>
+          <span class="stat-label">Neodgovoreno</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="exam-info">
+      <div class="info-item">
+        <span class="info-label">Datum:</span>
+        <span class="info-value">{{ formatDate() }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Vrijeme:</span>
+        <span class="info-value">{{ formatTimeSpent() }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Korisnik:</span>
+        <span class="info-value">{{ reviewData.user.name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="filter-controls">
+    <h3>Pregled pitanja</h3>
+    <div class="filter-buttons">
+      <button 
+        [class]="showFilter === 'all' ? 'filter-btn active' : 'filter-btn'"
+        (click)="showFilter = 'all'"
+      >
+        Sva pitanja ({{ reviewQuestions.length }})
+      </button>
+      <button 
+        [class]="showFilter === 'correct' ? 'filter-btn active correct' : 'filter-btn correct'"
+        (click)="showFilter = 'correct'"
+      >
+        Točni odgovori ({{ getCorrectCount() }})
+      </button>
+      <button 
+        [class]="showFilter === 'incorrect' ? 'filter-btn active incorrect' : 'filter-btn incorrect'"
+        (click)="showFilter = 'incorrect'"
+      >
+        Netočni odgovori ({{ getIncorrectCount() }})
+      </button>
+      <button 
+        [class]="showFilter === 'unanswered' ? 'filter-btn active unanswered' : 'filter-btn unanswered'"
+        (click)="showFilter = 'unanswered'"
+      >
+        Neodgovoreno ({{ getUnansweredCount() }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Questions Review -->
+  <div class="questions-review">
+    <div *ngFor="let question of getFilteredQuestions(); let i = index" class="question-card">
+      <div class="question-header">
+        <span class="question-number">Pitanje {{ question.questionIndex + 1 }}</span>
+        <span class="question-status" [class]="getAnswerClass(question)">
+          <span *ngIf="question.userAnswer === null">❔</span>
+          <span *ngIf="question.userAnswer !== null && question.isCorrect">✅</span>
+          <span *ngIf="question.userAnswer !== null && !question.isCorrect">❌</span>
+        </span>
+      </div>
+
+      <div class="question-text">
+        {{ question.questionText }}
+      </div>
+
+      <div class="answer-comparison">
+        <div class="answer-row">
+          <span class="answer-label">Vaš odgovor:</span>
+          <span class="answer-value" [class]="getAnswerClass(question)">
+            {{ getAnswerText(question.userAnswer) }}
+          </span>
+        </div>
+        <div class="answer-row">
+          <span class="answer-label">Točan odgovor:</span>
+          <span class="answer-value correct">
+            {{ getAnswerText(question.correctAnswer) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="getFilteredQuestions().length === 0" class="no-questions">
+      <p>Nema pitanja za prikaz s odabranim filtrom.</p>
+    </div>
+  </div>
+
+  <!-- Bottom Back Button -->
+  <div class="bottom-actions">
+    <button class="back-btn" (click)="goBack()">
+      <i class="back-icon">←</i>
+      Povratak
+    </button>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <div class="loading-container">
+    <div *ngIf="loading" class="loading-message">
+      <div class="spinner"></div>
+      <p>Učitavam pregled odgovora...</p>
+    </div>
+    
+    <div *ngIf="error" class="error-message">
+      <div class="error-icon">❌</div>
+      <h3>Greška</h3>
+      <p>{{ error }}</p>
+      <button class="back-btn" (click)="goBack()">Povratak na ispite</button>
+    </div>
+  </div>
+</ng-template>
+
+<app-footer></app-footer>

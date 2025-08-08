@@ -9,5 +9,5 @@ import { AuthComponent } from "./components/auth/auth.component";
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'ukspgz-frontend';
+  title = 'uhks';
 }

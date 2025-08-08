@@ -1,7 +1,51 @@
+<!-- src/app/components/header/header.component.html -->
 <header class="header">
   <h1>IS Košarkaškog Saveza</h1>
   <div class="user-info">
     <div class="header-buttons">
+      
+      <!-- Notification Bell -->
+      <div class="notification-dropdown">
+        <div class="notification-icon" [class.has-notifications]="hasUnreadNotifications">
+          <i class="fas fa-bell"></i>
+          <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+        </div>
+        <div class="dropdown-menu notification-menu">
+          <div class="notification-header">
+            <span>Obavještenja</span>
+            <button *ngIf="notifications.length > 0" class="mark-all-read" (click)="markAllAsRead()">
+              Označi sve kao pročitano
+            </button>
+          </div>
+          
+          <div class="notification-list">
+            <div *ngIf="notifications.length === 0" class="no-notifications">
+              Nema novih obavještenja
+            </div>
+            
+            <div *ngFor="let notification of notifications" 
+                 class="notification-item" 
+                 [class.unread]="!notification.isRead"
+                 (click)="markAsRead(notification)">
+              <div class="notification-content">
+                <div class="notification-text">{{ notification.message }}</div>
+                <div class="notification-meta">
+                  <span class="notification-time">{{ formatNotificationTime(notification.createdAt) }}</span>
+                  <span *ngIf="!notification.isRead" class="unread-dot"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="notifications.length > 3" class="notification-footer">
+            <button class="view-all-btn" (click)="viewAllNotifications()">
+              Prikaži sve obavještenja
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Dropdown -->
       <div class="user-dropdown">
         <div class="user-icon"><i class="fas fa-user"></i></div>
         <div class="dropdown-menu">

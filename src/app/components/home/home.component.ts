@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HeaderComponent } from "../header/header.component";
 import { FooterComponent } from "../footer/footer.component";
 import { AuthService } from '../../services/login.service';
@@ -7,7 +7,7 @@ import { User } from '../../model/user.model';
 
 @Component({
   selector: 'app-home',
-  imports: [HeaderComponent, FooterComponent],
+  imports: [RouterModule, HeaderComponent, FooterComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

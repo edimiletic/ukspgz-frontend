@@ -20,6 +20,11 @@
             <p>Učitavanje izvješća...</p>
         </div>
 
+        <a href="/expenses" class="back-button-simple">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span class="back-text"></span>
+        </a>
+        
         <!-- Report Content -->
         <div *ngIf="report && !isLoading" class="report-container">
             <!-- Page Header with Title and Print Button -->
@@ -66,10 +71,48 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="btn btn-primary" (click)="onSubmitReport()">Predaj</button>
-                <button class="btn btn-danger" (click)="onDeleteReport()">Izbriši</button>
+            <!-- Action Buttons for Regular Users - Hidden only for Admin -->
+            <div class="action-buttons" *ngIf="!isAdmin">
+                <button 
+                    *ngIf="report.state === 'Skica'" 
+                    class="btn btn-primary" 
+                    (click)="onSubmitReport()">
+                    Predaj
+                </button>
+                <button 
+                    *ngIf="report.state === 'Skica'"
+                    class="btn btn-danger" 
+                    (click)="onDeleteReport()">
+                    Izbriši
+                </button>
+            </div>
+
+            <!-- Admin Action Buttons -->
+            <div class="admin-action-buttons" *ngIf="isAdmin && report.state !== 'Skica'">
+                <button 
+                    class="btn btn-success" 
+                    (click)="approveExpense(report)"
+                    [disabled]="report.state === 'Potvrđeno'"
+                    title="Odobri izvješće">
+                    <i class="fas fa-check"></i>
+                    Potvrdi
+                </button>
+                <button 
+                    class="btn btn-danger" 
+                    (click)="rejectExpense(report)"
+                    [disabled]="report.state === 'Odbijeno'"
+                    title="Odbaci izvješće">
+                    <i class="fas fa-times"></i>
+                    Odbaci
+                </button>
+                <button 
+                    *ngIf="report.state !== 'Predano'"
+                    class="btn btn-warning" 
+                    (click)="resetToSubmitted(report)"
+                    title="Vrati u status 'Predano'">
+                    <i class="fas fa-undo"></i>
+                    Vrati u pregled
+                </button>
             </div>
 
             <!-- Expenses Section -->
@@ -92,7 +135,7 @@
                                     <th>Vrsta</th>
                                     <th>Kratki Opis</th>
                                     <th>Ukupna Cijena</th>
-                                    <th>Akcija</th>
+                                    <th *ngIf="!isAdmin">Akcija</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -101,7 +144,7 @@
                                     <td>{{ getExpenseTypeDisplay(expense) }}</td>
                                     <td>{{ expense.description }}</td>
                                     <td class="amount-cell">{{ formatAmount(expense.amount) }}</td>
-                                    <td>
+                                    <td *ngIf="!isAdmin">
                                         <div class="expense-actions">
                                             <button 
                                                 *ngIf="showDeleteButton()" 

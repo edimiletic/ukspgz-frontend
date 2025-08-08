@@ -11,6 +11,7 @@ import { User } from '../../model/user.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 
 interface AbsenceWithUser extends Absence {
@@ -19,7 +20,7 @@ interface AbsenceWithUser extends Absence {
 
 @Component({
   selector: 'app-time-absent',
-  imports: [HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule],
+  imports: [RouterModule ,HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule],
   templateUrl: './time-absent.component.html',
   styleUrl: './time-absent.component.scss'
 })
@@ -235,15 +236,15 @@ isModalOpen = false;
     return this.futureAbsences.length + this.ongoingAbsences.length + this.pastAbsences.length;
   }
 
-  private mapAbsencesWithUserNames(absences: Absence[]): AbsenceWithUser[] {
-    return absences.map(absence => {
-      const user = this.users.find(u => u.personalCode === absence.userPersonalCode);
-      return {
-        ...absence,
-        userName: user ? `${user.name} ${user.surname}` : 'Nepoznato ime'
-      };
-    });
-  }
+  // private mapAbsencesWithUserNames(absences: Absence[]): AbsenceWithUser[] {
+  //   return absences.map(absence => {
+  //     const user = this.users.find(u => u.personalCode === absence.userPersonalCode);
+  //     return {
+  //       ...absence,
+  //       userName: user ? `${user.name} ${user.surname}` : 'Nepoznato ime'
+  //     };
+  //   });
+  // }
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);

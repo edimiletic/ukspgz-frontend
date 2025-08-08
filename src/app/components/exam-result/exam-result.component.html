@@ -1,0 +1,174 @@
+<!-- src/app/components/exam-result/exam-result.component.html -->
+<app-header></app-header>
+
+<div class="result-container">
+  <!-- Confetti Animation -->
+  <div class="confetti" *ngIf="showConfetti">
+    <div class="confetti-piece" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]"></div>
+  </div>
+
+  <!-- Auto-submit Notice -->
+  <div class="auto-submit-notice" *ngIf="autoSubmit">
+    <div class="notice-content">
+      <!-- <i class="notice-icon">⏰</i> -->
+      <span>Ispit je automatski poslan jer je vrijeme isteklo.</span>
+    </div>
+  </div>
+
+  <!-- Main Result Card -->
+  <div class="result-card">
+    <div class="result-header">
+      <!-- <div class="result-icon">{{ getResultIcon() }}</div> -->
+      <h1 class="result-title">{{ getResultTitle() }}</h1>
+      <!-- <p class="result-message" *ngIf="result?.message">{{ result?.message }}</p> -->
+    </div>
+
+    <!-- Score Display -->
+    <div class="score-section">
+      <div class="score-circle" [class]="getScoreClass()">
+        <div class="score-value">{{ result?.score || 0 }}</div>
+        <div class="score-total">/ 25</div>
+      </div>
+      
+      <div class="score-details">
+        <div class="percentage" [class]="getScoreClass()">
+          {{ getScorePercentage() }}%
+        </div>
+        <div class="grade-description">
+          {{ getGradeDescription() }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Statistics -->
+    <div class="stats-section">
+      <div class="stat-grid">
+        <div class="stat-item">
+          <div class="stat-icon correct">✅</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ result?.score || 0 }}</div>
+            <div class="stat-label">Točnih odgovora</div>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon incorrect">❌</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ 25 - (result?.score || 0) }}</div>
+            <div class="stat-label">Netočnih odgovora</div>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon time">⏱️</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ formatTimeSpent() }}</div>
+            <div class="stat-label">Vremena utrošeno</div>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon required">🎯</div>
+          <div class="stat-content">
+            <div class="stat-value">20</div>
+            <div class="stat-label">Potrebno za prolaz</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pass/Fail Status -->
+    <div class="status-section">
+      <div class="status-badge" [class]="result?.passed ? 'status-passed' : 'status-failed'">
+        <!-- <i class="status-icon">{{ result?.passed ? '🏆' : '📚' }}</i> -->
+        <span class="status-text">
+          {{ result?.passed ? 'POLOŽEN ISPIT' : 'NEPOLOŽEN ISPIT' }}
+        </span>
+      </div>
+
+      <div class="status-details">
+        <p *ngIf="result?.passed" class="success-text">
+          Uspješno ste završili ispit s rezultatom {{ getScorePercentage() }}%. 
+          Vaš certifikat će biti uskoro dostupan za preuzimanje.
+        </p>
+        <p *ngIf="!result?.passed" class="fail-text">
+          Za prolaz je potrebno najmanje 20 točnih odgovora (80%). 
+          Možete pokušati ponovo kad god budete spremni.
+        </p>
+      </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="info-section">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Datum i vrijeme:</span>
+          <span class="info-value">{{ formatDate() }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Tip ispita:</span>
+          <span class="info-value">Sudački ispit (25 pitanja)</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Način završetka:</span>
+          <span class="info-value">{{ autoSubmit ? 'Automatski (isteklo vrijeme)' : 'Ručno poslano' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-section">
+      <div class="primary-actions">
+        <button class="review-answers-btn" (click)="reviewAnswers()">
+          <!-- <i class="btn-icon">🔍</i> -->
+          Pregled odgovora
+        </button>
+
+        <button 
+          class="certificate-btn" 
+          *ngIf="result?.passed" 
+          (click)="downloadCertificate()"
+        >
+          <i class="btn-icon">📜</i>
+          Preuzmi certifikat
+        </button>
+        
+        <button 
+          class="retake-btn" 
+          *ngIf="!result?.passed" 
+          (click)="retakeExam()"
+          [disabled]="generatingRetakeExam"
+        >
+          <!-- <i class="btn-icon">🔄</i> -->
+          {{ generatingRetakeExam ? 'Priprema ispita...' : 'Pokušaj ponovo' }}
+        </button>
+
+        <button class="view-attempts-btn" (click)="viewAllAttempts()">
+          <!-- <i class="btn-icon">🏠</i> -->
+          Povratak na ispite
+        </button>
+      </div>
+
+      <!-- <div class="secondary-actions">
+        <button class="back-btn" (click)="retakeExam()">
+          <i class="btn-icon">🏠</i>
+          Povratak na ispite
+        </button>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- Additional Tips -->
+  <div class="tips-section" *ngIf="!result?.passed">
+    <h3>Savjeti za sljedeći pokušaj:</h3>
+    <ul class="tips-list">
+      <li>📖 Pregledajte pravila košarke i najčešće situacije u igri</li>
+      <li>⏰ Planirajte vrijeme - imate 2 sata za 25 pitanja</li>
+      <li>🎯 Fokusirajte se na kategorije gdje ste imali najviše grešaka</li>
+      <li>💭 Pažljivo čitajte svako pitanje prije odgovaranja</li>
+      <li>✅ Odgovorite na sva pitanja - nema negativnih bodova</li>
+    </ul>
+  </div>
+</div>
+
+<app-footer></app-footer>

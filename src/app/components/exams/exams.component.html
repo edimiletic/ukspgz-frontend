@@ -1,0 +1,211 @@
+<!-- src/app/components/exams/exams.component.html -->
+<app-header></app-header>
+<div class="main-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/home">Početna stranica</a></li>
+      <li><a href="/assigned">Moje utakmice</a></li>
+      <li><a href="/absence">Odsustvo</a></li>
+      <li><a href="/expenses">Putni troškovi</a></li>
+      <li><a href="/rules">Dokumenti</a></li>
+      <li><a class="active" href="/exams">Ispiti</a></li>
+      <li><a href="#">Upute za korištenje sustava</a></li>
+    </ul>
+  </nav>
+  
+  <!-- Content -->
+  <section class="content">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-text">
+          <h2>Ispiti</h2>
+          <p>Ovdje možete pokrenuti novi ispit i pregledati svoje rezultate.</p>
+        </div>
+        <div class="header-actions" *ngIf="isAdmin()">
+          <button class="add-question-btn" (click)="openAddQuestionModal()">
+            <i class="icon-plus"></i>
+            Kreiraj novo pitanje
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Stats Section -->
+    <div class="admin-stats" *ngIf="currentUser?.role === 'Admin' && examStats">
+      <h3>Statistike ispita</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-value">{{ examStats.activeQuestions }}</span>
+          <span class="stat-label">Aktivna pitanja</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ examStats.totalAttempts }}</span>
+          <span class="stat-label">Ukupno pokušaja</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ examStats.passRate }}%</span>
+          <span class="stat-label">Prolaznost</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      <h3>Greška</h3>
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Current Exam Section -->
+    <div class="exam-start-section" *ngIf="currentExam && !isExamExpired(); else noExamSection">
+      <div class="exam-info">
+        <h3>{{ currentExam.title }}</h3>
+        <div class="exam-details">
+          <div class="detail-item">
+            <span class="label">Broj pitanja:</span>
+            <span class="value">{{ currentExam.questions.length || 25 }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Potrebno za prolaz:</span>
+            <span class="value">{{ currentExam.passingScore }}/{{ currentExam.questions.length || 25 }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tip pitanja:</span>
+            <span class="value">Da/Ne</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Preostalo vrijeme:</span>
+            <span class="value time-remaining">{{ getTimeRemaining() }}</span>
+          </div>
+        </div>
+      </div>
+      <button class="continue-exam-btn" (click)="continueExistingExam()" [disabled]="currentExam.isCompleted">
+        <i class="icon-play"></i>
+        {{ currentExam.isCompleted ? 'Ispit završen' : 'Nastavi ispit' }}
+      </button>
+    </div>
+
+    <ng-template #noExamSection>
+      <!-- New Exam Section -->
+      <div class="exam-start-section">
+        <div class="exam-info">
+          <h3>Sudački Ispit</h3>
+          <p>Klikom na gumb "Pokreni Ispit" automatski će se generirati novi ispit s 25 nasumično odabranih pitanja.</p>
+          <div class="exam-details">
+            <div class="detail-item">
+              <span class="label">Broj pitanja:</span>
+              <span class="value">25</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Potrebno za prolaz:</span>
+              <span class="value">20/25</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Tip pitanja:</span>
+              <span class="value">Da/Ne</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Vrijeme za rješavanje:</span>
+              <span class="value">2 sata</span>
+            </div>
+          </div>
+        </div>
+        <button class="start-exam-btn" (click)="startNewExam()" [disabled]="generatingExam">
+          <i class="icon-play"></i>
+          {{ generatingExam ? 'Priprema ispita...' : 'Pokreni Ispit' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- Previous Attempts Section -->
+    <div class="attempts-section">
+      <h3>Vaši prethodni pokušaji</h3>
+      
+      <div *ngIf="loading" class="loading-message">
+        Učitavam podatke...
+      </div>
+
+      <div *ngIf="!loading && userAttempts.length === 0" class="no-attempts-message">
+        <p>Još niste pokušali riješiti nijedan ispit.</p>
+      </div>
+
+      <div *ngIf="!loading && userAttempts.length > 0" class="attempts-table-container">
+        <table class="attempts-table">
+          <thead>
+            <tr>
+              <th>Naziv ispita</th>
+              <th>Datum</th>
+              <th>Rezultat</th>
+              <th>Status</th>
+              <th>Vrijeme</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let attempt of userAttempts" class="attempt-row">
+              <td class="exam-title">{{ getExamTitle(attempt) }}</td>
+              <td class="attempt-date">
+                {{ attempt.completedAt ? formatDate(attempt.completedAt) : 'N/A' }}
+              </td>
+              <td class="attempt-score">
+                <span class="score-fraction">{{ attempt.score || 0 }}/25</span>
+                <span class="score-percentage">({{ ((attempt.score || 0) / 25 * 100).toFixed(0) }}%)</span>
+              </td>
+              <td class="attempt-status">
+                <span [class]="getAttemptStatusClass(attempt)">
+                  {{ getAttemptStatusText(attempt) }}
+                </span>
+              </td>
+              <td class="attempt-time">{{ formatTimeSpent(attempt.timeSpent || 0) }}</td>
+              <td class="attempt-actions">
+                <button 
+                  class="btn-icon btn-info" 
+                  (click)="reviewAttempt(attempt)"
+                  title="Pregled odgovora"
+                >
+                  <i class="fas fa-search"></i>
+                </button>
+                <button 
+                  class="btn-icon btn-delete" 
+                  (click)="deleteAttempt(attempt._id)"
+                  title="Obriši pokušaj"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Add Question Modal -->
+<app-add-question-modal
+  [isOpen]="showAddQuestionModal"
+  (closeModal)="closeAddQuestionModal()"
+  (questionAdded)="onQuestionAdded($event)"
+></app-add-question-modal>
+
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()">
+      <span>&times;</span>
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()">
+      <span>&times;</span>
+    </button>
+  </div>
+</div>
+
+<app-footer></app-footer>

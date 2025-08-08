@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { HeaderComponent } from "../header/header.component";
 import { FooterComponent } from "../footer/footer.component";
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-basket-rules',
-  imports: [HeaderComponent, FooterComponent],
+  imports: [HeaderComponent, FooterComponent, RouterModule],
   templateUrl: './basket-rules.component.html',
   styleUrl: './basket-rules.component.scss'
 })

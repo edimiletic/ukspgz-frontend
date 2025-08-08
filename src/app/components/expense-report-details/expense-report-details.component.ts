@@ -1,7 +1,10 @@
+// Add to expense-report-details.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { ExpenseItem, TravelExpense } from '../../model/travel-expense.model';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TravelExpenseService } from '../../services/travel-expense.service';
+import { AuthService } from '../../services/login.service';
 import { CommonModule } from '@angular/common';
 import { FooterComponent } from "../footer/footer.component";
 import { HeaderComponent } from "../header/header.component";
@@ -12,12 +15,12 @@ import { DeleteItemModalComponent } from './delete-item-modal/delete-item-modal.
 
 @Component({
   selector: 'app-expense-report-details',
-  imports: [CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent],
+  imports: [RouterModule,CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent],
   templateUrl: './expense-report-details.component.html',
   styleUrl: './expense-report-details.component.scss'
 })
 export class ExpenseReportDetailsComponent implements OnInit {
-  report: TravelExpense | null = null;
+ report: TravelExpense | null = null;
   isLoading = true;
   errorMessage = '';
   successMessage = '';
@@ -26,43 +29,57 @@ export class ExpenseReportDetailsComponent implements OnInit {
   isSubmitModalOpen = false;
   isDeleteExpenseItemModalOpen = false;
   expenseItemToDelete = '';
+  
+  // Add these properties
+  isAdmin = false;
+  currentUser: any = null;
+  isOwner = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private travelExpenseService: TravelExpenseService
+    private travelExpenseService: TravelExpenseService,
+    private authService: AuthService // Remove HttpClient
   ) {}
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
-      const reportId = params['id'];
-      if (reportId) {
-        this.loadReport(reportId);
-      } else {
-        this.showError('ID izvješća nije pronađen.');
-        this.isLoading = false;
-      }
-    });
+    this.loadCurrentUser();
   }
 
-  // Helper method to get current user role from wherever you store it
-  private getCurrentUserRole(): string {
-    // Replace this with however you access the current user's role
-    // Examples:
-    const userData = localStorage.getItem('currentUser');
-    if (userData) {
-      const user = JSON.parse(userData);
-      return user.role;
-    }
-    
-    // Or if you have an auth service:
-    // return this.authService.currentUser?.role || '';
-    
-    // Or if it's stored in a token:
-    // const token = localStorage.getItem('token');
-    // const decodedToken = this.jwtHelper.decodeToken(token);
-    // return decodedToken?.role || '';
-    
-    return '';
+  // Add this method to load current user first
+  private loadCurrentUser() {
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+        this.isAdmin = user.role === 'Admin';
+        console.log('Current user role:', user.role, 'Is Admin:', this.isAdmin);
+        
+        // Now load the report
+        this.route.params.subscribe(params => {
+          const reportId = params['id'];
+          if (reportId) {
+            this.loadReport(reportId);
+          } else {
+            this.showError('ID izvješća nije pronađen.');
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading current user:', error);
+        this.isAdmin = false;
+        // Still try to load the report
+        this.route.params.subscribe(params => {
+          const reportId = params['id'];
+          if (reportId) {
+            this.loadReport(reportId);
+          } else {
+            this.showError('ID izvješća nije pronađen.');
+            this.isLoading = false;
+          }
+        });
+      }
+    });
   }
 
   private loadReport(reportId: string) {
@@ -71,7 +88,11 @@ export class ExpenseReportDetailsComponent implements OnInit {
       next: (report) => {
         this.report = report;
         this.isLoading = false;
+        
+        // Check if current user is the owner of this report
+        this.isOwner = this.currentUser && this.currentUser._id === report.userId;
         console.log('Report loaded:', report);
+        console.log('Is owner:', this.isOwner, 'Is admin:', this.isAdmin);
       },
       error: (error) => {
         console.error('Error loading report:', error);
@@ -81,9 +102,50 @@ export class ExpenseReportDetailsComponent implements OnInit {
     });
   }
 
+  // Add method to check if submit button should be shown
+  shouldShowSubmitButton(): boolean {
+    if (!this.report) return false;
+    
+    // Only show submit button if:
+    // 1. User is the owner of the report, AND
+    // 2. Report is in 'Skica' state, AND  
+    // 3. User is NOT an admin (admins shouldn't submit reports)
+    return this.isOwner && this.report.state === 'Skica' && !this.isAdmin;
+  }
+
+  // Add method to check if delete button should be shown
+  shouldShowDeleteButton(): boolean {
+    if (!this.report) return false;
+    
+    // Only show delete button if:
+    // 1. User is the owner of the report, AND
+    // 2. User is NOT an admin (admins shouldn't delete reports from detail view)
+    return this.isOwner && !this.isAdmin;
+  }
+
+  // Helper method to get current user role from wherever you store it
+  private getCurrentUserRole(): string {
+    if (this.currentUser) {
+      return this.currentUser.role;
+    }
+    
+    // Fallback to localStorage if needed
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.role;
+    }
+    
+    return '';
+  }
+
   onSubmitReport() {
-    if (this.report) {
+    if (this.report && this.report.state === 'Skica' && !this.isAdmin) {
       this.isSubmitModalOpen = true;
+    } else if (this.isAdmin) {
+      console.log('Admin users cannot submit reports');
+    } else if (this.report?.state !== 'Skica') {
+      this.showError('Možete predati samo izvješća u statusu "Skica".');
     }
   }
 
@@ -102,8 +164,10 @@ export class ExpenseReportDetailsComponent implements OnInit {
   }
 
   onDeleteReport() {
-    if (this.report) {
+    if (this.report && !this.isAdmin) {
       this.isDeleteModalOpen = true;
+    } else if (this.isAdmin) {
+      console.log('Admin users cannot delete reports from detail view');
     }
   }
 
@@ -423,5 +487,150 @@ export class ExpenseReportDetailsComponent implements OnInit {
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+  }
+
+  // Admin action methods - Using TravelExpenseService
+  approveExpense(expense: TravelExpense) {
+    if (!this.isAdmin || !expense) {
+      console.log('Cannot approve: isAdmin =', this.isAdmin, 'expense =', expense);
+      return;
+    }
+    
+    console.log('Approving expense:', expense.id, 'Current state:', expense.state);
+    
+    // Create update data that matches TravelExpenseUpdateRequest interface
+    const updateData = {
+      id: expense.id,
+      type: expense.type,
+      season: expense.season,
+      year: expense.year,
+      month: expense.month,
+      state: 'Potvrđeno',
+      expenses: expense.expenses || [],
+      userId: expense.userId,
+      userName: expense.userName,
+      userSurname: expense.userSurname,
+      totalAmount: expense.totalAmount,
+      createdAt: expense.createdAt,
+      updatedAt: expense.updatedAt,
+      submittedAt: expense.submittedAt,
+      reviewedAt: expense.reviewedAt,
+      reviewedBy: expense.reviewedBy,
+      reviewComments: expense.reviewComments
+    };
+    
+    console.log('Sending approval via service');
+    
+    this.travelExpenseService.updateTravelExpense(updateData).subscribe({
+      next: (updated) => {
+        console.log('Expense approved successfully:', updated);
+        this.report = updated;
+        this.showSuccess('Izvješće je uspješno odobreno!');
+      },
+      error: (error) => {
+        console.error('Error approving expense:', error);
+        let errorMessage = 'Greška pri odobravanju izvješća.';
+        if (error.error?.error) {
+          errorMessage += ' ' + error.error.error;
+        }
+        this.showError(errorMessage);
+      }
+    });
+  }
+
+  rejectExpense(expense: TravelExpense) {
+    if (!this.isAdmin || !expense) {
+      console.log('Cannot reject: isAdmin =', this.isAdmin, 'expense =', expense);
+      return;
+    }
+    
+    console.log('Rejecting expense:', expense.id, 'Current state:', expense.state);
+    
+    // Create update data that matches TravelExpenseUpdateRequest interface
+    const updateData = {
+      id: expense.id,
+      type: expense.type,
+      season: expense.season,
+      year: expense.year,
+      month: expense.month,
+      state: 'Odbijeno',
+      expenses: expense.expenses || [],
+      userId: expense.userId,
+      userName: expense.userName,
+      userSurname: expense.userSurname,
+      totalAmount: expense.totalAmount,
+      createdAt: expense.createdAt,
+      updatedAt: expense.updatedAt,
+      submittedAt: expense.submittedAt,
+      reviewedAt: expense.reviewedAt,
+      reviewedBy: expense.reviewedBy,
+      reviewComments: expense.reviewComments
+    };
+    
+    console.log('Sending rejection via service');
+    
+    this.travelExpenseService.updateTravelExpense(updateData).subscribe({
+      next: (updated) => {
+        console.log('Expense rejected successfully:', updated);
+        this.report = updated;
+        this.showSuccess('Izvješće je uspješno odbijeno!');
+      },
+      error: (error) => {
+        console.error('Error rejecting expense:', error);
+        let errorMessage = 'Greška pri odbijanju izvješća.';
+        if (error.error?.error) {
+          errorMessage += ' ' + error.error.error;
+        }
+        this.showError(errorMessage);
+      }
+    });
+  }
+
+  resetToSubmitted(expense: TravelExpense) {
+    if (!this.isAdmin || !expense) {
+      console.log('Cannot reset: isAdmin =', this.isAdmin, 'expense =', expense);
+      return;
+    }
+    
+    console.log('Resetting expense to submitted:', expense.id, 'Current state:', expense.state);
+    
+    // Create update data that matches TravelExpenseUpdateRequest interface
+    const updateData = {
+      id: expense.id,
+      type: expense.type,
+      season: expense.season,
+      year: expense.year,
+      month: expense.month,
+      state: 'Predano',
+      expenses: expense.expenses || [],
+      userId: expense.userId,
+      userName: expense.userName,
+      userSurname: expense.userSurname,
+      totalAmount: expense.totalAmount,
+      createdAt: expense.createdAt,
+      updatedAt: expense.updatedAt,
+      submittedAt: expense.submittedAt,
+      reviewedAt: expense.reviewedAt,
+      reviewedBy: expense.reviewedBy,
+      reviewComments: expense.reviewComments
+    };
+    
+    console.log('Sending reset via service');
+    
+    this.travelExpenseService.updateTravelExpense(updateData).subscribe({
+      next: (updated) => {
+        console.log('Expense reset successfully:', updated);
+        this.report = updated;
+        this.showSuccess('Izvješće je vraćeno u status "Predano"!');
+      },
+      error: (error) => {
+        console.error('Error resetting expense:', error);
+        let errorMessage = 'Greška pri mijenjanju statusa izvješća.';
+        if (error.error?.error) {
+          errorMessage += ' ' + error.error.error;
+        }
+        this.showError(errorMessage);
+      }
+    });
   }
 }

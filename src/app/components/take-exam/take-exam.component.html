@@ -1,0 +1,234 @@
+<!-- src/app/components/take-exam/take-exam.component.html -->
+<app-header></app-header>
+
+<div class="exam-container" *ngIf="exam && !error; else errorTemplate">
+  <!-- Exam Header -->
+  <div class="exam-header">
+    <div class="exam-info">
+      <h2>{{ exam.title }}</h2>
+      <div class="exam-meta">
+        <span class="question-counter">Pitanje {{ getQuestionNumber() }} od {{ getTotalQuestions() }}</span>
+        <span class="progress-text">{{ getAnsweredCount() }}/{{ getTotalQuestions() }} odgovoreno</span>
+      </div>
+    </div>
+    
+    <div class="exam-controls">
+      <div class="timer" [class]="getTimerClass()">
+        <i class="timer-icon">⏰</i>
+        <span class="timer-text">{{ formatTime(timeRemaining) }}</span>
+      </div>
+      <button class="exit-btn" (click)="exitExam()" [disabled]="isSubmitting">
+        <i class="exit-icon">🚪</i>
+        Izađi
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+    </div>
+  </div>
+
+  <div class="exam-content">
+    <!-- Question Navigation -->
+    <div class="question-nav">
+      <h4>Navigacija po pitanjima</h4>
+      <div class="question-grid">
+        <button 
+          *ngFor="let question of exam.questions; let i = index"
+          class="question-nav-btn"
+          [class]="getQuestionStatusClass(i)"
+          (click)="goToQuestion(i)"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+      
+      <div class="nav-legend">
+        <div class="legend-item">
+          <span class="legend-dot current"></span>
+          <span>Trenutno</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot answered"></span>
+          <span>Odgovoreno</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot unanswered"></span>
+          <span>Neodgovoreno</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Question -->
+    <div class="question-section">
+      <div class="question-card">
+        <div class="question-header">
+          <span class="question-label">Pitanje {{ getQuestionNumber() }}</span>
+        </div>
+        
+        <div class="question-text">
+          {{ getCurrentQuestion()?.questionText }}
+        </div>
+
+        <div class="answer-options">
+          <div class="answer-option">
+            <input 
+              type="radio" 
+              [id]="'answer-true-' + currentQuestionIndex"
+              [name]="'question-' + currentQuestionIndex"
+              [value]="true"
+              [checked]="userAnswers[currentQuestionIndex] === true"
+              (change)="selectAnswer(currentQuestionIndex, true)"
+            >
+            <label [for]="'answer-true-' + currentQuestionIndex" class="answer-label answer-true">
+              <span class="answer-text">Da</span>
+              <span class="checkmark"></span>
+            </label>
+          </div>
+
+          <div class="answer-option">
+            <input 
+              type="radio" 
+              [id]="'answer-false-' + currentQuestionIndex"
+              [name]="'question-' + currentQuestionIndex"
+              [value]="false"
+              [checked]="userAnswers[currentQuestionIndex] === false"
+              (change)="selectAnswer(currentQuestionIndex, false)"
+            >
+            <label [for]="'answer-false-' + currentQuestionIndex" class="answer-label answer-false">
+              <span class="answer-text">Ne</span>
+              <span class="checkmark"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Navigation Controls -->
+      <div class="question-controls">
+        <button 
+          class="nav-btn prev-btn" 
+          (click)="previousQuestion()" 
+          [disabled]="currentQuestionIndex === 0"
+        >
+          <i class="nav-icon">←</i>
+          Prethodno
+        </button>
+
+        <div class="control-center">
+          <span class="question-status">
+            {{ getAnsweredCount() }} od {{ getTotalQuestions() }} odgovoreno
+          </span>
+        </div>
+
+        <button 
+          class="nav-btn next-btn" 
+          (click)="nextQuestion()" 
+          [disabled]="currentQuestionIndex === getTotalQuestions() - 1"
+        >
+          Sljedeće
+          <i class="nav-icon">→</i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Section -->
+  <div class="submit-section">
+    <div class="submit-info">
+      <div class="submit-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ getAnsweredCount() }}</span>
+          <span class="stat-label">Odgovoreno</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ getUnansweredCount() }}</span>
+          <span class="stat-label">Preostalo</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ exam.passingScore }}</span>
+          <span class="stat-label">Potrebno za prolaz</span>
+        </div>
+      </div>
+    </div>
+    
+    <button 
+      class="submit-btn"
+      (click)="showSubmitDialog()"
+      [disabled]="isSubmitting"
+      [class.ready]="canSubmit()"
+    >
+      <i class="submit-icon">📝</i>
+      {{ isSubmitting ? 'Šalje se...' : 'Pošalji ispit' }}
+    </button>
+  </div>
+</div>
+
+<!-- Confirmation Dialog -->
+<div class="modal-overlay" *ngIf="showConfirmDialog">
+  <div class="confirm-dialog">
+    <div class="dialog-header">
+      <h3>Potvrda slanja ispita</h3>
+    </div>
+    
+    <div class="dialog-body">
+      <p>Jeste li sigurni da se želite poslati ispit?</p>
+      <div class="submit-summary">
+        <div class="summary-item">
+          <span class="summary-label">Odgovoreno pitanja:</span>
+          <span class="summary-value">{{ getAnsweredCount() }}/{{ getTotalQuestions() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Potrebno za prolaz:</span>
+          <span class="summary-value">{{ exam?.passingScore }}/{{ getTotalQuestions() }}</span>
+        </div>
+      </div>
+      <p class="warning-text" *ngIf="getUnansweredCount() > 0">
+        ⚠️ Imate {{ getUnansweredCount() }} neodgovorenih pitanja. Ona će biti označena kao netočni odgovori.
+      </p>
+    </div>
+    
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="cancelSubmit()">Odustani</button>
+      <button class="confirm-btn" (click)="confirmSubmit()">Pošalji ispit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exit Confirmation Dialog -->
+<div class="modal-overlay" *ngIf="showExitDialog">
+  <div class="confirm-dialog">
+    <div class="dialog-header">
+      <h3>Potvrda izlaska</h3>
+    </div>
+    
+    <div class="dialog-body">
+      <p>Jeste li sigurni da se želite izaći s ispita?</p>
+      <p class="warning-text">
+        ⚠️ Sav napredak će biti izgubljen.
+      </p>
+    </div>
+    
+    <div class="dialog-actions">
+      <button class="cancel-btn" (click)="cancelExit()">Ostani na ispitu</button>
+      <button class="confirm-btn danger" (click)="confirmExit()">Izađi s ispita</button>
+    </div>
+  </div>
+</div>
+
+<ng-template #errorTemplate>
+  <div class="error-container">
+    <div class="error-card">
+      <div class="error-icon">❌</div>
+      <h3>Greška</h3>
+      <p>{{ error || 'Neočekivana greška prilikom učitavanja ispita.' }}</p>
+      <button class="back-btn" (click)="navigateToExams()">
+        Povratak na ispite
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<app-footer></app-footer>

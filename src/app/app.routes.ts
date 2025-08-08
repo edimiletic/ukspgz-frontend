@@ -7,14 +7,22 @@ import { ExpensesComponent } from './components/expenses/expenses.component';
 import { BasketRulesComponent } from './components/basket-rules/basket-rules.component';
 import { AuthGuard } from './guards/auth.guard';
 import { ExpenseReportDetailsComponent } from './components/expense-report-details/expense-report-details.component';
+import { ExamsComponent } from './components/exams/exams.component';
+import { TakeExamComponent } from './components/take-exam/take-exam.component';
+import { ExamResultComponent } from './components/exam-result/exam-result.component';
+import { ExamReviewComponent } from './components/exam-review/exam-review.component';
 
 export const routes: Routes = [
 {path: 'login', component: AuthComponent},
-{path: '', redirectTo:'/login', pathMatch:'full'},
+{path: '', redirectTo:'/home', pathMatch:'full'},
 {path: 'home', component: HomeComponent, canActivate: [AuthGuard]},
 {path: 'assigned', component: GamesAssignedComponent, canActivate: [AuthGuard]},
 {path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
 {path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
 {path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard]},
-{path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]}
+{path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]},
+{path: 'exams', component: ExamsComponent, canActivate: [AuthGuard]},
+{ path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard] },
+{ path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},
+{ path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard] }
 ];
