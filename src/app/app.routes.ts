@@ -1,3 +1,4 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { AuthComponent } from './components/auth/auth.component';
 import { HomeComponent } from './components/home/home.component';
@@ -13,16 +14,27 @@ import { ExamResultComponent } from './components/exam-result/exam-result.compon
 import { ExamReviewComponent } from './components/exam-review/exam-review.component';
 
 export const routes: Routes = [
-{path: 'login', component: AuthComponent},
-{path: '', redirectTo:'/home', pathMatch:'full'},
-{path: 'home', component: HomeComponent, canActivate: [AuthGuard]},
-{path: 'assigned', component: GamesAssignedComponent, canActivate: [AuthGuard]},
-{path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
-{path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
-{path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard]},
-{path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]},
-{path: 'exams', component: ExamsComponent, canActivate: [AuthGuard]},
-{ path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard] },
-{ path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},
-{ path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard] }
+  {path: 'login', component: AuthComponent},
+  {
+    path: '', 
+    redirectTo: () => {
+      // Smart redirect based on auth status
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        return token ? 'home' : 'login';
+      }
+      return 'login';
+    }, 
+    pathMatch: 'full'
+  },
+  {path: 'home', component: HomeComponent, canActivate: [AuthGuard]},
+  {path: 'assigned', component: GamesAssignedComponent, canActivate: [AuthGuard]},
+  {path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
+  {path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
+  {path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard]},
+  {path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]},
+  {path: 'exams', component: ExamsComponent, canActivate: [AuthGuard]},
+  {path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard]},
+  {path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},
+  {path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard]}
 ];

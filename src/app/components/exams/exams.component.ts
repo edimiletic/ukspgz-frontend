@@ -9,11 +9,12 @@ import { FooterComponent } from '../footer/footer.component';
 import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
 import { AddQuestionModalComponent } from "./add-question-modal/add-question-modal.component";
+import { SidebarComponent } from "../sidebar/sidebar.component";
 
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, FooterComponent, AddQuestionModalComponent, RouterModule],
+  imports: [CommonModule, HeaderComponent, FooterComponent, AddQuestionModalComponent, RouterModule, SidebarComponent],
   templateUrl: './exams.component.html',
   styleUrl: './exams.component.scss'
 })

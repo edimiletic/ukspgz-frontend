@@ -529,6 +529,22 @@
   }
 }
 
+// Add to edit-game-modal.component.scss
+
+.unavailable-count {
+  color: #dc3545;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.referee-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 480px) {
   .modal-backdrop {
     padding: 0.25rem;

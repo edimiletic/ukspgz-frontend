@@ -12,6 +12,7 @@ import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { SidebarComponent } from "../sidebar/sidebar.component";
 
 
 interface AbsenceWithUser extends Absence {
@@ -20,7 +21,7 @@ interface AbsenceWithUser extends Absence {
 
 @Component({
   selector: 'app-time-absent',
-  imports: [RouterModule ,HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule],
+  imports: [RouterModule, HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule, SidebarComponent],
   templateUrl: './time-absent.component.html',
   styleUrl: './time-absent.component.scss'
 })

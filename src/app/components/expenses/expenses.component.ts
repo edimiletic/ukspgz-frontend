@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DeleteExpensesModalComponent } from './delete-expenses-modal/delete-expenses-modal.component';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { SidebarComponent } from "../sidebar/sidebar.component";
 
 @Component({
   selector: 'app-expenses',
@@ -23,7 +24,8 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
     FormsModule,
     CommonModule,
     DeleteExpensesModalComponent,
-  ],
+    SidebarComponent
+],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss',
 })

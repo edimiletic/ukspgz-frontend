@@ -1,9 +1,12 @@
+// src/app/components/games-assigned/edit-game-modal/edit-game-modal.component.ts
 import { CommonModule } from '@angular/common';
 import { BasketballGame, GameFormData, RefereeAssignmentData, RefereeSelection } from '../../../model/basketballGame.model';
 import { User } from '../../../model/user.model';
 import { UserService } from '../../../services/user.service';
 import { BasketballGameService } from './../../../services/basketballGame.service';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange, SimpleChanges } from '@angular/core';
+import { AbsenceService } from '../../../services/absence.service';
+import { Absence } from '../../../model/absence.model';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -12,11 +15,11 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './edit-game-modal.component.html',
   styleUrl: './edit-game-modal.component.scss'
 })
-export class EditGameModalComponent  implements OnInit, OnChanges {
-   @Input() isOpen = false;
+export class EditGameModalComponent implements OnInit, OnChanges {
+  @Input() isOpen = false;
   @Input() game: BasketballGame | null = null;
   @Output() close = new EventEmitter<void>();
-  @Output() gameUpdated = new EventEmitter<BasketballGame>();
+  @Output() gameUpdated = new EventEmitter<any>();
 
   // Form data
   gameForm: GameFormData = {
@@ -83,17 +86,23 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
   // State management
   isLoading = false;
   isLoadingReferees = false;
+  isLoadingAbsences = false;
   errorMessage = '';
   currentStep = 1; // 1: Game details, 2: Referee assignments
 
+  // Absence data for availability checking
+  allAbsences: Absence[] = [];
+
   constructor(
     private basketballGameService: BasketballGameService,
-    private userService: UserService
+    private userService: UserService,
+    private absenceService: AbsenceService
   ) {}
 
   ngOnInit() {
     if (this.isOpen && this.game) {
       this.loadReferees();
+      this.loadAbsences();
       this.populateForm();
     }
   }
@@ -101,10 +110,28 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.isOpen && this.game) {
       this.loadReferees();
+      this.loadAbsences();
       this.populateForm();
       this.currentStep = 1;
       this.errorMessage = '';
     }
+  }
+
+  loadAbsences() {
+    this.isLoadingAbsences = true;
+    this.absenceService.getAllAbsences().subscribe({
+      next: (absences) => {
+        this.allAbsences = absences;
+        this.isLoadingAbsences = false;
+        console.log('Loaded absences for edit modal:', absences.length);
+        console.log('Sample absence:', absences[0]); // Debug: check absence structure
+      },
+      error: (error) => {
+        console.error('Error loading absences in edit modal:', error);
+        this.allAbsences = []; // Continue without absence checking
+        this.isLoadingAbsences = false;
+      }
+    });
   }
 
   populateForm() {
@@ -184,11 +211,117 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
           pomocniSudci: referees.filter(ref => ref.role === 'Pomoćni Sudac')
         };
         this.isLoadingReferees = false;
+        console.log('Sample referee:', referees[0]); // Debug: check referee structure
+        console.log('Referee fields:', Object.keys(referees[0] || {})); // Debug: check available fields
       },
       error: (error) => {
         console.error('Error loading referees:', error);
         this.errorMessage = 'Greška pri učitavanju sudaca.';
         this.isLoadingReferees = false;
+      }
+    });
+  }
+
+  // Check if a referee is available on the game date
+  private isRefereeAvailable(referee: User, gameDate: string): boolean {
+    if (!gameDate || this.allAbsences.length === 0) {
+      return true; // If no date selected or no absences loaded, assume available
+    }
+
+    const selectedGameDate = new Date(gameDate);
+    selectedGameDate.setHours(0, 0, 0, 0);
+
+    // Check if referee has any absence that overlaps with game date
+    const hasConflict = this.allAbsences.some(absence => {
+      // Match by personal code since absences store userPersonalCode
+      if (absence.userPersonalCode !== referee.personalCode) {
+        return false;
+      }
+
+      const startDate = new Date(absence.startDate);
+      const endDate = new Date(absence.endDate);
+      
+      // Reset times for accurate date comparison
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Check if game date falls within absence period
+      const isConflict = selectedGameDate >= startDate && selectedGameDate <= endDate;
+      
+      // Debug logging
+      if (isConflict) {
+        console.log(`Referee ${referee.name} ${referee.surname} (${referee.personalCode}) is unavailable on ${gameDate}:`, {
+          absence: absence,
+          gameDate: selectedGameDate,
+          startDate: startDate,
+          endDate: endDate
+        });
+      }
+      
+      return isConflict;
+    });
+
+    return !hasConflict;
+  }
+
+  // Get count of unavailable referees for display
+  getUnavailableRefereesCount(role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac'): number {
+    if (!this.gameForm.date) return 0;
+
+    let totalReferees = 0;
+    let availableReferees = 0;
+
+    switch (role) {
+      case 'Sudac':
+        totalReferees = this.availableReferees.sudci.length;
+        availableReferees = this.availableReferees.sudci.filter(ref => 
+          this.isRefereeAvailable(ref, this.gameForm.date)
+        ).length;
+        break;
+      case 'Delegat':
+        totalReferees = this.availableReferees.delegati.length;
+        availableReferees = this.availableReferees.delegati.filter(ref => 
+          this.isRefereeAvailable(ref, this.gameForm.date)
+        ).length;
+        break;
+      case 'Pomoćni Sudac':
+        totalReferees = this.availableReferees.pomocniSudci.length;
+        availableReferees = this.availableReferees.pomocniSudci.filter(ref => 
+          this.isRefereeAvailable(ref, this.gameForm.date)
+        ).length;
+        break;
+    }
+
+    return totalReferees - availableReferees;
+  }
+
+  // Check if date change should clear selected referees who are now unavailable
+  onDateChange() {
+    if (!this.gameForm.date) return;
+
+    // Check if any selected referees are now unavailable and clear them
+    this.selectedReferees.sudci.forEach((sudac, index) => {
+      if (sudac.userId) {
+        const referee = this.availableReferees.sudci.find(ref => ref._id === sudac.userId);
+        if (referee && !this.isRefereeAvailable(referee, this.gameForm.date)) {
+          this.selectedReferees.sudci[index].userId = '';
+        }
+      }
+    });
+
+    if (this.selectedReferees.delegat) {
+      const delegat = this.availableReferees.delegati.find(ref => ref._id === this.selectedReferees.delegat);
+      if (delegat && !this.isRefereeAvailable(delegat, this.gameForm.date)) {
+        this.selectedReferees.delegat = '';
+      }
+    }
+
+    this.selectedReferees.pomocniSudci.forEach((pomocni, index) => {
+      if (pomocni.userId) {
+        const referee = this.availableReferees.pomocniSudci.find(ref => ref._id === pomocni.userId);
+        if (referee && !this.isRefereeAvailable(referee, this.gameForm.date)) {
+          this.selectedReferees.pomocniSudci[index].userId = '';
+        }
       }
     });
   }
@@ -279,7 +412,7 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
     return true;
   }
 
-  // Referee management methods (same as create modal)
+  // Referee management methods
   addSudac() {
     if (this.selectedReferees.sudci.length < 3) {
       const nextPosition = this.selectedReferees.sudci.length + 1;
@@ -314,8 +447,11 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
     }
   }
 
-  // Get available referees (same logic as create modal)
+  // Get available referees (excluding already selected ones AND those with absences)
   getAvailableSudci(currentIndex: number): User[] {
+    console.log('Getting available sudci for edit modal, date:', this.gameForm.date);
+    console.log('Total absences loaded:', this.allAbsences.length);
+    
     const selectedIds = this.selectedReferees.sudci
       .map((s, index) => index !== currentIndex ? s.userId : null)
       .filter(id => id);
@@ -327,23 +463,43 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
 
     const allExcludedIds = [...selectedIds, ...otherSelectedIds];
     
-    return this.availableReferees.sudci.filter(ref => 
-      !allExcludedIds.includes(ref._id)
-    );
+    const availableRefs = this.availableReferees.sudci.filter(ref => {
+      const notSelected = !allExcludedIds.includes(ref._id);
+      const isAvailable = this.isRefereeAvailable(ref, this.gameForm.date);
+      
+      console.log(`Edit - Sudac ${ref.name} ${ref.surname} (${ref.personalCode}): selected=${!notSelected}, available=${isAvailable}`);
+      
+      return notSelected && isAvailable;
+    });
+    
+    console.log(`Edit - Available sudci: ${availableRefs.length} out of ${this.availableReferees.sudci.length}`);
+    return availableRefs;
   }
 
   getAvailableDelegati(): User[] {
+    console.log('Getting available delegati for edit modal, date:', this.gameForm.date);
+    
     const allSelectedIds = [
       ...this.selectedReferees.sudci.map(s => s.userId),
       ...this.selectedReferees.pomocniSudci.map(s => s.userId)
     ].filter(id => id);
 
-    return this.availableReferees.delegati.filter(ref => 
-      !allSelectedIds.includes(ref._id)
-    );
+    const availableRefs = this.availableReferees.delegati.filter(ref => {
+      const notSelected = !allSelectedIds.includes(ref._id);
+      const isAvailable = this.isRefereeAvailable(ref, this.gameForm.date);
+      
+      console.log(`Edit - Delegat ${ref.name} ${ref.surname} (${ref.personalCode}): selected=${!notSelected}, available=${isAvailable}`);
+      
+      return notSelected && isAvailable;
+    });
+    
+    console.log(`Edit - Available delegati: ${availableRefs.length} out of ${this.availableReferees.delegati.length}`);
+    return availableRefs;
   }
 
   getAvailablePomocniSudci(currentIndex: number): User[] {
+    console.log('Getting available pomoćni sudci for edit modal, date:', this.gameForm.date);
+    
     const selectedIds = this.selectedReferees.pomocniSudci
       .map((s, index) => index !== currentIndex ? s.userId : null)
       .filter(id => id);
@@ -355,9 +511,48 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
 
     const allExcludedIds = [...selectedIds, ...otherSelectedIds];
     
-    return this.availableReferees.pomocniSudci.filter(ref => 
-      !allExcludedIds.includes(ref._id)
-    );
+    const availableRefs = this.availableReferees.pomocniSudci.filter(ref => {
+      const notSelected = !allExcludedIds.includes(ref._id);
+      const isAvailable = this.isRefereeAvailable(ref, this.gameForm.date);
+      
+      console.log(`Edit - Pomoćni sudac ${ref.name} ${ref.surname} (${ref.personalCode}): selected=${!notSelected}, available=${isAvailable}`);
+      
+      return notSelected && isAvailable;
+    });
+    
+    console.log(`Edit - Available pomoćni sudci: ${availableRefs.length} out of ${this.availableReferees.pomocniSudci.length}`);
+    return availableRefs;
+  }
+
+  // Get newly assigned referees for notification tracking
+  getNewlyAssignedReferees(): string[] {
+    if (!this.game) return [];
+
+    const currentUserIds = new Set(this.game.refereeAssignments.map(a => a.userId._id));
+    const newUserIds = [
+      ...this.selectedReferees.sudci.map(s => s.userId).filter(id => id),
+      this.selectedReferees.delegat,
+      ...this.selectedReferees.pomocniSudci.map(s => s.userId).filter(id => id)
+    ].filter(id => id);
+
+    const newlyAssigned = newUserIds.filter(userId => !currentUserIds.has(userId));
+    
+    // Get referee names for display
+    const newRefereeNames: string[] = [];
+    
+    newlyAssigned.forEach(userId => {
+      const referee = [
+        ...this.availableReferees.sudci,
+        ...this.availableReferees.delegati,
+        ...this.availableReferees.pomocniSudci
+      ].find(ref => ref._id === userId);
+      
+      if (referee) {
+        newRefereeNames.push(`${referee.name} ${referee.surname}`);
+      }
+    });
+
+    return newRefereeNames;
   }
 
   // Form submission
@@ -388,11 +583,21 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
         throw new Error('Failed to update game');
       }
 
-      // Handle referee assignments
-      await this.updateRefereeAssignments();
+      // Handle referee assignments and get notification info
+      const assignmentResult = await this.updateRefereeAssignments();
 
-      // Emit success
-      this.gameUpdated.emit(updatedGame);
+      // Create success message with notification info
+      let successMessage = 'Utakmica je uspješno ažurirana!';
+      
+      if (assignmentResult && assignmentResult.newAssignments > 0) {
+        successMessage += ` ${assignmentResult.newAssignments} nova nominacija poslana!`;
+      }
+
+      // Emit success with enhanced message
+      this.gameUpdated.emit({
+        ...updatedGame,
+        message: successMessage
+      });
       this.closeModal();
 
     } catch (error) {
@@ -447,9 +652,16 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
       }
     });
 
+    // Track new assignments for notifications
+    const currentUserIds = new Set(currentAssignments.map(a => a.userId._id));
+    const newUserIds = newAssignments.map(a => a.userId);
+    const newlyAssignedUsers = newUserIds.filter(userId => !currentUserIds.has(userId));
+
+    console.log('👥 Current referees:', currentUserIds);
+    console.log('👥 New assignment user IDs:', newUserIds);
+    console.log('🆕 Newly assigned users:', newlyAssignedUsers);
+
     // Strategy: Remove ALL current assignments and add new ones
-    // This is simpler and more reliable than trying to update individual assignments
-    
     // Step 1: Remove all current assignments
     for (const currentAssignment of currentAssignments) {
       try {
@@ -460,7 +672,9 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
       }
     }
 
-    // Step 2: Add all new assignments
+    // Step 2: Add all new assignments and track newly assigned users
+    const actuallyNewUsers: string[] = [];
+    
     for (const newAssignment of newAssignments) {
       try {
         await this.basketballGameService.assignReferee(this.game._id, {
@@ -468,11 +682,27 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
           role: newAssignment.role,
           position: newAssignment.position
         }).toPromise();
+
+        // Track if this is a newly assigned user
+        if (newlyAssignedUsers.includes(newAssignment.userId)) {
+          actuallyNewUsers.push(newAssignment.userId);
+        }
       } catch (error) {
         console.error('Error adding assignment:', error);
-        throw error; // Stop if we can't add assignments
+        throw error;
       }
     }
+
+    // Send notifications to newly assigned users
+    if (actuallyNewUsers.length > 0) {
+      console.log(`📧 Sending notifications to ${actuallyNewUsers.length} newly assigned referees`);
+      // The notifications will be sent automatically by the backend when assignReferee is called
+    }
+
+    return {
+      totalAssignments: newAssignments.length,
+      newAssignments: actuallyNewUsers.length
+    };
   }
 
   // Modal management
@@ -507,11 +737,11 @@ export class EditGameModalComponent  implements OnInit, OnChanges {
 
     this.currentStep = 1;
     this.errorMessage = '';
+    this.allAbsences = [];
   }
 
-  // Get minimum date (today for future games, no restriction for editing)
+  // Get minimum date (for editing, we allow past dates since the game might have already happened)
   getMinDate(): string {
-    // For editing, we allow past dates since the game might have already happened
     return '';
   }
 }

@@ -1,0 +1,78 @@
+<!-- src/app/components/sidebar/sidebar.component.html -->
+<nav class="sidebar">
+  <ul>
+    <li>
+      <a 
+        (click)="navigateToPage('/home')" 
+        [class.active]="isActiveRoute('/home')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="navigateToPage('/home')"
+        (keydown.space)="navigateToPage('/home')">
+        Početna stranica
+      </a>
+    </li>
+    <li>
+      <a 
+        (click)="navigateToPage('/assigned')" 
+        [class.active]="isActiveRoute('/assigned')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="navigateToPage('/assigned')"
+        (keydown.space)="navigateToPage('/assigned')">
+        Moje utakmice
+      </a>
+    </li>
+    <li>
+      <a 
+        (click)="navigateToPage('/absence')" 
+        [class.active]="isActiveRoute('/absence')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="navigateToPage('/absence')"
+        (keydown.space)="navigateToPage('/absence')">
+        Odsustvo
+      </a>
+    </li>
+    <li>
+      <a 
+        (click)="navigateToPage('/expenses')" 
+        [class.active]="isActiveRoute('/expenses')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="navigateToPage('/expenses')"
+        (keydown.space)="navigateToPage('/expenses')">
+        Putni troškovi
+      </a>
+    </li>
+    <li>
+      <a 
+        (click)="navigateToPage('/rules')" 
+        [class.active]="isActiveRoute('/rules')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="navigateToPage('/rules')"
+        (keydown.space)="navigateToPage('/rules')">
+        Dokumenti
+      </a>
+    </li>
+    <li>
+      <a 
+        (click)="navigateToPage('/exams')" 
+        [class.active]="isActiveRoute('/exams')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="navigateToPage('/exams')"
+        (keydown.space)="navigateToPage('/exams')">
+        Ispiti
+      </a>
+    </li>
+    <!-- <li>
+      <a 
+        role="button"
+        tabindex="0">
+        Upute za korištenje sustava
+      </a>
+    </li> -->
+  </ul>
+</nav>

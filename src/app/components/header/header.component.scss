@@ -6,7 +6,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  
+  // Make header fixed and above sidebar
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001; // Higher than sidebar
+  
+  // Account for sidebar width
+  // padding-left: calc(250px + 2rem); // 250px sidebar + 2rem padding
 }
+
+.logo{
+      height: 60px;
+    border-radius: 50px;
+}
+
+h1{
+      flex: auto;
+    margin-left: 2rem;
+}
+
 
 .header-buttons {
   display: flex;
@@ -253,8 +274,10 @@
 
 // Responsive Design
 @media (max-width: 768px) {
+
   .header {
-    padding: 1rem;
+    padding-left: 2rem;
+    z-index: 1002; // Even higher on mobile to stay above mobile sidebar
   }
 
   .notification-menu {

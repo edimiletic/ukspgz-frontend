@@ -4,10 +4,11 @@ import { HeaderComponent } from "../header/header.component";
 import { FooterComponent } from "../footer/footer.component";
 import { AuthService } from '../../services/login.service';
 import { User } from '../../model/user.model';
+import { SidebarComponent } from "../sidebar/sidebar.component";
 
 @Component({
   selector: 'app-home',
-  imports: [RouterModule, HeaderComponent, FooterComponent],
+  imports: [RouterModule, HeaderComponent, FooterComponent, SidebarComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

@@ -12,10 +12,11 @@ import { DeleteExpensesModalComponent } from "../expenses/delete-expenses-modal/
 import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-details/modal-expense-report-details.component";
 import { SubmitModalExpenseComponent } from "./submit-modal-expense/submit-modal-expense.component";
 import { DeleteItemModalComponent } from './delete-item-modal/delete-item-modal.component';
+import { SidebarComponent } from "../sidebar/sidebar.component";
 
 @Component({
   selector: 'app-expense-report-details',
-  imports: [RouterModule,CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent],
+  imports: [RouterModule, CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent, SidebarComponent],
   templateUrl: './expense-report-details.component.html',
   styleUrl: './expense-report-details.component.scss'
 })

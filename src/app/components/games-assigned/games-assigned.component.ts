@@ -10,11 +10,12 @@ import { RejectionModalComponent } from "./rejection-modal/rejection-modal.compo
 import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.component";
 import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
+import { SidebarComponent } from "../sidebar/sidebar.component";
 
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [ HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent],
+  imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent, SidebarComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss'
 })
