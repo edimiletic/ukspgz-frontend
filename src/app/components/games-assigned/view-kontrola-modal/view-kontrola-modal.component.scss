@@ -1,0 +1,379 @@
+// src/app/components/games-assigned/view-kontrola-modal/view-kontrola-modal.component.scss
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Modal Header
+.modal-header {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+  }
+}
+
+// Loading
+.loading-container {
+  text-align: center;
+  padding: 3rem;
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #28a745;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Error Message
+.error-message {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+// Modal Body
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+// Sections
+.section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  h3 {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    i {
+      color: #28a745;
+    }
+  }
+}
+
+// Game Info
+.game-info-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+
+  .game-details {
+    .game-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+
+    .game-meta {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+
+      span {
+        color: #6c757d;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        i {
+          color: #28a745;
+        }
+      }
+    }
+
+    .game-competition {
+      color: #495057;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// Difficulty Display
+.difficulty-display {
+  .difficulty-badge {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+
+    &.difficulty-easy {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    &.difficulty-medium {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    &.difficulty-hard {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  }
+}
+
+// Grades Display
+.grades-display {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+
+  .grade-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .grade-label {
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .grade-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &.grade-excellent {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      &.grade-above-average {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      &.grade-average {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      &.grade-below-average {
+        background: #ffeaa7;
+        color: #b45309;
+      }
+
+      &.grade-poor {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    }
+  }
+}
+
+// Comments
+.comment-section {
+  margin-bottom: 1.5rem;
+
+  h4 {
+    color: #495057;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    i {
+      color: #28a745;
+      width: 16px;
+    }
+  }
+
+  .comment-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #28a745;
+    color: #495057;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+}
+
+// Kontrola Info
+.kontrola-info {
+  background: #e9ecef;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 2rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+
+    i {
+      color: #28a745;
+    }
+  }
+}
+
+// Modal Footer
+.modal-footer {
+  background: #f8f9fa;
+  padding: 1rem 2rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+
+    &.btn-secondary {
+      background: #6c757d;
+      color: white;
+
+      &:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .grades-display {
+    grid-template-columns: 1fr;
+  }
+
+  .game-meta {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+
+  .kontrola-info {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

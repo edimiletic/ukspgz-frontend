@@ -114,6 +114,7 @@ export interface RefereeAssignmentData {
   position?: number;
 }
 
+
 export interface RefereeSelection {
   sudci: { _id?:string;userId: string; position: number }[];
   delegat: string;
@@ -183,3 +184,5 @@ export class BasketballGameUtils {
     return summary;
   }
 }
+
+

@@ -1,12 +1,12 @@
 <!-- Updated src/app/components/games-assigned/games-assigned.component.html -->
 <app-header></app-header>
 
-  <!-- Sidebar -->
-  <app-sidebar></app-sidebar>
-  
+<!-- Sidebar -->
+<app-sidebar></app-sidebar>
+
 <div class="main-layout">
 
-  
+
   <!-- Content -->
   <section class="content">
     <!-- Admin Title and Actions -->
@@ -22,7 +22,7 @@
       <h1 class="title">Sve Utakmice</h1>
     </div>
 
- <!-- Filter Section -->
+    <!-- Filter Section -->
     <div *ngIf="!isLoading" class="filter-section">
       <div class="filter-row">
         <!-- <div class="filter-group">
@@ -34,50 +34,30 @@
             [(ngModel)]="filterValues.id"
             (input)="onFilterChange()">
         </div> -->
-                <div class="filter-group">
+        <div class="filter-group">
           <label>Datum</label>
-          <input 
-            type="date" 
-            class="form-control"
-            [(ngModel)]="filterValues.date"
-            (change)="onFilterChange()">
+          <input type="date" class="form-control" [(ngModel)]="filterValues.date" (change)="onFilterChange()">
         </div>
-                <div class="filter-group">
+        <div class="filter-group">
           <label>Mjesto</label>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Pretraži po mjestu"
-            [(ngModel)]="filterValues.venue"
+          <input type="text" class="form-control" placeholder="Pretraži po mjestu" [(ngModel)]="filterValues.venue"
             (input)="onFilterChange()">
         </div>
         <div class="filter-group">
           <label>Domaći Tim</label>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Pretraži po domaćem timu"
-            [(ngModel)]="filterValues.homeTeam"
-            (input)="onFilterChange()">
+          <input type="text" class="form-control" placeholder="Pretraži po domaćem timu"
+            [(ngModel)]="filterValues.homeTeam" (input)="onFilterChange()">
         </div>
         <div class="filter-group">
           <label>Gostujući Tim</label>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Pretraži po gostujućem timu"
-            [(ngModel)]="filterValues.awayTeam"
-            (input)="onFilterChange()">
+          <input type="text" class="form-control" placeholder="Pretraži po gostujućem timu"
+            [(ngModel)]="filterValues.awayTeam" (input)="onFilterChange()">
         </div>
 
         <div class="filter-group">
           <label>Natjecanje</label>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Pretraži po natjecanju"
-            [(ngModel)]="filterValues.competition"
-            (input)="onFilterChange()">
+          <input type="text" class="form-control" placeholder="Pretraži po natjecanju"
+            [(ngModel)]="filterValues.competition" (input)="onFilterChange()">
         </div>
 
         <div class="filter-group">
@@ -91,7 +71,7 @@
     <!-- Filter Status -->
     <div *ngIf="!isLoading && hasActiveFilters" class="admin-filter-status">
       <span class="filter-indicator">
-        <i class="fas fa-filter"></i> 
+        <i class="fas fa-filter"></i>
         Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
       </span>
     </div>
@@ -215,6 +195,11 @@
       </div>
 
       <!-- Game History Section -->
+      <!-- src/app/components/games-assigned/games-assigned.component.html -->
+      <!-- Update the Game History Section -->
+
+
+
       <div class="description">
         <h3>Povijest utakmica</h3>
         <div *ngIf="gameHistory.length === 0" class="no-games">
@@ -231,7 +216,10 @@
                 <th>Ekipe</th>
                 <th>Sudački tim</th>
                 <th>Status</th>
-                <!-- <th>Rezultat</th> -->
+                <!-- Add new Kontrola column for Admins and Delegats -->
+                <th *ngIf="canAccessKontrola()">Kontrola</th>
+                <!-- Add new View Kontrola column for Referees -->
+                <th *ngIf="!canAccessKontrola()">Moja Kontrola</th>
                 <th *ngIf="isAdmin()">Akcije</th>
               </tr>
             </thead>
@@ -242,7 +230,6 @@
                 <td>{{ game.venue }}</td>
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
-                <!-- <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td> -->
                 <td>
                   <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
                   </div>
@@ -252,12 +239,38 @@
                     {{ getStatusDisplay(game) }}
                   </span>
                 </td>
-                <!-- <td>{{ getScoreDisplay(game) }}</td> -->
+                <!-- Add/Edit Kontrola column for Admins and Delegats -->
+                <td *ngIf="canAccessKontrola()">
+                  <div class="kontrola-actions">
+                    <button class="btn btn-kontrola" (click)="openKontrolaModal(game)"
+                      [title]="getKontrolaStatus(game._id) ? 'Uredi kontrolu' : 'Dodaj kontrolu'">
+                      <i [class]="getKontrolaStatus(game._id) ? 'fas fa-edit' : 'fas fa-plus'"></i>
+                    </button>
+                  </div>
+                </td>
+                <!-- View Kontrola column for Referees -->
+                <td *ngIf="!canAccessKontrola()">
+                  <div class="view-kontrola-actions">
+                    <!-- Case 1: User participated AND kontrola exists - Show eye button -->
+                    <button *ngIf="canViewKontrola(game) && getKontrolaStatus(game._id)" class="btn btn-view-kontrola"
+                      (click)="openViewKontrolaModal(game)" title="Pogledaj moju kontrolu">
+                      <i class="fas fa-eye"></i>
+                    </button>
+
+                    <!-- Case 2: User participated BUT kontrola doesn't exist - Show clock icon -->
+                    <span *ngIf="canViewKontrola(game) && !getKontrolaStatus(game._id)" class="no-kontrola"
+                      title="Kontrola još nije kreirana">
+                      <i class="fas fa-clock text-muted"></i>
+                    </span>
+
+                    <!-- Case 3: User did NOT participate - Show minus -->
+                    <span *ngIf="!canViewKontrola(game)" class="no-access" title="Niste sudjelovali u ovoj utakmici">
+                      <i class="fas fa-minus text-muted"></i>
+                    </span>
+                  </div>
+                </td>
                 <td *ngIf="isAdmin()">
                   <div class="admin-action-buttons">
-                    <!-- <button class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
-                      <i class="fas fa-pen"></i>
-                    </button> -->
                     <button class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
                       <i class="fas fa-trash"></i>
                     </button>
@@ -279,7 +292,7 @@
     <span class="toast-message">{{ successMessage }}</span>
     <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  
+
   <div *ngIf="errorMessage" class="toast toast-error">
     <span class="toast-emoji">❌</span>
     <span class="toast-message">{{ errorMessage }}</span>
@@ -293,7 +306,7 @@
     <span class="toast-message">{{ successMessage }}</span>
     <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  
+
   <div *ngIf="errorMessage" class="toast toast-error">
     <span class="toast-emoji">❌</span>
     <span class="toast-message">{{ errorMessage }}</span>
@@ -301,35 +314,32 @@
   </div>
 </div>
 
+<app-kontrola-modal [isOpen]="isKontrolaModalOpen" [game]="gameForKontrola" [isEditMode]="isKontrolaEditMode"
+  (close)="closeKontrolaModal()" (kontrolaSaved)="onKontrolaSaved($event)">
+</app-kontrola-modal>
+
 <!-- Rejection Modal -->
-<app-rejection-modal
-  [isOpen]="isRejectionModalOpen"
-  [gameInfo]="gameToReject"
-  (close)="closeRejectionModal()"
+<app-rejection-modal [isOpen]="isRejectionModalOpen" [gameInfo]="gameToReject" (close)="closeRejectionModal()"
   (reject)="onRejectionConfirmed($event)">
 </app-rejection-modal>
 
 <!-- Create Game Modal -->
-<app-create-game-modal
-  [isOpen]="isCreateGameModalOpen"
-  (close)="closeCreateGameModal()"
+<app-create-game-modal [isOpen]="isCreateGameModalOpen" (close)="closeCreateGameModal()"
   (gameCreated)="onGameCreated($event)">
 </app-create-game-modal>
 
 <!-- Edit Game Modal -->
-<app-edit-game-modal
-  [isOpen]="isEditGameModalOpen"
-  [game]="gameToEdit"
-  (close)="closeEditGameModal()"
+<app-edit-game-modal [isOpen]="isEditGameModalOpen" [game]="gameToEdit" (close)="closeEditGameModal()"
   (gameUpdated)="onGameUpdated($event)">
 </app-edit-game-modal>
 
 <!-- Confirmation Modal -->
-<app-delete-game-modal
-  [isOpen]="isConfirmationModalOpen"
-  [confirmationData]="confirmationData"
-  (close)="closeConfirmationModal()"
-  (confirm)="onDeleteConfirmed($event)">
+<app-delete-game-modal [isOpen]="isConfirmationModalOpen" [confirmationData]="confirmationData"
+  (close)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
 </app-delete-game-modal>
+
+<app-view-kontrola-modal [isOpen]="isViewKontrolaModalOpen" [game]="gameForViewKontrola"
+  [currentUserId]="currentUser?._id || ''" (close)="closeViewKontrolaModal()">
+</app-view-kontrola-modal>
 
 <app-footer></app-footer>

@@ -1045,3 +1045,204 @@ padding: 3rem 2rem 2rem;
     gap: 0.2rem;
   }
 }
+
+// src/app/components/games-assigned/games-assigned.component.scss
+// Add these styles for the Kontrola column
+
+// Kontrola column styles
+.kontrola-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  .btn-kontrola {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    
+    &:hover {
+      background-color: #138496;
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    i {
+      margin: 0;
+    }
+  }
+}
+
+// Table adjustments for the new column
+.table {
+  // Kontrola column
+  th:nth-last-child(2) {
+    width: 80px;
+    text-align: center;
+  }
+  
+  td:nth-last-child(2) {
+    text-align: center;
+    width: 80px;
+  }
+  
+  // Adjust admin actions column when Kontrola is present
+  &:has(.kontrola-actions) {
+    th:last-child,
+    td:last-child {
+      width: 80px;
+      text-align: center;
+    }
+  }
+}
+
+// Responsive design for mobile
+@media (max-width: 768px) {
+  .kontrola-actions {
+    .btn-kontrola {
+      width: 28px;
+      height: 28px;
+      font-size: 0.8rem;
+    }
+  }
+  
+  .table {
+    th:nth-last-child(2),
+    td:nth-last-child(2) {
+      width: 60px;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .kontrola-actions {
+    .btn-kontrola {
+      width: 26px;
+      height: 26px;
+      font-size: 0.75rem;
+    }
+  }
+}
+// src/app/components/games-assigned/games-assigned.component.scss
+// Add styles for the new view kontrola column
+
+// View Kontrola column styles
+.view-kontrola-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  .btn-view-kontrola {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    
+    &:hover {
+      background-color: #218838;
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    i {
+      margin: 0;
+    }
+  }
+
+  .no-kontrola {
+    color: #6c757d;
+    font-size: 1rem;
+    cursor: not-allowed;
+    
+    i {
+      opacity: 0.5;
+    }
+  }
+}
+
+// Update existing kontrola button to show different icons
+.kontrola-actions {
+  .btn-kontrola {
+    background-color: #17a2b8;
+    
+    &.has-kontrola {
+      background-color: #ffc107;
+      
+      &:hover {
+        background-color: #e0a800;
+      }
+    }
+  }
+}
+
+// Table adjustments for the new columns
+.table {
+  // Both kontrola columns should have consistent width
+  th:nth-last-child(2),
+  td:nth-last-child(2) {
+    width: 100px;
+    text-align: center;
+  }
+  
+  // When both columns are present
+  th:has(.kontrola-actions) + th,
+  th:has(.view-kontrola-actions) + th,
+  td:has(.kontrola-actions) + td,
+  td:has(.view-kontrola-actions) + td {
+    width: 80px;
+  }
+}
+
+// Responsive design for mobile
+@media (max-width: 768px) {
+  .view-kontrola-actions {
+    .btn-view-kontrola {
+      width: 28px;
+      height: 28px;
+      font-size: 0.8rem;
+    }
+    
+    .no-kontrola {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .table {
+    th:nth-last-child(2),
+    td:nth-last-child(2) {
+      width: 80px;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .view-kontrola-actions {
+    .btn-view-kontrola {
+      width: 26px;
+      height: 26px;
+      font-size: 0.75rem;
+    }
+  }
+}

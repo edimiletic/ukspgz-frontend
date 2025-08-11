@@ -1,0 +1,790 @@
+// src/app/components/games-assigned/kontrola-modal/kontrola-modal.component.scss
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1016;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Modal Header
+.modal-header {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #117a8b;
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    i {
+      font-size: 1.3rem;
+    }
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 1.2rem;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Game Info
+.game-info {
+  background: #f8f9fa;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e9ecef;
+
+  .game-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .game-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .game-meta {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+  }
+}
+
+// Error Message
+.error-message {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  border-left: 4px solid #b02a37;
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+// Modal Body
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1rem 0rem;
+
+
+   // When it's the first page, center content vertically
+  &:has(.first-page) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: visible;
+  }
+}
+
+.first-page {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: auto !important;
+}
+
+// Form Sections
+.form-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #e9ecef;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  h3 {
+    margin: 0 0 1.5rem 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #17a2b8;
+    display: inline-block;
+  }
+}
+
+// Form Controls
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+
+    &::after {
+      content: ' *';
+      color: #dc3545;
+    }
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: white;
+
+    &:focus {
+      outline: none;
+      border-color: #17a2b8;
+      box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+    }
+
+    &::placeholder {
+      color: #adb5bd;
+    }
+  }
+
+  select.form-control {
+    cursor: pointer;
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+  }
+}
+
+// Grades Grid
+.grades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.grade-item {
+  label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .grade-select {
+    font-size: 0.9rem;
+    
+    // Grade-based styling
+    &.grade-excellent {
+      border-color: #28a745;
+      background-color: #f8fff9;
+    }
+    
+    &.grade-above-average {
+      border-color: #20c997;
+      background-color: #f0fdfa;
+    }
+    
+    &.grade-average {
+      border-color: #ffc107;
+      background-color: #fffdf0;
+    }
+    
+    &.grade-below-average {
+      border-color: #fd7e14;
+      background-color: #fff8f0;
+    }
+    
+    &.grade-poor {
+      border-color: #dc3545;
+      background-color: #fff5f5;
+    }
+  }
+}
+
+// Textarea Group
+.textarea-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// Modal Footer
+.modal-footer {
+  background: #f8f9fa;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e9ecef;
+
+  .footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      &.btn-success {
+        background: #28a745;
+        color: white;
+
+        &:hover:not(:disabled) {
+          background: #218838;
+          transform: translateY(-1px);
+        }
+      }
+
+      &.btn-secondary {
+        background: #6c757d;
+        color: white;
+
+        &:hover:not(:disabled) {
+          background: #5a6268;
+          transform: translateY(-1px);
+        }
+      }
+
+      i {
+        font-size: 0.85rem;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem;
+
+    h2 {
+      font-size: 1.25rem;
+    }
+  }
+
+  .game-info,
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .grades-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+
+    .footer-buttons {
+      flex-direction: column;
+      
+      .btn {
+        justify-content: center;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-backdrop {
+    padding: 0.25rem;
+  }
+
+  .game-info,
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .form-section {
+    margin-bottom: 2rem;
+  }
+}
+
+// Add these styles to kontrola-modal.component.scss
+
+// Referee Section Styling
+.referee-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 2px solid #e9ecef;
+
+  h3 {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    margin: -2rem -2rem 1.5rem -2rem;
+    padding: 1rem 2rem;
+    border-radius: 12px 12px 0 0;
+    font-size: 1.1rem;
+    border-bottom: none;
+  }
+
+  .grades-subsection,
+  .comments-subsection {
+    margin-bottom: 2rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h4 {
+      color: #495057;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+  }
+
+  .grades-subsection {
+    .grades-grid {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+  }
+
+  .comments-subsection {
+    .textarea-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+  }
+}
+
+// Enhanced form group styling for referee sections
+.referee-section .form-group {
+  label {
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    border: 1px solid #ced4da;
+    
+    &:focus {
+      border-color: #17a2b8;
+      box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.1);
+    }
+  }
+
+  textarea.form-control {
+    min-height: 80px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .referee-section {
+    padding: 1.5rem;
+
+    h3 {
+      margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+    }
+
+    .grades-subsection .grades-grid,
+    .comments-subsection .textarea-group {
+      padding: 1rem;
+    }
+  }
+}
+
+// Add these styles to kontrola-modal.component.scss
+
+// Page Navigation
+.page-navigation {
+  background: #f8f9fa;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e9ecef;
+
+  .page-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .page-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .page-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .page-counter {
+        font-size: 0.85rem;
+        color: #6c757d;
+      }
+    }
+
+    .page-dots {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+
+      .page-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #dee2e6;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.active {
+          background: #17a2b8;
+          transform: scale(1.2);
+        }
+
+        &.completed {
+          background: #28a745;
+        }
+
+        &:hover {
+          transform: scale(1.3);
+        }
+      }
+    }
+  }
+}
+
+// // Page Content
+// .page-content {
+// //   min-height: 400px;
+// //   padding: 1rem 0;
+// }
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  .page-description {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+// Težina Utakmice Page
+.centered-form {
+  max-width: 400px;
+  margin: 2rem auto;
+
+  .large-select {
+    padding: 1rem 1.25rem;
+    font-size: 1.1rem;
+    text-align: center;
+    border: 2px solid #17a2b8;
+    border-radius: 8px;
+
+    &:focus {
+      border-color: #138496;
+      box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.2);
+    }
+  }
+}
+
+// Referee Page
+.referee-page {
+  .grades-section,
+  .comments-section {
+    margin-bottom: 2.5rem;
+
+    h4 {
+      color: #495057;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 8px;
+      border-left: 4px solid #17a2b8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        color: #17a2b8;
+      }
+    }
+  }
+
+  .grades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+  }
+
+  .textarea-group {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+// Enhanced form controls for referee pages
+.referee-page .form-group {
+  label {
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    i {
+      color: #17a2b8;
+      width: 16px;
+    }
+
+    &::after {
+      content: ' *';
+      color: #dc3545;
+    }
+  }
+
+  .form-control {
+    border: 1px solid #ced4da;
+    transition: all 0.2s ease;
+    
+    &:focus {
+      border-color: #17a2b8;
+      box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.1);
+    }
+  }
+
+  textarea.form-control {
+    min-height: 100px;
+    font-family: inherit;
+    resize: vertical;
+  }
+}
+
+// Grade styling
+.grade-select {
+  &.grade-excellent {
+    border-color: #28a745;
+    background-color: #f8fff9;
+  }
+  
+  &.grade-above-average {
+    border-color: #20c997;
+    background-color: #f0fdfa;
+  }
+  
+  &.grade-average {
+    border-color: #ffc107;
+    background-color: #fffdf0;
+  }
+  
+  &.grade-below-average {
+    border-color: #fd7e14;
+    background-color: #fff8f0;
+  }
+  
+  &.grade-poor {
+    border-color: #dc3545;
+    background-color: #fff5f5;
+  }
+}
+
+// Footer enhancements
+.modal-footer {
+  .footer-buttons {
+    justify-content: space-between;
+    
+    .btn {
+      min-width: 120px;
+      justify-content: center;
+      
+      i {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .page-navigation {
+    padding: 1rem 1.5rem;
+
+    .page-indicator {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  }
+
+  .referee-page {
+    .grades-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .textarea-group {
+      padding: 1rem;
+    }
+  }
+
+  .modal-footer .footer-buttons {
+    .btn {
+      min-width: 100px;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    h3 {
+      font-size: 1.2rem;
+    }
+  }
+
+  .modal-footer .footer-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+.loading-existing {
+  text-align: center;
+  padding: 3rem;
+  background: #f8f9fa;
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #17a2b8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  p {
+    color: #6c757d;
+    margin: 0;
+    font-style: italic;
+  }
+}

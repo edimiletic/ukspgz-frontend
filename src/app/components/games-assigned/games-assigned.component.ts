@@ -11,11 +11,15 @@ import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.
 import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 import { SidebarComponent } from "../sidebar/sidebar.component";
+import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.component";
+import { KontrolaService } from '../../services/kontrola.service';
+import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent, SidebarComponent],
+  imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent, SidebarComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss'
 })
@@ -53,6 +57,9 @@ export class GamesAssignedComponent implements OnInit {
     date: ''
   };
     
+ isKontrolaModalOpen = false;
+  gameForKontrola: BasketballGame | null = null;
+
   // Rejection modal
   isRejectionModalOpen = false;
   gameToReject: BasketballGame | null = null;
@@ -78,7 +85,8 @@ export class GamesAssignedComponent implements OnInit {
 
   constructor(
     private basketballGameService: BasketballGameService,
-    private authService: AuthService
+    private authService: AuthService,
+    private kontrolaService: KontrolaService
   ) {}
 
   ngOnInit() {
@@ -105,6 +113,105 @@ export class GamesAssignedComponent implements OnInit {
   isAdmin(): boolean {
     return this.currentUser?.role === 'Admin';
   }
+
+  isViewKontrolaModalOpen = false;
+  gameForViewKontrola: BasketballGame | null = null;
+
+  // Check if current user can view kontrola (only referees who participated)
+  canViewKontrola(game: BasketballGame): boolean {
+    if (!this.currentUser) return false;
+    
+    // Only referees can view kontrola, and only for games they participated in
+    if (!['Sudac', 'Delegat', 'Pomoćni Sudac'].includes(this.currentUser.role)) {
+      return false;
+    }
+
+    // Check if the current user was assigned to this game and accepted
+    const userAssignment = game.refereeAssignments.find(
+      assignment => assignment.userId._id === this.currentUser!._id && 
+                   assignment.assignmentStatus === 'Accepted'
+    );
+
+    return !!userAssignment;
+  }
+
+// Remove the hasKontrola method and add this property
+kontrolaStatusMap = new Map<string, boolean>();
+
+// Add this method to check and cache kontrola status
+
+checkGameKontrolaStatus(gameId: string): void {
+  console.log('Checking kontrola status for game:', gameId);
+  console.log('Current user:', this.currentUser);
+  
+  if (!this.kontrolaStatusMap.has(gameId)) {
+    this.kontrolaStatusMap.set(gameId, false);
+    
+    this.kontrolaService.hasKontrola(gameId).subscribe({
+      next: (response) => {
+        console.log(`Kontrola exists response for game ${gameId}:`, response);
+        this.kontrolaStatusMap.set(gameId, response.exists);
+        
+        // Force change detection
+        setTimeout(() => {
+          console.log(`Kontrola status map updated for ${gameId}:`, this.kontrolaStatusMap.get(gameId));
+        }, 100);
+      },
+      error: (error) => {
+        console.error('Error checking kontrola for game', gameId, error);
+        this.kontrolaStatusMap.set(gameId, false);
+      }
+    });
+  } else {
+    console.log(`Kontrola status already cached for ${gameId}:`, this.kontrolaStatusMap.get(gameId));
+  }
+}
+
+// Helper method for template
+getKontrolaStatus(gameId: string): boolean {
+  if (!this.kontrolaStatusMap.has(gameId)) {
+    this.checkGameKontrolaStatus(gameId);
+    return false;
+  }
+  return this.kontrolaStatusMap.get(gameId) || false;
+}
+
+  // Open view kontrola modal
+  openViewKontrolaModal(game: BasketballGame): void {
+    console.log('Opening view kontrola modal for game:', game);
+    this.gameForViewKontrola = game;
+    this.isViewKontrolaModalOpen = true;
+  }
+
+  // Close view kontrola modal
+  closeViewKontrolaModal(): void {
+    this.isViewKontrolaModalOpen = false;
+    this.gameForViewKontrola = null;
+  }
+
+  // Close kontrola modal
+  closeKontrolaModal(): void {
+    this.isKontrolaModalOpen = false;
+    this.gameForKontrola = null;
+  }
+
+  // Handle kontrola saved
+ 
+onKontrolaSaved(result: any): void {
+  console.log('Kontrola saved:', result);
+  
+  // Check if the result indicates success
+  if (result && result.success) {
+    this.showSuccess(result.message || 'Kontrola je uspješno spremljena!');
+  } else {
+    this.showError(result?.message || 'Greška pri spremanju kontrole.');
+  }
+  
+  // Refresh the games list to update the kontrola nus
+  this.loadMyGames();
+}
+
+
 
   // Open create game modal
   openCreateGameModal() {
@@ -659,4 +766,42 @@ private respondToAssignment(gameId: string, response: 'Accepted' | 'Rejected', r
       }
     });
   }
+
+
+  // Check if current user can access Kontrola column (Admin or Delegat)
+  canAccessKontrola(): boolean {
+    return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'Delegat';
+  }
+
+  isKontrolaEditMode = false;
+
+
+
+async openKontrolaModal(game: BasketballGame): Promise<void> {
+  console.log('Opening kontrola modal for game:', game);
+  
+  this.gameForKontrola = game;
+  
+  try {
+    const response = await firstValueFrom(this.kontrolaService.hasKontrola(game._id));
+    console.log('🔍 Kontrola exists:', response.exists);
+    
+    // Set edit mode first
+    this.isKontrolaEditMode = response.exists;
+    
+    // Use setTimeout to ensure change detection picks up the edit mode change
+    setTimeout(() => {
+      this.isKontrolaModalOpen = true;
+      console.log('📝 Modal opened with edit mode:', this.isKontrolaEditMode);
+    }, 10);
+    
+  } catch (error) {
+    console.error('❌ Error checking kontrola existence:', error);
+    this.isKontrolaEditMode = false;
+    setTimeout(() => {
+      this.isKontrolaModalOpen = true;
+    }, 10);
+  }
+}
+
 }

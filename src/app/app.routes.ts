@@ -36,5 +36,6 @@ export const routes: Routes = [
   {path: 'exams', component: ExamsComponent, canActivate: [AuthGuard]},
   {path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard]},
   {path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},
-  {path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard]}
+  {path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard]},
+  
 ];

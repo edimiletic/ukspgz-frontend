@@ -1,0 +1,112 @@
+<!-- src/app/components/games-assigned/view-kontrola-modal/view-kontrola-modal.component.html -->
+<div class="modal-backdrop" *ngIf="isOpen" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2>
+        <i class="fas fa-eye"></i>
+        Moja Kontrola
+      </h2>
+      <button class="close-btn" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Učitavanje kontrole...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage && !isLoading" class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="kontrolaData && !isLoading" class="modal-body">
+      
+      <!-- Game Info -->
+      <div class="game-info-section">
+        <h3><i class="fas fa-basketball-ball"></i> Utakmica</h3>
+        <div class="game-details">
+          <div class="game-title">{{ kontrolaData.gameInfo.homeTeam }} vs {{ kontrolaData.gameInfo.awayTeam }}</div>
+          <div class="game-meta">
+            <span><i class="fas fa-calendar"></i> {{ kontrolaData.gameInfo.date | date:'dd.MM.yyyy' }}</span>
+            <span><i class="fas fa-clock"></i> {{ kontrolaData.gameInfo.time }}</span>
+            <span><i class="fas fa-map-marker-alt"></i> {{ kontrolaData.gameInfo.venue }}</span>
+          </div>
+          <div class="game-competition">{{ kontrolaData.gameInfo.competition }}</div>
+        </div>
+      </div>
+
+      <!-- Težina Utakmice -->
+      <div class="section">
+        <h3><i class="fas fa-weight-hanging"></i> Težina Utakmice</h3>
+        <div class="difficulty-display">
+          <span [class]="'difficulty-badge ' + getTezinaDisplay(kontrolaData.tezinaUtakmice).class">
+            <!-- <i [class]="getTezinaDisplay(kontrolaData.tezinaUtakmice).icon"></i> -->
+            {{ getTezinaDisplay(kontrolaData.tezinaUtakmice).label }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Moje Ocjene -->
+      <div class="section">
+        <h3><i class="fas fa-star"></i> Moje Ocjene</h3>
+        <div class="grades-display">
+          <div *ngFor="let category of gradeCategories" class="grade-item">
+            <span class="grade-label">{{ category.label }}</span>
+            <span [class]="'grade-badge ' + getGradeDisplay(getGradeValue(category.key)).class">
+              <i [class]="getGradeDisplay(getGradeValue(category.key)).icon"></i>
+              {{ getGradeDisplay(getGradeValue(category.key)).label }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Komentari -->
+      <div class="section">
+        <h3><i class="fas fa-comments"></i> Komentari i Napomene</h3>
+        
+        <div class="comment-section">
+          <h4><i class="fas fa-user-check"></i> Kontrolirani Sudac</h4>
+          <div class="comment-content">{{ kontrolaData.refereeGrade.kontroliraniSudac }}</div>
+        </div>
+
+        <div class="comment-section">
+          <h4><i class="fas fa-exclamation-triangle"></i> Komentirane Situacije</h4>
+          <div class="comment-content">{{ kontrolaData.refereeGrade.komentiranesituacije }}</div>
+        </div>
+
+        <div class="comment-section">
+          <h4><i class="fas fa-clipboard-list"></i> Komentar Utakmice i Cjelokupna Izvedba</h4>
+          <div class="comment-content">{{ kontrolaData.refereeGrade.komentarUtakmice }}</div>
+        </div>
+      </div>
+
+      <!-- Kontrola Info -->
+      <div class="kontrola-info">
+        <div class="info-item">
+          <i class="fas fa-calendar-plus"></i>
+          <span>Kreirana: {{ kontrolaData.createdAt | date:'dd.MM.yyyy HH:mm' }}</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-user"></i>
+          <span>Kreirao: {{ kontrolaData.createdBy }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer" *ngIf="!isLoading">
+      <button type="button" class="btn btn-secondary" (click)="closeModal()">
+        <i class="fas fa-times"></i> Zatvori
+      </button>
+    </div>
+
+  </div>
+</div>

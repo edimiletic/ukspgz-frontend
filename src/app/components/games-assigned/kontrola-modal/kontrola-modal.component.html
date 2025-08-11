@@ -1,0 +1,209 @@
+<div class="modal-backdrop" *ngIf="isOpen" (click)="closeModal()">
+  <div class="modal-content" 
+       [class.first-page-modal]="currentPage === 0"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2>
+        <i class="fas fa-clipboard-check"></i>
+        <span *ngIf="!isEditMode">Nova Kontrola Utakmice</span>
+        <span *ngIf="isEditMode">Uredi Kontrolu Utakmice</span>
+      </h2>
+      <button class="close-btn" (click)="closeModal()" [disabled]="isLoading || isLoadingExistingKontrola">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoadingExistingKontrola" class="loading-existing">
+      <div class="loading-spinner"></div>
+      <p>Učitavanje postojeće kontrole...</p>
+    </div>
+
+    <!-- Main Content - Only show when not loading -->
+    <ng-container *ngIf="!isLoadingExistingKontrola">
+      
+      <!-- Game Info - Only visible on first page -->
+      <div class="game-info" *ngIf="game && currentPage === 0">
+        <div class="game-details">
+          <span class="game-title">{{ game.homeTeam }} vs {{ game.awayTeam }}</span>
+          <span class="game-meta">{{ game.date | date:'dd.MM.yyyy' }} u {{ game.time }} - {{ game.venue }}</span>
+        </div>
+      </div>
+
+      <!-- Page Navigation Indicator -->
+      <div class="page-navigation">
+        <div class="page-indicator">
+          <div class="page-info">
+            <span class="page-title">{{ getPageTitle() }}</span>
+            <span class="page-counter">{{ currentPage + 1 }} od {{ totalPages }}</span>
+          </div>
+
+          <!-- Page Dots -->
+          <div class="page-dots">
+            <div 
+              *ngFor="let page of [].constructor(totalPages); let i = index"
+              class="page-dot"
+              [class.active]="i === currentPage"
+              [class.completed]="i < currentPage"
+              (click)="goToPage(i)"
+              [title]="i === 0 ? 'Težina Utakmice' : 'Sudac ' + i">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="errorMessage">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Modal Body - THIS IS THE SCROLLABLE AREA -->
+      <div class="modal-body">
+        
+        <!-- Page 0: Težina Utakmice -->
+        <div *ngIf="currentPage === 0" class="page-content first-page">
+          <div class="first-page-container">
+            <div class="form-section">
+              <div class="page-header">
+                <h3>Težina Utakmice</h3>
+                <p class="page-description">Molimo odaberite težinu utakmice prema vašoj procjeni.</p>
+              </div>
+              
+              <div class="form-group centered-form">
+                <select 
+                  [(ngModel)]="kontrolaForm.tezinaUtakmice" 
+                  name="tezinaUtakmice"
+                  class="form-control large-select"
+                  required>
+                  <option value="">Odaberite težinu utakmice</option>
+                  <option *ngFor="let option of tezinaOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pages 1+: Individual Referee Pages -->
+        <div *ngIf="currentPage > 0 && getCurrentReferee() as referee" class="page-content referee-content">
+          <div class="referee-page">
+            
+            <!-- Page Header -->
+            <div class="page-header">
+              <h3>{{ getRefereeDisplayName(referee) }}</h3>
+              <p class="page-description">Molimo ocijenite izvedbu suca i ostavite komentare.</p>
+            </div>
+
+            <!-- Grade Categories -->
+            <div class="grades-section">
+              <h4><i class="fas fa-star"></i> Ocjene</h4>
+              <div class="grades-grid">
+                <div class="grade-item" *ngFor="let category of gradeCategories">
+                  <label>{{ category.label }}</label>
+                  <select 
+                    [(ngModel)]="referee[category.key]"
+                    [name]="'referee_' + (currentPage - 1) + '_' + category.key"
+                    class="form-control grade-select"
+                    [class]="getGradeClass(getGradeValue(referee, category.key))">
+                    <option value="">Odaberite ocjenu</option>
+                    <option *ngFor="let option of gradeOptions" [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+              <h4><i class="fas fa-comments"></i> Komentari i Napomene</h4>
+              <div class="textarea-group">
+                <div class="form-group">
+                  <label [for]="'kontroliraniSudac_' + (currentPage - 1)">
+                    <i class="fas fa-user-check"></i> Kontrolirani Sudac *
+                  </label>
+                  <textarea 
+                    [id]="'kontroliraniSudac_' + (currentPage - 1)"
+                    [(ngModel)]="referee.kontroliraniSudac" 
+                    [name]="'kontroliraniSudac_' + (currentPage - 1)"
+                    class="form-control"
+                    rows="4"
+                    [placeholder]="'Unesite komentare o ' + referee.refereeName + '...'"
+                    required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label [for]="'komentiranesituacije_' + (currentPage - 1)">
+                    <i class="fas fa-exclamation-triangle"></i> Komentirane Situacije *
+                  </label>
+                  <textarea 
+                    [id]="'komentiranesituacije_' + (currentPage - 1)"
+                    [(ngModel)]="referee.komentiranesituacije" 
+                    [name]="'komentiranesituacije_' + (currentPage - 1)"
+                    class="form-control"
+                    rows="4"
+                    [placeholder]="'Opišite komentirane situacije za ' + referee.refereeName + '...'"
+                    required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label [for]="'komentarUtakmice_' + (currentPage - 1)">
+                    <i class="fas fa-clipboard-list"></i> Komentar Utakmice i Cjelokupna Izvedba *
+                  </label>
+                  <textarea 
+                    [id]="'komentarUtakmice_' + (currentPage - 1)"
+                    [(ngModel)]="referee.komentarUtakmice" 
+                    [name]="'komentarUtakmice_' + (currentPage - 1)"
+                    class="form-control"
+                    rows="5"
+                    [placeholder]="'Unesite komentar o izvedbi ' + referee.refereeName + '...'"
+                    required></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer with Navigation -->
+      <div class="modal-footer">
+        <div class="footer-buttons">
+          
+          <!-- Previous/Cancel Button -->
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="isFirstPage() ? closeModal() : previousPage()" 
+            [disabled]="isLoading">
+            <i class="fas" [class.fa-times]="isFirstPage()" [class.fa-arrow-left]="!isFirstPage()"></i>
+            {{ isFirstPage() ? 'Odustani' : 'Nazad' }}
+          </button>
+
+          <!-- Next/Save Button -->
+          <button 
+            type="button" 
+            [class]="isLastPage() ? 'btn btn-success' : 'btn btn-primary'" 
+            (click)="isLastPage() ? saveKontrola() : nextPage()" 
+            [disabled]="isLoading">
+            
+            <span *ngIf="!isLoading">
+              <i class="fas" [class.fa-save]="isLastPage()" [class.fa-arrow-right]="!isLastPage()"></i>
+              {{ isLastPage() ? 'Spremi Kontrolu' : 'Dalje' }}
+            </span>
+            
+            <span *ngIf="isLoading">
+              <i class="fas fa-spinner fa-spin"></i> Spremanje...
+            </span>
+          </button>
+          
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+</div>
