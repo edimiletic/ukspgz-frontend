@@ -46,13 +46,13 @@
       background: #9b59b6;
     }
 
-    @for $i from 1 through 20 {
-      &:nth-child(#{$i}) {
-        left: #{random(100)};
-        animation-delay: #{random(2000)}ms;
-        animation-duration: #{2000 + random(1000)}ms;
-      }
-    }
+    // @for $i from 1 through 20 {
+    //   &:nth-child(#{$i}) {
+    //     left: #{random(100)}ms;
+    //     animation-delay: #{random(2000)}ms;
+    //     animation-duration: #{2000 + random(1000)}ms;
+    //   }
+    // }
   }
 }
 

@@ -32,7 +32,7 @@ export const routes: Routes = [
   {path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
   {path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
   {path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard]},
-  {path: 'rules', component: BasketRulesComponent, canActivate: [AuthGuard]},
+  {path: 'documents', component: BasketRulesComponent, canActivate: [AuthGuard]},
   {path: 'exams', component: ExamsComponent, canActivate: [AuthGuard]},
   {path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard]},
   {path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},

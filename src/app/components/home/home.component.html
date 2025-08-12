@@ -1,31 +1,294 @@
 <app-header></app-header>
-
 <app-sidebar></app-sidebar>
 
-
 <div class="main-layout">
-
-
-  <!-- Content -->
   <section class="content">
-    <div class="description">
-      <h2>Basketball Association Information System (IS)</h2>
-      <p>
-        Informacijski sustav Košarkaškog udruženja (IS) platforma je namijenjena upravljanju i pojednostavljivanju operacija vezanih uz košarku. Sadrži značajke za upravljanje igrama, licencama, izjavama i još mnogo toga.
-      </p>
+    <!-- Welcome Header -->
+    <div class="welcome-header">
+      <div class="welcome-content">
+        <h1 class="welcome-title">
+          {{ getGreeting() }}, {{ currentUser?.name }}!
+        </h1>
+        <p class="welcome-message">{{ getWelcomeMessage() }}</p>
+      </div>
+      <div class="welcome-badge" [class.admin-badge]="isAdmin">
+        <i class="fas" [class.fa-user-shield]="isAdmin" [class.fa-user]="!isAdmin"></i>
+        {{ isAdmin ? 'Administrator' : 'Sudac' }}
+      </div>
     </div>
 
-    <div class="user-data">
-      <h3>Osobni Podatci</h3>
-      <ul>
-        <li><strong>Korisničko ime:</strong> {{user?.username}}</li>
-        <li><strong>Ime:</strong> {{user?.name}} {{user?.surname}}</li>
-        <li><strong>ID:</strong> {{user?.personalCode}}</li>
-        <li><strong>Email:</strong> {{user?.email}}</li>
-        <li><strong>Uloga:</strong> {{user?.role}}</li>
-      </ul>
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Učitavanje podataka...</p>
+    </div>
+
+    <!-- Error State -->
+<div *ngIf="hasError && !isLoading" class="error-container">
+  <div class="error-message">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h3>Greška pri učitavanju</h3>
+    <p>Nismo mogli učitati podatke za nadzornu ploču. Molimo pokušajte osvježiti stranicu.</p>
+    <button class="btn btn-primary" (click)="retryLoadData()">Pokušaj ponovo</button>
+  </div>
+</div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading && !hasError" class="dashboard-content">
+      <!-- Quick Stats Cards -->
+      <div class="stats-grid">
+        <!-- User Stats -->
+        <div *ngIf="!isAdmin" class="stat-card pending">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.pendingGames }}</h3>
+            <p>Nominacije na čekanju</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/assigned')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="stat-card upcoming">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.upcomingGames }}</h3>
+            <p>{{ isAdmin ? 'Nadolazeće utakmice' : 'Potvrđene utakmice' }}</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/assigned')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="stat-card expenses">
+          <div class="stat-icon">
+            <i class="fas fa-file-invoice-dollar"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.pendingExpenses }}</h3>
+            <p>{{ isAdmin ? 'Izvješća za pregled' : 'Skice izvješća' }}</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/expenses')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div *ngIf="!isAdmin" class="stat-card exam">
+          <div class="stat-icon">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.lastExamScore }}/25</h3>
+            <p>Zadnji rezultat ispita</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/exams')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="stat-card absences">
+          <div class="stat-icon">
+            <i class="fas fa-user-times"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.activeAbsences }}</h3>
+            <p>{{ isAdmin ? 'Aktivna odsustva' : 'Vaša odsustva' }}</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/absence')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Admin specific stats -->
+        <div *ngIf="isAdmin" class="stat-card completed">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.completedGames }}</h3>
+            <p>Završene utakmice</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/assigned')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Activity Section -->
+      <div class="activity-section">
+        <div class="section-header">
+          <h2>
+            <i class="fas fa-history"></i>
+            {{ isAdmin ? 'Najnovije aktivnosti' : 'Vaša nedavna aktivnost' }}
+          </h2>
+        </div>
+
+        <div class="activity-grid">
+          <!-- Recent Games -->
+          <div class="activity-card">
+            <div class="activity-header">
+              <h3>
+                <i class="fas fa-basketball-ball"></i>
+                {{ isAdmin ? 'Najnovije utakmice' : 'Vaše utakmice' }}
+              </h3>
+              <button class="view-all-btn" (click)="navigateTo('/assigned')">
+                Vidi sve <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+            <div class="activity-list">
+              <div *ngFor="let game of recentGames" class="activity-item">
+                <div class="activity-info">
+                  <h4>{{ game.homeTeam }} vs {{ game.awayTeam }}</h4>
+                  <p class="activity-meta">
+                    <span>{{ formatDate(game.date) }} - {{ game.venue }}</span>
+                    <span class="activity-status" [class]="getGameStatusClass(game)">
+                      {{ getGameStatusText(game) }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div *ngIf="recentGames.length === 0" class="no-data">
+                <p>{{ isAdmin ? 'Nema nedavnih utakmica' : 'Nemate nedavnih utakmica' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Expenses -->
+          <div class="activity-card">
+            <div class="activity-header">
+              <h3>
+                <i class="fas fa-receipt"></i>
+                {{ isAdmin ? 'Najnovija izvješća' : 'Vaša izvješća' }}
+              </h3>
+              <button class="view-all-btn" (click)="navigateTo('/expenses')">
+                Vidi sve <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+            <div class="activity-list">
+              <div *ngFor="let expense of recentExpenses" class="activity-item">
+                <div class="activity-info">
+                  <h4>{{ expense.type }} - {{ expense.month }} {{ expense.year }}</h4>
+                  <p class="activity-meta">
+                    <span>{{ formatAmount(expense.totalAmount) }}</span>
+                    <span class="activity-status" [class]="getExpenseStatusClass(expense)">
+                      {{ expense.state }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div *ngIf="recentExpenses.length === 0" class="no-data">
+                <p>{{ isAdmin ? 'Nema nedavnih izvješća' : 'Nemate nedavnih izvješća' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Absences (if any) -->
+        <div *ngIf="currentAbsences.length > 0" class="current-absences">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="alert-content">
+              <h4>{{ isAdmin ? 'Trenutna odsustva sudaca' : 'Vaše trenutno odsustvo' }}</h4>
+              <div *ngFor="let absence of currentAbsences" class="absence-item">
+                <p>
+                  <strong>{{ isAdmin ? absence.userName + ': ' : '' }}</strong>
+                  {{ formatDate(absence.startDate) }} - {{ formatDate(absence.endDate) }}
+                  <span *ngIf="absence.reason"> ({{ absence.reason }})</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <h3>
+            <i class="fas fa-bolt"></i>
+            Brze akcije
+          </h3>
+          <div class="actions-grid">
+<button *ngIf="!isAdmin" class="action-btn expenses-btn" (click)="openExpensesModal()">
+  <i class="fas fa-plus"></i>
+  <span>Novo izvješće troškova</span>
+</button>
+
+            <button *ngIf="!isAdmin" class="action-btn absence-btn" (click)="openTimeAbsentModal()">
+              <i class="fas fa-calendar-times"></i>
+              <span>Prijavi odsustvo</span>
+            </button>
+
+<button *ngIf="!isAdmin" class="action-btn exam-btn" (click)="startNewExam()">
+  <i class="fas fa-graduation-cap"></i>
+  <span>Pokreni ispit</span>
+</button>
+
+            <button class="action-btn documents-btn" (click)="navigateTo('/documents')">
+              <i class="fas fa-file-alt"></i>
+              <span>Pregled dokumenata</span>
+            </button>
+
+            <button *ngIf="isAdmin" class="action-btn admin-btn" (click)="openCreateGameModal()">
+              <i class="fas fa-plus"></i>
+              <span>Kreiraj utakmicu</span>
+            </button>
+
+            <button *ngIf="isAdmin" class="action-btn exam-admin-btn" (click)="openAddQuestionModal()">
+              <i class="fas fa-question-circle"></i>
+              <span>Dodaj pitanje</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
+
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Create Game Modal -->
+<app-create-game-modal [isOpen]="isCreateGameModalOpen" (close)="closeCreateGameModal()"
+  (gameCreated)="onGameCreated($event)">
+</app-create-game-modal>
+
+<app-add-question-modal
+  [isOpen]="isAddQuestionModalOpen"
+  (closeModal)="closeAddQuestionModal()"
+  (questionAdded)="onQuestionAdded($event)">
+</app-add-question-modal>
+
+<!-- Time Absent Modal -->
+<app-time-absent-modal
+  [isOpen]="isTimeAbsentModalOpen"
+  (closeModalEvent)="closeTimeAbsentModal()"
+  (absenceSaved)="onAbsenceSaved()"
+  (error)="onAbsenceError($event)">
+</app-time-absent-modal>
+
+<app-expenses-modal
+  [isOpen]="isExpensesModalOpen"
+  (close)="closeExpensesModal()"
+  (success)="onExpenseReportCreated($event)">
+</app-expenses-modal>
 
 <app-footer></app-footer>

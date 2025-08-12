@@ -8,7 +8,8 @@ export interface Absence {
   reason?: string;             // Optional reason for absence
   createdAt?: string;          // ISO format timestamp when record was created
   updatedAt?: string;          // ISO format timestamp when record was last updated
-  durationDays?: number;       // Virtual field from backend
+  durationDays?: number; 
+    userName?: string;  // Add this line for admin responses
 }
 
 export interface AbsenceCreateRequest {

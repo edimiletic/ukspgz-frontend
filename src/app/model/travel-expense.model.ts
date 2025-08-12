@@ -19,14 +19,7 @@ export interface TravelExpense {
   expenses?: ExpenseItem[]; // Array of individual expense items
 }
 
-// export interface ExpenseItem {
-//   _id?: string;           // MongoDB ObjectId
-//   description: string;    // Description of the expense
-//   amount: number;         // Amount in euros
-//   date: string;          // ISO date string
-//   category: string;      // Transport, Accommodation, Meals, Other
-//   receipt?: string;      // File path or URL to receipt
-// }
+
 
 export interface ExpenseItem {
   _id: string;
