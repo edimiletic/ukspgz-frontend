@@ -13,7 +13,7 @@
     <div class="page-header">
       <div class="header-content">
         <div class="header-text">
-          <h2>Ispiti</h2>
+          <h1>Ispiti</h1>
           <p>Ovdje možete pokrenuti novi ispit i pregledati svoje rezultate.</p>
         </div>
         <div class="header-actions" *ngIf="isAdmin()">
@@ -200,5 +200,12 @@
     </button>
   </div>
 </div>
+
+<app-delete-exam-modal
+  [isOpen]="isDeleteAttemptModalOpen"
+  [attemptToDelete]="attemptToDelete"
+  (close)="closeDeleteAttemptModal()"
+  (deleteConfirmed)="onDeleteAttemptConfirmed($event)">
+</app-delete-exam-modal>
 
 <app-footer></app-footer>

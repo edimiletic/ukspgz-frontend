@@ -1,0 +1,38 @@
+<p>delete-exam-modal works!</p>
+ <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3>Obriši pokušaj ispita</h3>
+          <button class="close-btn" (click)="onClose()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="confirmation-content">
+            <div class="confirmation-text">
+              <h4>Jeste li sigurni da želite obrisati ovaj pokušaj ispita?</h4>
+              <div *ngIf="attemptToDelete" class="attempt-details">
+                <p><strong>Ispit:</strong> {{ getExamTitle(attemptToDelete) }}</p>
+                <p><strong>Datum:</strong> {{ formatDate(attemptToDelete.completedAt) }}</p>
+                <p><strong>Rezultat:</strong> {{ attemptToDelete.score || 0 }}/25</p>
+                <p><strong>Status:</strong> {{ getAttemptStatusText(attemptToDelete) }}</p>
+              </div>
+              <!-- <p class="warning-text">Ova akcija se ne može poništiti.</p> -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="onClose()" [disabled]="isDeleting">
+            Odustani
+          </button>
+          <button class="btn btn-danger" (click)="onConfirm()" [disabled]="isDeleting">
+            <span *ngIf="isDeleting">Brisanje...</span>
+            <span *ngIf="!isDeleting">
+              Obriši pokušaj
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>

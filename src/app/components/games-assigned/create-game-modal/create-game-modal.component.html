@@ -65,24 +65,25 @@
             <div class="form-group">
               <label for="date">Datum</label>
               <input 
-                type="date" 
-                id="date" 
-                [(ngModel)]="gameForm.date" 
-                name="date"
-                class="form-control"
-                [min]="getMinDate()"
-                (change)="onDateChange()"
-                required>
+  type="date" 
+  id="date" 
+  [(ngModel)]="gameForm.date" 
+  name="date"
+  class="form-control"
+  [min]="getMinDate()"
+  (change)="onDateTimeChange()"
+  required>
             </div>
             <div class="form-group">
               <label for="time">Vrijeme</label>
               <input 
-                type="time" 
-                id="time" 
-                [(ngModel)]="gameForm.time" 
-                name="time"
-                class="form-control"
-                required>
+  type="time" 
+  id="time" 
+  [(ngModel)]="gameForm.time" 
+  name="time"
+  class="form-control"
+  (change)="onDateTimeChange()"
+  required>
             </div>
           </div>
 
@@ -140,23 +141,24 @@
             <div class="referee-section">
               <h3>
                 Sudci (2-3 obavezno)
-                <span *ngIf="gameForm.date && getUnavailableRefereesCount('Sudac') > 0" class="unavailable-count">
-                  ({{ getUnavailableRefereesCount('Sudac') }} nedostupno zbog odsusstva)
-                </span>
+    <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
+      ({{ unavailableCounts.sudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+    </span>
               </h3>
               <div class="referee-list">
                 <div *ngFor="let sudac of selectedReferees.sudci; let i = index" class="referee-assignment">
                   <label>Sudac {{ sudac.position }}</label>
                   <div class="assignment-row">
-                    <select 
-                      [(ngModel)]="sudac.userId" 
-                      name="sudac_{{i}}"
-                      class="form-control">
-                      <option value="">Odaberite suca</option>
-                      <option *ngFor="let ref of getAvailableSudci(i)" [value]="ref._id">
-                        {{ ref.name }} {{ ref.surname }}
-                      </option>
-                    </select>
+                    <!-- In the referee assignment sections, update the select options -->
+<select 
+  [(ngModel)]="sudac.userId" 
+  name="sudac_{{i}}"
+  class="form-control">
+  <option value="">Odaberite suca</option>
+  <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
+    {{ ref.name }} {{ ref.surname }}
+  </option>
+</select>
                     <button 
                       type="button" 
                       class="btn btn-danger btn-sm" 
@@ -178,67 +180,69 @@
             </div>
 
             <!-- Delegat Section -->
-            <div class="referee-section">
-              <h3>
-                Delegat (opcionalno)
-                <span *ngIf="gameForm.date && getUnavailableRefereesCount('Delegat') > 0" class="unavailable-count">
-                  ({{ getUnavailableRefereesCount('Delegat') }} nedostupno zbog odsustva)
-                </span>
-              </h3>
-              <div class="referee-assignment">
-                <select 
-                  [(ngModel)]="selectedReferees.delegat" 
-                  name="delegat"
-                  class="form-control">
-                  <option value="">Odaberite delegata</option>
-                  <option *ngFor="let ref of getAvailableDelegati()" [value]="ref._id">
-                    {{ ref.name }} {{ ref.surname }}
-                  </option>
-                </select>
-              </div>
-            </div>
+<!-- Delegat Section - FIXED -->
+<div class="referee-section">
+  <h3>
+    Delegat (opcionalno)
+    <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
+      ({{ unavailableCounts.delegati || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+    </span>
+  </h3>
+  <div class="referee-assignment">
+    <select 
+      [(ngModel)]="selectedReferees.delegat" 
+      name="delegat"
+      class="form-control">
+      <option value="">Odaberite delegata</option>
+      <!-- USE STORED ARRAY INSTEAD OF METHOD -->
+      <option *ngFor="let ref of availableDelegati" [value]="ref._id">
+        {{ ref.name }} {{ ref.surname }}
+      </option>
+    </select>
+  </div>
+</div>
 
-            <!-- Pomoćni Sudci Section -->
-            <div class="referee-section">
-              <h3>
-                Pomoćni Sudci (2-3 obavezno)
-                <span *ngIf="gameForm.date && getUnavailableRefereesCount('Pomoćni Sudac') > 0" class="unavailable-count">
-                  ({{ getUnavailableRefereesCount('Pomoćni Sudac') }} nedostupno zbog odsustva)
-                </span>
-              </h3>
-              <div class="referee-list">
-                <div *ngFor="let pomocni of selectedReferees.pomocniSudci; let i = index" class="referee-assignment">
-                  <label>Pomoćni Sudac {{ pomocni.position }}</label>
-                  <div class="assignment-row">
-                    <select 
-                      [(ngModel)]="pomocni.userId" 
-                      name="pomocni_{{i}}"
-                      class="form-control">
-                      <option value="">Odaberite pomoćnog suca</option>
-                      <option *ngFor="let ref of getAvailablePomocniSudci(i)" [value]="ref._id">
-                        {{ ref.name }} {{ ref.surname }}
-                      </option>
-                    </select>
-                    <button 
-                      type="button" 
-                      class="btn btn-danger btn-sm" 
-                      (click)="removePomocniSudac(i)"
-                      *ngIf="selectedReferees.pomocniSudci.length > 2"
-                      title="Ukloni pomoćnog suca">
-                      <i class="fas fa-minus"></i>
-                    </button>
-                  </div>
-                </div>
-                <button 
-                  type="button" 
-                  class="btn btn-secondary btn-add" 
-                  (click)="addPomocniSudac()"
-                  *ngIf="selectedReferees.pomocniSudci.length < 3">
-                  <i class="fas fa-plus"></i> Dodaj pomoćnog suca
-                </button>
-              </div>
-            </div>
-
+<!-- Pomoćni Sudci Section - FIXED -->
+<div class="referee-section">
+  <h3>
+    Pomoćni Sudci (2-3 obavezno)
+    <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
+      ({{ unavailableCounts.pomocniSudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+    </span>
+  </h3>
+  <div class="referee-list">
+    <div *ngFor="let pomocni of selectedReferees.pomocniSudci; let i = index" class="referee-assignment">
+      <label>Pomoćni Sudac {{ pomocni.position }}</label>
+      <div class="assignment-row">
+        <select 
+          [(ngModel)]="pomocni.userId" 
+          name="pomocni_{{i}}"
+          class="form-control">
+          <option value="">Odaberite pomoćnog suca</option>
+          <!-- USE STORED ARRAY INSTEAD OF METHOD -->
+          <option *ngFor="let ref of availablePomocniSudciForIndex[i] || []" [value]="ref._id">
+            {{ ref.name }} {{ ref.surname }}
+          </option>
+        </select>
+        <button 
+          type="button" 
+          class="btn btn-danger btn-sm" 
+          (click)="removePomocniSudac(i)"
+          *ngIf="selectedReferees.pomocniSudci.length > 2"
+          title="Ukloni pomoćnog suca">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+    <button 
+      type="button" 
+      class="btn btn-secondary btn-add" 
+      (click)="addPomocniSudac()"
+      *ngIf="selectedReferees.pomocniSudci.length < 3">
+      <i class="fas fa-plus"></i> Dodaj pomoćnog suca
+    </button>
+  </div>
+</div>
           </div>
         </div>
       </div>

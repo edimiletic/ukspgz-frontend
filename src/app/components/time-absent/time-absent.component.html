@@ -7,9 +7,9 @@
     <!-- Content -->
     <section class="content">
         <div class="page-header">
-            <h2>{{ isAdmin ? 'Odsustvo - Svi korisnici' : 'Odsustvo' }}</h2>
+            <h1>{{ isAdmin ? 'Odsustvo - Svi korisnici' : 'Odsustvo' }}</h1>
             <div class="page-actions">
-                <button class="btn btn-primary" (click)="openModal()" *ngIf="!isAdmin">Kreiraj</button>
+                <button class="btn-create" (click)="openModal()" *ngIf="!isAdmin">        <i class="fas fa-plus"></i>Kreiraj</button>
             </div>
         </div>
         <div class="alert alert-success">

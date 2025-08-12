@@ -38,13 +38,18 @@ export class ViewKontrolaModalComponent implements OnChanges {
     'Teška': { label: 'Teška', class: 'difficulty-hard', icon: 'fas fa-frown' }
   };
 
-  gradeCategories = [
-    { key: 'pogreske', label: 'Pogreške' },
-    { key: 'prekrsaji', label: 'Prekršaji' },
-    { key: 'tehnikaMehanika', label: 'Tehnika i mehanika' },
-    { key: 'timskiRad', label: 'Timski rad' },
-    { key: 'kontrolaUtakmice', label: 'Kontrola utakmice' }
-  ];
+gradeCategories = [
+  { key: 'ocjena', label: 'Ocjena' }
+];
+
+// Create a separate array for detailed grades
+detailedGradeCategories = [
+  { key: 'pogreske', label: 'Pogreške' },
+  { key: 'prekrsaji', label: 'Prekršaji' },
+  { key: 'tehnikaMehanika', label: 'Tehnika i mehanika' },
+  { key: 'timskiRad', label: 'Timski rad' },
+  { key: 'kontrolaUtakmice', label: 'Kontrola utakmice' }
+];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.isOpen && this.game && this.currentUserId) {
@@ -95,6 +100,7 @@ async loadKontrolaData(): Promise<void> {
     if (!this.kontrolaData?.refereeGrade) return '';
     
     switch (categoryKey) {
+      case 'ocjena': return this.kontrolaData.refereeGrade.ocjena; // Add this line
       case 'pogreske': return this.kontrolaData.refereeGrade.pogreske;
       case 'prekrsaji': return this.kontrolaData.refereeGrade.prekrsaji;
       case 'tehnikaMehanika': return this.kontrolaData.refereeGrade.tehnikaMehanika;

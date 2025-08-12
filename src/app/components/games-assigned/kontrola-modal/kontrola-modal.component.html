@@ -98,25 +98,47 @@
               <p class="page-description">Molimo ocijenite izvedbu suca i ostavite komentare.</p>
             </div>
 
-            <!-- Grade Categories -->
-            <div class="grades-section">
-              <h4><i class="fas fa-star"></i> Ocjene</h4>
-              <div class="grades-grid">
-                <div class="grade-item" *ngFor="let category of gradeCategories">
-                  <label>{{ category.label }}</label>
-                  <select 
-                    [(ngModel)]="referee[category.key]"
-                    [name]="'referee_' + (currentPage - 1) + '_' + category.key"
-                    class="form-control grade-select"
-                    [class]="getGradeClass(getGradeValue(referee, category.key))">
-                    <option value="">Odaberite ocjenu</option>
-                    <option *ngFor="let option of gradeOptions" [value]="option.value">
-                      {{ option.label }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-            </div>
+<!-- Grade Categories -->
+<div class="grades-section">
+  <h4><i class="fas fa-star"></i> Ocjene</h4>
+  
+  <!-- Overall Grade - First and Bigger -->
+  <div class="overall-grade-section">
+    <div class="form-group">
+      <label class="overall-grade-label">{{ overallGrade.label }}</label>
+      <select 
+        [(ngModel)]="referee[overallGrade.key]"
+        [name]="'referee_' + (currentPage - 1) + '_' + overallGrade.key"
+        class="form-control overall-grade-select"
+        [class]="getGradeClass(getGradeValue(referee, overallGrade.key))">
+        <option value="">Odaberite ocjenu</option>
+        <option *ngFor="let option of gradeOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Detailed Grades Section -->
+  <div class="detailed-grades-section">
+    <h5 class="detailed-grades-header">Detaljne ocjene</h5>
+    <div class="grades-grid">
+      <div class="grade-item" *ngFor="let category of gradeCategories">
+        <label>{{ category.label }}</label>
+        <select 
+          [(ngModel)]="referee[category.key]"
+          [name]="'referee_' + (currentPage - 1) + '_' + category.key"
+          class="form-control grade-select"
+          [class]="getGradeClass(getGradeValue(referee, category.key))">
+          <option value="">Odaberite ocjenu</option>
+          <option *ngFor="let option of gradeOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
 
             <!-- Comments Section -->
             <div class="comments-section">
@@ -124,7 +146,7 @@
               <div class="textarea-group">
                 <div class="form-group">
                   <label [for]="'kontroliraniSudac_' + (currentPage - 1)">
-                    <i class="fas fa-user-check"></i> Kontrolirani Sudac *
+                    <i class="fas fa-user-check"></i> Kontrolirani Sudac
                   </label>
                   <textarea 
                     [id]="'kontroliraniSudac_' + (currentPage - 1)"
@@ -138,7 +160,7 @@
 
                 <div class="form-group">
                   <label [for]="'komentiranesituacije_' + (currentPage - 1)">
-                    <i class="fas fa-exclamation-triangle"></i> Komentirane Situacije *
+                    <i class="fas fa-exclamation-triangle"></i> Komentirane Situacije
                   </label>
                   <textarea 
                     [id]="'komentiranesituacije_' + (currentPage - 1)"
@@ -152,7 +174,7 @@
 
                 <div class="form-group">
                   <label [for]="'komentarUtakmice_' + (currentPage - 1)">
-                    <i class="fas fa-clipboard-list"></i> Komentar Utakmice i Cjelokupna Izvedba *
+                    <i class="fas fa-clipboard-list"></i> Komentar Utakmice i Cjelokupna Izvedba
                   </label>
                   <textarea 
                     [id]="'komentarUtakmice_' + (currentPage - 1)"

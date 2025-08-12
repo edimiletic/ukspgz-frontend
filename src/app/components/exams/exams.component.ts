@@ -10,11 +10,12 @@ import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
 import { AddQuestionModalComponent } from "./add-question-modal/add-question-modal.component";
 import { SidebarComponent } from "../sidebar/sidebar.component";
+import { DeleteExamModalComponent } from "./delete-exam-modal/delete-exam-modal.component";
 
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, FooterComponent, AddQuestionModalComponent, RouterModule, SidebarComponent],
+  imports: [CommonModule, HeaderComponent, FooterComponent, AddQuestionModalComponent, RouterModule, SidebarComponent, DeleteExamModalComponent],
   templateUrl: './exams.component.html',
   styleUrl: './exams.component.scss'
 })
@@ -27,6 +28,9 @@ export class ExamsComponent implements OnInit {
   generatingExam = false;
   error: string | null = null;
   showAddQuestionModal = false;
+
+  isDeleteAttemptModalOpen = false;
+attemptToDelete: ExamAttempt | null = null;
 
   // Toast notification properties
   successMessage: string | null = null;
@@ -241,23 +245,39 @@ export class ExamsComponent implements OnInit {
     return this.currentUser?.role === 'Admin';
   }
 
-  deleteAttempt(attemptId: string): void {
-    if (confirm('Jeste li sigurni da želite obrisati ovaj pokušaj ispita?')) {
-      this.examService.deleteExamAttempt(attemptId).subscribe({
-        next: (response) => {
-          this.showSuccessToast('Pokušaj ispita je uspješno obrisan.');
-          this.loadUserAttempts(); // Refresh the list
-        },
-        error: (err) => {
-          console.error('Failed to delete attempt:', err);
-          this.showErrorToast('Greška prilikom brisanja pokušaja ispita.');
-        }
-      });
-    }
-  }
 
   reviewAttempt(attempt: ExamAttempt): void {
     // Navigate to review page with attempt data
     this.router.navigate(['/exams/review', attempt._id]);
   }
+
+deleteAttempt(attemptId: string): void {
+  const attempt = this.userAttempts.find(a => a._id === attemptId);
+  if (attempt) {
+    this.attemptToDelete = attempt;
+    this.isDeleteAttemptModalOpen = true;
+  }
+}
+
+// Add these methods
+closeDeleteAttemptModal(): void {
+  this.isDeleteAttemptModalOpen = false;
+  this.attemptToDelete = null;
+}
+
+onDeleteAttemptConfirmed(attemptId: string): void {
+  this.examService.deleteExamAttempt(attemptId).subscribe({
+    next: (response) => {
+      this.showSuccessToast('Pokušaj ispita je uspješno obrisan.');
+      this.loadUserAttempts(); // Refresh the list
+      this.closeDeleteAttemptModal();
+    },
+    error: (err) => {
+      console.error('Failed to delete attempt:', err);
+      this.showErrorToast('Greška prilikom brisanja pokušaja ispita.');
+      this.closeDeleteAttemptModal();
+    }
+  });
+}
+
 }

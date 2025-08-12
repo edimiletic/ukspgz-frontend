@@ -53,19 +53,33 @@
         </div>
       </div>
 
-      <!-- Moje Ocjene -->
-      <div class="section">
-        <h3><i class="fas fa-star"></i> Moje Ocjene</h3>
-        <div class="grades-display">
-          <div *ngFor="let category of gradeCategories" class="grade-item">
-            <span class="grade-label">{{ category.label }}</span>
-            <span [class]="'grade-badge ' + getGradeDisplay(getGradeValue(category.key)).class">
-              <i [class]="getGradeDisplay(getGradeValue(category.key)).icon"></i>
-              {{ getGradeDisplay(getGradeValue(category.key)).label }}
-            </span>
-          </div>
-        </div>
-      </div>
+<!-- Moje Ocjene -->
+<div class="section">
+  <h3><i class="fas fa-star"></i> Moje Ocjene</h3>
+  
+  <!-- Overall Grade - First and Prominent -->
+  <div class="overall-grade-display">
+    <div class="overall-grade-item">
+      <span class="overall-grade-label">Ocjena</span>
+      <span [class]="'overall-grade-badge ' + getGradeDisplay(getGradeValue('ocjena')).class">
+        <!-- <i [class]="getGradeDisplay(getGradeValue('ocjena')).icon"></i> -->
+        {{ getGradeDisplay(getGradeValue('ocjena')).label }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Detailed Grades -->
+  <h4 class="detailed-grades-header">Detaljne ocjene</h4>
+  <div class="grades-display">
+    <div *ngFor="let category of detailedGradeCategories" class="grade-item">
+      <span class="grade-label">{{ category.label }}</span>
+      <span [class]="'grade-badge ' + getGradeDisplay(getGradeValue(category.key)).class">
+        <!-- <i [class]="getGradeDisplay(getGradeValue(category.key)).icon"></i> -->
+        {{ getGradeDisplay(getGradeValue(category.key)).label }}
+      </span>
+    </div>
+  </div>
+</div>
 
       <!-- Komentari -->
       <div class="section">

@@ -31,6 +31,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.startNotificationPolling();
   }
 
+  navigateToPage(route: string) {
+    // Check auth before navigating to prevent login flash
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        this.router.navigate([route]);
+      } else {
+        this.router.navigate(['/login']);
+      }
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+
   ngOnDestroy() {
     if (this.notificationSubscription) {
       this.notificationSubscription.unsubscribe();

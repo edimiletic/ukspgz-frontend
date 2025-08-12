@@ -106,4 +106,11 @@ export class BasketballGameService {
       headers: this.getAuthHeaders()
     });
   }
+
+// In basketball-game.service.ts - FIXED
+getGamesByRefereeAndDate(refereeId: string, date: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/referee/${refereeId}/date/${date}`, {
+    headers: this.getAuthHeaders() // ← Add this line
+  });
+}
 }

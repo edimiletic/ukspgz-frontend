@@ -74,6 +74,8 @@ export interface RefereeGrade {
   refereeName: string;
   refereeRole: string;
   refereePosition: number;
+    ocjena: string; // Add this new field
+
   pogreske: string;
   prekrsaji: string;
   tehnikaMehanika: string;

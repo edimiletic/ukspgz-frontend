@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1016;
+  z-index: 1050;
   padding: 1rem;
 }
 
@@ -169,6 +169,135 @@
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #17a2b8;
     display: inline-block;
+  }
+}
+
+// Detailed grades section
+.detailed-grades-section {
+  margin-top: 1.5rem;
+
+  .detailed-grades-header {
+    font-size: 1rem;
+    // font-weight: 600;
+    color: #495057;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+  }
+}
+
+// Overall Grade Section - appears first and bigger
+.overall-grade-section {
+  // background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+  // border: 2px solid #17a2b8;
+   border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  // box-shadow: 0 4px 8px rgba(23, 162, 184, 0.1);
+
+  .form-group {
+    margin-bottom: 0;
+    text-align: center;
+  
+
+  label.overall-grade-label {
+    text-align: center !important;
+    font-size: 1.2rem;
+    // font-weight: 700;
+    // color: #17a2b8;
+    // text-transform: uppercase;
+    // letter-spacing: 1px;
+    margin-bottom: 1rem;
+    display: block;
+
+    &::after {
+      content: ' *';
+      color: #dc3545;
+    }
+  }
+}
+
+  .overall-grade-select {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1rem 1.25rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    border: 2px solid #17a2b8;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: #138496;
+      box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.2);
+      transform: translateY(-1px);
+    }
+
+    // Enhanced grade-based styling for overall grade
+    &.grade-excellent {
+      border-color: #28a745;
+      background-color: #f8fff9;
+      color: #155724;
+    }
+    
+    &.grade-above-average {
+      border-color: #20c997;
+      background-color: #f0fdfa;
+      color: #0f5132;
+    }
+    
+    &.grade-average {
+      border-color: #ffc107;
+      background-color: #fffdf0;
+      color: #664d03;
+    }
+    
+    &.grade-below-average {
+      border-color: #fd7e14;
+      background-color: #fff8f0;
+      color: #653208;
+    }
+    
+    &.grade-poor {
+      border-color: #dc3545;
+      background-color: #fff5f5;
+      color: #721c24;
+    }
+  }
+}
+
+// Add spacing between overall grade and detailed grades
+
+
+// Responsive design for overall grade
+@media (max-width: 768px) {
+  .overall-grade-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+
+    .overall-grade-label {
+      font-size: 1.1rem;
+    }
+
+    .overall-grade-select {
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .overall-grade-section {
+    .overall-grade-select {
+      max-width: 100%;
+      font-size: 0.95rem;
+    }
   }
 }
 

@@ -47,14 +47,16 @@ export class KontrolaModalComponent implements OnChanges {
     { value: 'Loše', label: 'Loše' }
   ];
 
+overallGrade = { key: 'ocjena', label: 'Ocjena' };
+
   // Categories for grading
-  gradeCategories = [
-    { key: 'pogreske', label: 'Pogreške' },
-    { key: 'prekrsaji', label: 'Prekršaji' },
-    { key: 'tehnikaMehanika', label: 'Tehnika i mehanika' },
-    { key: 'timskiRad', label: 'Timski rad' },
-    { key: 'kontrolaUtakmice', label: 'Kontrola utakmice' }
-  ];
+gradeCategories = [
+  { key: 'pogreske', label: 'Pogreške' },
+  { key: 'prekrsaji', label: 'Prekršaji' },
+  { key: 'tehnikaMehanika', label: 'Tehnika i mehanika' },
+  { key: 'timskiRad', label: 'Timski rad' },
+  { key: 'kontrolaUtakmice', label: 'Kontrola utakmice' },
+];
 
   // State management
   isLoading = false;
@@ -153,29 +155,30 @@ populateFormWithExistingData(existingKontrola: any): void {
   console.log('🎯 Set težina utakmice to:', existingKontrola.tezinaUtakmice);
 
   // Convert existing grades to the format we need
-  const refereeGrades: RefereeGrade[] = existingKontrola.refereeGrades.map((grade: any, index: number) => {
-    console.log(`🧑‍⚖️ Processing referee grade ${index}:`, grade);
-    
-    const mappedGrade: RefereeGrade = {
-      refereeId: grade.refereeId,
-      refereeName: grade.refereeName,
-      refereeRole: grade.refereeRole,
-      refereePosition: grade.refereePosition,
-      // Grade categories
-      pogreske: grade.pogreske,
-      prekrsaji: grade.prekrsaji,
-      tehnikaMehanika: grade.tehnikaMehanika,
-      timskiRad: grade.timskiRad,
-      kontrolaUtakmice: grade.kontrolaUtakmice,
-      // Text areas
-      kontroliraniSudac: grade.kontroliraniSudac,
-      komentiranesituacije: grade.komentiranesituacije,
-      komentarUtakmice: grade.komentarUtakmice
-    };
-    
-    console.log(`✅ Mapped grade ${index}:`, mappedGrade);
-    return mappedGrade;
-  });
+const refereeGrades: RefereeGrade[] = existingKontrola.refereeGrades.map((grade: any, index: number) => {
+  console.log(`🧑‍⚖️ Processing referee grade ${index}:`, grade);
+  
+  const mappedGrade: RefereeGrade = {
+    refereeId: grade.refereeId,
+    refereeName: grade.refereeName,
+    refereeRole: grade.refereeRole,
+    refereePosition: grade.refereePosition,
+    // Grade categories
+    pogreske: grade.pogreske,
+    prekrsaji: grade.prekrsaji,
+    tehnikaMehanika: grade.tehnikaMehanika,
+    timskiRad: grade.timskiRad,
+    kontrolaUtakmice: grade.kontrolaUtakmice,
+    ocjena: grade.ocjena || '', // Add this line with fallback
+    // Text areas
+    kontroliraniSudac: grade.kontroliraniSudac,
+    komentiranesituacije: grade.komentiranesituacije,
+    komentarUtakmice: grade.komentarUtakmice
+  };
+  
+  console.log(`✅ Mapped grade ${index}:`, mappedGrade);
+  return mappedGrade;
+});
 
   // Sort referees by role and position for consistent display
   refereeGrades.sort((a, b) => {
@@ -201,32 +204,33 @@ populateFormWithExistingData(existingKontrola: any): void {
 
   // Helper method to safely get grade value
   getGradeValue(referee: RefereeGrade, categoryKey: string): string {
-    switch (categoryKey) {
-      case 'pogreske': return referee.pogreske;
-      case 'prekrsaji': return referee.prekrsaji;
-      case 'tehnikaMehanika': return referee.tehnikaMehanika;
-      case 'timskiRad': return referee.timskiRad;
-      case 'kontrolaUtakmice': return referee.kontrolaUtakmice;
-      case 'kontroliraniSudac': return referee.kontroliraniSudac;
-      case 'komentiranesituacije': return referee.komentiranesituacije;
-      case 'komentarUtakmice': return referee.komentarUtakmice;
-      default: return '';
-    }
+  switch (categoryKey) {
+    case 'pogreske': return referee.pogreske;
+    case 'prekrsaji': return referee.prekrsaji;
+    case 'tehnikaMehanika': return referee.tehnikaMehanika;
+    case 'timskiRad': return referee.timskiRad;
+    case 'kontrolaUtakmice': return referee.kontrolaUtakmice;
+    case 'ocjena': return referee.ocjena; // Add this line
+    case 'kontroliraniSudac': return referee.kontroliraniSudac;
+    case 'komentiranesituacije': return referee.komentiranesituacije;
+    case 'komentarUtakmice': return referee.komentarUtakmice;
+    default: return '';
   }
-
-  // Helper method to safely set grade value
-  setGradeValue(referee: RefereeGrade, categoryKey: string, value: string): void {
-    switch (categoryKey) {
-      case 'pogreske': referee.pogreske = value; break;
-      case 'prekrsaji': referee.prekrsaji = value; break;
-      case 'tehnikaMehanika': referee.tehnikaMehanika = value; break;
-      case 'timskiRad': referee.timskiRad = value; break;
-      case 'kontrolaUtakmice': referee.kontrolaUtakmice = value; break;
-      case 'kontroliraniSudac': referee.kontroliraniSudac = value; break;
-      case 'komentiranesituacije': referee.komentiranesituacije = value; break;
-      case 'komentarUtakmice': referee.komentarUtakmice = value; break;
-    }
+}
+// Helper method to safely set grade value
+setGradeValue(referee: RefereeGrade, categoryKey: string, value: string): void {
+  switch (categoryKey) {
+    case 'pogreske': referee.pogreske = value; break;
+    case 'prekrsaji': referee.prekrsaji = value; break;
+    case 'tehnikaMehanika': referee.tehnikaMehanika = value; break;
+    case 'timskiRad': referee.timskiRad = value; break;
+    case 'kontrolaUtakmice': referee.kontrolaUtakmice = value; break;
+    case 'ocjena': referee.ocjena = value; break; // Add this line
+    case 'kontroliraniSudac': referee.kontroliraniSudac = value; break;
+    case 'komentiranesituacije': referee.komentiranesituacije = value; break;
+    case 'komentarUtakmice': referee.komentarUtakmice = value; break;
   }
+}
 
   initializeForm(): void {
     if (!this.game) return;
@@ -236,22 +240,23 @@ populateFormWithExistingData(existingKontrola: any): void {
       assignment => assignment.assignmentStatus === 'Accepted'
     );
 
-    // Create referee grades for each accepted referee
-    const refereeGrades: RefereeGrade[] = acceptedReferees.map(assignment => ({
-      refereeId: assignment.userId._id,
-      refereeName: `${assignment.userId.name} ${assignment.userId.surname}`,
-      refereeRole: assignment.role,
-      refereePosition: assignment.position,
-      // Grade categories
-      pogreske: '',
-      prekrsaji: '',
-      tehnikaMehanika: '',
-      timskiRad: '',
-      kontrolaUtakmice: '',
-      // Individual text areas for each referee
-      kontroliraniSudac: '',
-      komentiranesituacije: '',
-      komentarUtakmice: ''
+   // Create referee grades for each accepted referee
+const refereeGrades: RefereeGrade[] = acceptedReferees.map(assignment => ({
+  refereeId: assignment.userId._id,
+  refereeName: `${assignment.userId.name} ${assignment.userId.surname}`,
+  refereeRole: assignment.role,
+  refereePosition: assignment.position,
+  // Grade categories
+  pogreske: '',
+  prekrsaji: '',
+  tehnikaMehanika: '',
+  timskiRad: '',
+  kontrolaUtakmice: '',
+  ocjena: '', // Add this line
+  // Individual text areas for each referee
+  kontroliraniSudac: '',
+  komentiranesituacije: '',
+  komentarUtakmice: ''
     }));
 
     // Sort referees by role and position for consistent display

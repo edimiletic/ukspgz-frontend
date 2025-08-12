@@ -377,3 +377,110 @@
     gap: 1rem;
   }
 }
+
+// Overall Grade Display
+.overall-grade-display {
+  // background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+  // border: 2px solid #28a745;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.1);
+
+  .overall-grade-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    .overall-grade-label {
+      font-size: 1.2rem;
+          font-weight: 500;
+
+    }
+
+    .overall-grade-badge {
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      min-width: 200px;
+      justify-content: center;
+
+      // Enhanced styling for overall grade
+      &.grade-excellent {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #28a745;
+      }
+
+      &.grade-above-average {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 2px solid #20c997;
+      }
+
+      &.grade-average {
+        background: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffc107;
+      }
+
+      &.grade-below-average {
+        background: #ffeaa7;
+        color: #b45309;
+        border: 2px solid #fd7e14;
+      }
+
+      &.grade-poor {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #dc3545;
+      }
+
+      i {
+        font-size: 1.3rem;
+      }
+    }
+  }
+}
+
+// Detailed Grades Header
+.detailed-grades-header {
+  font-size: 1.1rem;
+  // font-weight: 600;
+  color: #495057;
+  margin: 1.5rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  text-align: center;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .overall-grade-display {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+
+    .overall-grade-item {
+      .overall-grade-label {
+        font-size: 1.1rem;
+      }
+
+      .overall-grade-badge {
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+        min-width: 150px;
+      }
+    }
+  }
+
+  .detailed-grades-header {
+    font-size: 1rem;
+  }
+}
