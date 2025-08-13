@@ -12,19 +12,13 @@ import { ExamsComponent } from './components/exams/exams.component';
 import { TakeExamComponent } from './components/take-exam/take-exam.component';
 import { ExamResultComponent } from './components/exam-result/exam-result.component';
 import { ExamReviewComponent } from './components/exam-review/exam-review.component';
+import { StatisticsComponent } from './components/statistics/statistics.component';
 
 export const routes: Routes = [
   {path: 'login', component: AuthComponent},
   {
-    path: '', 
-    redirectTo: () => {
-      // Smart redirect based on auth status
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
-        return token ? 'home' : 'login';
-      }
-      return 'login';
-    }, 
+    path: '',
+    redirectTo: '/home', // Change this to always redirect to home
     pathMatch: 'full'
   },
   {path: 'home', component: HomeComponent, canActivate: [AuthGuard]},
@@ -37,5 +31,9 @@ export const routes: Routes = [
   {path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard]},
   {path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},
   {path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard]},
-  
+  {
+  path: 'statistics', 
+  component: StatisticsComponent, 
+  canActivate: [AuthGuard]
+},
 ];

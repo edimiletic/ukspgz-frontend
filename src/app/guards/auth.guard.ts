@@ -1,34 +1,30 @@
-// src/app/guards/auth.guard.ts - CLEAN ASYNC VERSION
+// auth.guard.ts - Updated to not redirect immediately
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { AuthService } from '../services/login.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
-  canActivate(): Observable<boolean> {
-    return new Observable<boolean>(observer => {
-      // Ensure this runs after current call stack
-      setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('token');
-          if (token) {
-            observer.next(true);
-            observer.complete();
-          } else {
-            this.router.navigate(['/login']);
-            observer.next(false);
-            observer.complete();
-          }
-        } else {
-          this.router.navigate(['/login']);
-          observer.next(false);
-          observer.complete();
-        }
-      }, 0);
-    });
+  canActivate(): boolean {
+    const isAuthenticated = this.authService.isAuthenticated();
+    
+    if (isAuthenticated) {
+      // Load user data if not already loaded
+      if (!this.authService.currentUserValue) {
+        this.authService.loadUserData();
+      }
+      return true;
+    }
+
+    // Use replaceUrl to prevent back button issues
+    this.router.navigate(['/login'], { replaceUrl: true });
+    return false;
   }
 }

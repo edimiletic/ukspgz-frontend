@@ -6,7 +6,6 @@
 }
 
 .login-container {
-
   width: 400px;
   margin: auto;
   padding: 2rem;
@@ -28,6 +27,39 @@
 
 h2{
   margin-bottom: 1.5rem;
+}
+
+/* Error message styling */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.75rem;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message i {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Animation for error message */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 form {
@@ -56,6 +88,14 @@ input:focus {
   outline: none;
 }
 
+/* Disabled input styling */
+input:disabled {
+  background-color: #f8f9fa;
+  border-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 button[type="submit"] {
   padding: 0.75rem;
   background-color: #007bff;
@@ -65,8 +105,49 @@ button[type="submit"] {
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background-color: #0056b3;
+}
+
+// /* Disabled button styling */
+// button:disabled {
+//   background-color: #6c757d;
+//   cursor: not-allowed;
+//   opacity: 0.7;
+// }
+
+/* Loading spinner */
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success message (if you want to add one later) */
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem;
+  border: 1px solid #c3e6cb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  animation: slideIn 0.3s ease-out;
 }

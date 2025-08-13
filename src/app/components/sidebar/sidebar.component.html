@@ -74,5 +74,17 @@
         Upute za korištenje sustava
       </a>
     </li> -->
+    <!-- Add this <li> item after the "Ispiti" item in your sidebar -->
+<li *ngIf="isAdmin()">
+  <a
+    (click)="navigateToPage('/statistics')"
+    [class.active]="isActiveRoute('/statistics')"
+    role="button"
+    tabindex="0"
+    (keydown.enter)="navigateToPage('/statistics')"
+    (keydown.space)="navigateToPage('/statistics')">
+    Statistika
+  </a>
+</li>
   </ul>
 </nav>

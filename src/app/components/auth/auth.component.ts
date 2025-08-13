@@ -1,37 +1,65 @@
-import {Component, inject} from '@angular/core';
+// auth.component.ts - Simplified version
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule ,HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/login.service';
+
 @Component({
   selector: 'app-auth',
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
-export class AuthComponent {
-username: string='';
-password: string='';
+export class AuthComponent implements OnInit {
+  username: string = '';
+  password: string = '';
+  isLoading: boolean = false;
+  errorMessage: string = '';
 
-constructor(private router: Router, private http: HttpClient){}
+  constructor(
+    private router: Router, 
+    private authService: AuthService
+  ) {}
 
-onSubmit(){
-  console.log('Login podaci:', this.username, this.password)
-}
-
-login(){
-  const credentials = {username:this.username, password:this.password};
-
-  this.http.post<any>('http://localhost:3000/api/login', credentials).subscribe({
-    next: (response) => {
-      localStorage.setItem('token', response.token);
+  ngOnInit() {
+    // If already authenticated, redirect to home
+    if (this.authService.isAuthenticated()) {
       this.router.navigate(['/home']);
-    },
-    error:(error) => {
-      console.error('Login error:', error);
-      alert(error.error?.error || 'Login failed');
     }
-  })
-}
+  }
 
+  onSubmit() {
+    if (!this.username || !this.password) {
+      this.errorMessage = 'Molimo unesite korisničko ime i lozinku';
+      return;
+    }
+
+    this.login();
+  }
+
+  login() {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const credentials = { 
+      username: this.username.trim(), 
+      password: this.password 
+    };
+
+    this.authService.login(credentials).subscribe({
+      next: (response) => {
+        // Always redirect to home after login
+        this.router.navigate(['/home']);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.error || 'Neispravno korisničko ime ili lozinka';
+        console.error('Login error:', error);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+  }
 }

@@ -1,0 +1,308 @@
+<!-- src/app/components/statistika/statistika.component.html -->
+<div class="statistika-container">
+  <div class="header">
+    <h1>
+      <i class="fas fa-chart-bar"></i>
+      Statistike
+    </h1>
+    <button class="btn btn-primary" (click)="exportStatistics()">
+      <i class="fas fa-download"></i>
+      Izvezi statistike
+    </button>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <h2>Filteri</h2>
+    <div class="filters-grid">
+      <!-- Period Selection -->
+      <div class="filter-group">
+        <label for="period">Vremensko razdoblje:</label>
+        <select id="period" [(ngModel)]="selectedPeriod" (change)="onPeriodChange()" class="form-control">
+          <option value="month">Mjesec</option>
+          <option value="year">Godina</option>
+          <option value="season">Sezona</option>
+          <option value="custom">Prilagođeno</option>
+        </select>
+      </div>
+
+      <!-- Month Selection -->
+      <div class="filter-group" *ngIf="selectedPeriod === 'month'">
+        <label for="month">Mjesec:</label>
+        <select id="month" [(ngModel)]="selectedMonth" (change)="onFiltersChange()" class="form-control">
+          <option *ngFor="let month of months" [value]="month.value">{{ month.label }}</option>
+        </select>
+      </div>
+
+      <!-- Year Selection -->
+      <div class="filter-group" *ngIf="selectedPeriod === 'month' || selectedPeriod === 'year'">
+        <label for="year">Godina:</label>
+        <input type="number" id="year" [(ngModel)]="selectedYear" (change)="onFiltersChange()" 
+               class="form-control" min="2020" max="2030">
+      </div>
+
+      <!-- Season Selection -->
+      <div class="filter-group" *ngIf="selectedPeriod === 'season'">
+        <label for="season">Sezona:</label>
+        <select id="season" [(ngModel)]="selectedSeason" (change)="onFiltersChange()" class="form-control">
+          <option value="2023/2024">2023/2024</option>
+          <option value="2024/2025">2024/2025</option>
+          <option value="2025/2026">2025/2026</option>
+        </select>
+      </div>
+
+      <!-- Custom Date Range -->
+      <div class="filter-group" *ngIf="selectedPeriod === 'custom'">
+        <label for="startDate">Od datuma:</label>
+        <input type="date" id="startDate" [(ngModel)]="startDate" (change)="onFiltersChange()" class="form-control">
+      </div>
+
+      <div class="filter-group" *ngIf="selectedPeriod === 'custom'">
+        <label for="endDate">Do datuma:</label>
+        <input type="date" id="endDate" [(ngModel)]="endDate" (change)="onFiltersChange()" class="form-control">
+      </div>
+
+      <!-- Competition Filter -->
+      <div class="filter-group">
+        <label for="competition">Natjecanje:</label>
+        <select id="competition" [(ngModel)]="selectedCompetition" (change)="onFiltersChange()" class="form-control">
+          <option value="">Sva natjecanja</option>
+          <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-section" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Učitavanje statistika...</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards" *ngIf="!isLoading">
+    <div class="summary-card">
+      <div class="card-icon">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <div class="card-content">
+        <h3>{{ totalGamesInPeriod }}</h3>
+        <p>Ukupno utakmica</p>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="card-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="card-content">
+        <h3>{{ totalRefereesActive }}</h3>
+        <p>Aktivnih sudaca</p>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="card-icon">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div class="card-content">
+        <h3>{{ mostActiveReferee?.referee?.name || 'N/A' }} {{ mostActiveReferee?.referee?.surname || '' }}</h3>
+        <p>Najaktivniji sudac ({{ mostActiveReferee?.gamesInPeriod || 0 }} utakmica)</p>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="card-icon">
+        <i class="fas fa-medal"></i>
+      </div>
+      <div class="card-content">
+        <h3>{{ mostPopularCompetition || 'N/A' }}</h3>
+        <p>Najpopularnije natjecanje</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Sections -->
+  <div class="statistics-sections" *ngIf="!isLoading">
+    
+    <!-- Referee Statistics -->
+    <div class="stats-section">
+      <h2>
+        <i class="fas fa-user-tie"></i>
+        Statistike sudaca
+      </h2>
+      
+      <div class="table-container" *ngIf="refereeStats.length > 0; else noRefereeData">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Sudac</th>
+              <th>Broj utakmica</th>
+              <th>Glavna uloga</th>
+              <th>Najčešće natjecanje</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let stat of refereeStats.slice(0, 10)">
+              <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
+              <td>{{ stat.gamesInPeriod }}</td>
+              <td>
+                <span *ngFor="let role of getObjectKeys(stat.roles); let i = index">
+                  {{ role }} ({{ stat.roles[role] }})
+                  <span *ngIf="i < getObjectKeys(stat.roles).length - 1">, </span>
+                </span>
+              </td>
+              <td>
+                <span *ngIf="getObjectKeys(stat.competitions).length > 0">
+                  {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0] }})
+                </span>
+                <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noRefereeData>
+        <div class="no-data">
+          <i class="fas fa-info-circle"></i>
+          <p>Nema podataka o sudcima za odabrano razdoblje.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Competition Statistics -->
+    <div class="stats-section">
+      <h2>
+        <i class="fas fa-trophy"></i>
+        Statistike natjecanja
+      </h2>
+      
+      <div class="table-container" *ngIf="competitionStats.length > 0; else noCompetitionData">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Natjecanje</th>
+              <th>Broj utakmica</th>
+              <th>Broj sudaca</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let stat of competitionStats">
+              <td>{{ stat.competition }}</td>
+              <td>{{ stat.totalGames }}</td>
+              <td>{{ stat.totalReferees }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noCompetitionData>
+        <div class="no-data">
+          <i class="fas fa-info-circle"></i>
+          <p>Nema podataka o natjecanjima za odabrano razdoblje.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Absence Statistics -->
+    <div class="stats-section">
+      <h2>
+        <i class="fas fa-calendar-times"></i>
+        Statistike odsustva
+      </h2>
+      
+      <div class="absence-stats">
+        <div class="stats-row">
+          <div class="stat-item">
+            <strong>Ukupno odsustva:</strong> {{ absenceStats.totalAbsences }}
+          </div>
+          <div class="stat-item">
+            <strong>Ukupno dana:</strong> {{ absenceStats.totalDays }}
+          </div>
+        </div>
+
+        <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
+          <h4>Top 5 sudaca s najviše dana odsustva:</h4>
+          <div class="absence-list">
+            <div class="absence-item" *ngFor="let referee of getObjectKeys(absenceStats.byReferee).slice(0, 5)">
+              <span class="referee-name">{{ referee }}</span>
+              <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expense Statistics -->
+  <!-- Expense Statistics -->
+<div class="stats-section">
+  <h2>
+    <i class="fas fa-money-bill-wave"></i>
+    Statistike troškova
+  </h2>
+  
+  <div class="expense-stats">
+    <div class="stats-row">
+      <div class="stat-item">
+        <strong>Ukupno troškova:</strong> {{ expenseStats.totalExpenses }}
+      </div>
+      <div class="stat-item">
+        <strong>Ukupan iznos:</strong> {{ expenseStats.totalAmount | number:'1.2-2' }} €
+      </div>
+      <div class="stat-item">
+        <strong>Prosjek po trošku:</strong> {{ expenseStats.avgAmountPerExpense | number:'1.2-2' }} €
+      </div>
+    </div>
+
+    <!-- By Status -->
+    <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byStatus).length > 0">
+      <h4>Troškovi po statusu:</h4>
+      <div class="status-stats">
+        <div class="status-item" *ngFor="let status of getObjectKeys(expenseStats.byStatus)">
+          <span class="status-name">{{ status }}</span>
+          <span class="status-count">{{ expenseStats.byStatus[status] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 Referees by Amount -->
+    <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length > 0">
+      <h4>Top 5 sudaca s najviše troškova:</h4>
+      <div class="expense-list">
+        <div class="expense-item" *ngFor="let referee of getObjectKeys(expenseStats.byReferee).slice(0, 5)">
+          <span class="referee-name">{{ referee }}</span>
+          <div class="expense-details">
+            <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
+            <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2' }} HRK</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- By Type -->
+    <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byType).length > 0">
+      <h4>Troškovi po tipu:</h4>
+      <div class="type-stats">
+        <div class="type-item" *ngFor="let type of getObjectKeys(expenseStats.byType)">
+          <span class="type-name">{{ type }}</span>
+          <span class="type-count">{{ expenseStats.byType[type] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown (last 6 months) -->
+    <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byMonth).length > 0">
+      <h4>Mjesečni pregled (zadnjih 6 mjeseci):</h4>
+      <div class="monthly-stats">
+        <div class="month-item" *ngFor="let month of getObjectKeys(expenseStats.byMonth).slice(-6)">
+          <span class="month-name">{{ month }}</span>
+          <div class="month-details">
+            <span class="month-count">{{ expenseStats.byMonth[month].count }} troškova</span>
+            <span class="month-amount">{{ expenseStats.byMonth[month].amount | number:'1.2-2' }} HRK</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
