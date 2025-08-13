@@ -285,22 +285,38 @@ async nextStep() {
   }
 
   // Referee management
-  addSudac() {
-    if (this.selectedReferees.sudci.length < 3) {
-      const nextPosition = this.selectedReferees.sudci.length + 1;
-      this.selectedReferees.sudci.push({ userId: '', position: nextPosition });
+async addSudac() {
+  if (this.selectedReferees.sudci.length < 3) {
+    const nextPosition = this.selectedReferees.sudci.length + 1;
+    this.selectedReferees.sudci.push({ userId: '', position: nextPosition });
+    
+    // Update availability for the new position
+    if (this.gameForm.date && this.gameForm.time) {
+      const newIndex = this.selectedReferees.sudci.length - 1;
+      this.availableSudciForIndex[newIndex] = await this.getAvailableSudci(newIndex);
+    } else {
+      // If no date/time, show all available sudci
+      const newIndex = this.selectedReferees.sudci.length - 1;
+      this.availableSudciForIndex[newIndex] = this.availableReferees.sudci;
     }
   }
+}
 
-  removeSudac(index: number) {
-    if (this.selectedReferees.sudci.length > 2) {
-      this.selectedReferees.sudci.splice(index, 1);
-      // Reorder positions
-      this.selectedReferees.sudci.forEach((sudac, i) => {
-        sudac.position = i + 1;
-      });
-    }
+async removeSudac(index: number) {
+  if (this.selectedReferees.sudci.length > 2) {
+    // Remove the referee at the specified index
+    this.selectedReferees.sudci.splice(index, 1);
+    
+    // Reorder positions
+    this.selectedReferees.sudci.forEach((sudac, i) => {
+      sudac.position = i + 1;
+    });
+
+    // Clear and rebuild all availability arrays
+    this.availableSudciForIndex = {};
+    await this.updateAvailableReferees();
   }
+}
 
 async addPomocniSudac() {
   if (this.selectedReferees.pomocniSudci.length < 3) {
@@ -315,15 +331,21 @@ async addPomocniSudac() {
   }
 }
 
-  removePomocniSudac(index: number) {
-    if (this.selectedReferees.pomocniSudci.length > 2) {
-      this.selectedReferees.pomocniSudci.splice(index, 1);
-      // Reorder positions
-      this.selectedReferees.pomocniSudci.forEach((sudac, i) => {
-        sudac.position = i + 1;
-      });
-    }
+async removePomocniSudac(index: number) {
+  if (this.selectedReferees.pomocniSudci.length > 2) {
+    // Remove the referee at the specified index
+    this.selectedReferees.pomocniSudci.splice(index, 1);
+    
+    // Reorder positions
+    this.selectedReferees.pomocniSudci.forEach((sudac, i) => {
+      sudac.position = i + 1;
+    });
+
+    // Clear and rebuild all availability arrays
+    this.availablePomocniSudciForIndex = {};
+    await this.updateAvailableReferees();
   }
+}
 
   // Check if a referee is available on the game date
  // Check if a referee is available on the game date (considering both absences and scheduling conflicts)
@@ -704,7 +726,11 @@ private async updateAvailableReferees() {
     return;
   }
 
-  // Update sudci availability
+  // Clear existing arrays to avoid stale data
+  this.availableSudciForIndex = {};
+  this.availablePomocniSudciForIndex = {};
+
+  // Update sudci availability for ALL current positions
   for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
     this.availableSudciForIndex[i] = await this.getAvailableSudci(i);
   }
@@ -712,7 +738,7 @@ private async updateAvailableReferees() {
   // Update delegati availability
   this.availableDelegati = await this.getAvailableDelegati();
   
-  // Update pomoćni sudci availability
+  // Update pomoćni sudci availability for ALL current positions
   for (let i = 0; i < this.selectedReferees.pomocniSudci.length; i++) {
     this.availablePomocniSudciForIndex[i] = await this.getAvailablePomocniSudci(i);
   }
@@ -724,7 +750,6 @@ private async updateAvailableReferees() {
     pomocniSudci: await this.getUnavailableRefereesCount('Pomoćni Sudac')
   };
 }
-
 private clearUnavailableSelections() {
   // Clear sudci selections if referee is no longer available
   this.selectedReferees.sudci.forEach((sudac, index) => {
@@ -753,6 +778,14 @@ private clearUnavailableSelections() {
       }
     }
   });
+}
+
+// Method to handle referee selection changes
+async onRefereeSelectionChange() {
+  // Small delay to ensure ngModel has updated
+  setTimeout(async () => {
+    await this.updateAvailableReferees();
+  }, 0);
 }
 
 }

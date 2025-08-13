@@ -61,21 +61,19 @@
             </div>
           </div>
 
-<!-- src/app/components/games-assigned/edit-game-modal/edit-game-modal.component.html -->
-<!-- Update the date input to include change handler -->
-
-<div class="form-group">
-  <label for="date">Datum *</label>
-  <input 
-    type="date" 
-    id="date" 
-    [(ngModel)]="gameForm.date" 
-    name="date"
-    class="form-control"
-    [min]="getMinDate()"
-    (change)="onDateChange()" 
-    required>
-</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="date">Datum *</label>
+              <input 
+                type="date" 
+                id="date" 
+                [(ngModel)]="gameForm.date" 
+                name="date"
+                class="form-control"
+                [min]="getMinDate()"
+                (change)="onDateTimeChange()" 
+                required>
+            </div>
             <div class="form-group">
               <label for="time">Vrijeme *</label>
               <input 
@@ -84,8 +82,10 @@
                 [(ngModel)]="gameForm.time" 
                 name="time"
                 class="form-control"
+                (change)="onDateTimeChange()"
                 required>
             </div>
+          </div>
 
           <div class="form-group">
             <label for="venue">Mjesto *</label>
@@ -144,20 +144,21 @@
       <div *ngIf="currentStep === 2" class="step-content">
         <div class="referee-assignments">
           
-          <!-- Loading Referees -->
+          <!-- Loading Referees and Absences -->
           <div *ngIf="isLoadingReferees || isLoadingAbsences" class="loading-referees">
             <div class="loading-spinner"></div>
-            <p>Učitavanje sudaca...</p>
+            <p>Učitavanje sudaca i provjera dostupnosti...</p>
           </div>
 
-          <div *ngIf="!isLoadingReferees" class="referee-sections">
+          <div *ngIf="!isLoadingReferees && !isLoadingAbsences" class="referee-sections">
             
             <!-- Sudci Section -->
             <div class="referee-section">
-              <h3>Sudci (2-3 obavezno)
-                 <span *ngIf="gameForm.date && getUnavailableRefereesCount('Sudac') > 0" class="unavailable-count">
-        ({{ getUnavailableRefereesCount('Sudac') }} nedostupno zbog odsustva)
-      </span>
+              <h3>
+                Sudci (2-3 obavezno)
+                <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
+                  ({{ unavailableCounts.sudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+                </span>
               </h3>
               <div class="referee-list">
                 <div *ngFor="let sudac of selectedReferees.sudci; let i = index" class="referee-assignment">
@@ -168,7 +169,7 @@
                       name="sudac_{{i}}"
                       class="form-control">
                       <option value="">Odaberite suca</option>
-                      <option *ngFor="let ref of getAvailableSudci(i)" [value]="ref._id">
+                      <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
                         {{ ref.name }} {{ ref.surname }}
                       </option>
                     </select>
@@ -194,10 +195,11 @@
 
             <!-- Delegat Section -->
             <div class="referee-section">
-              <h3>Delegat (opcionalno)
-                      <span *ngIf="gameForm.date && getUnavailableRefereesCount('Delegat') > 0" class="unavailable-count">
-        ({{ getUnavailableRefereesCount('Delegat') }} nedostupno zbog odsustva)
-      </span>
+              <h3>
+                Delegat (opcionalno)
+                <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
+                  ({{ unavailableCounts.delegati || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+                </span>
               </h3>
               <div class="referee-assignment">
                 <select 
@@ -205,7 +207,7 @@
                   name="delegat"
                   class="form-control">
                   <option value="">Odaberite delegata</option>
-                  <option *ngFor="let ref of getAvailableDelegati()" [value]="ref._id">
+                  <option *ngFor="let ref of availableDelegati" [value]="ref._id">
                     {{ ref.name }} {{ ref.surname }}
                   </option>
                 </select>
@@ -214,10 +216,11 @@
 
             <!-- Pomoćni Sudci Section -->
             <div class="referee-section">
-              <h3>Pomoćni Sudci (2-3 obavezno)
-                      <span *ngIf="gameForm.date && getUnavailableRefereesCount('Pomoćni Sudac') > 0" class="unavailable-count">
-        ({{ getUnavailableRefereesCount('Pomoćni Sudac') }} nedostupno zbog odsustva)
-      </span>
+              <h3>
+                Pomoćni Sudci (2-3 obavezno)
+                <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
+                  ({{ unavailableCounts.pomocniSudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+                </span>
               </h3>
               <div class="referee-list">
                 <div *ngFor="let pomocni of selectedReferees.pomocniSudci; let i = index" class="referee-assignment">
@@ -228,7 +231,7 @@
                       name="pomocni_{{i}}"
                       class="form-control">
                       <option value="">Odaberite pomoćnog suca</option>
-                      <option *ngFor="let ref of getAvailablePomocniSudci(i)" [value]="ref._id">
+                      <option *ngFor="let ref of availablePomocniSudciForIndex[i] || []" [value]="ref._id">
                         {{ ref.name }} {{ ref.surname }}
                       </option>
                     </select>
@@ -278,17 +281,20 @@
           <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
             Odustani
           </button>
-<!-- Update the save button to wait for absence loading -->
-<button 
-  type="button" 
-  class="btn btn-success" 
-  (click)="updateGame()" 
-  [disabled]="isLoading || isLoadingReferees || isLoadingAbsences">
-  <span *ngIf="!isLoading">
-    <i class="fas fa-save"></i> Spremi Promjene
-  </span>
-  <span *ngIf="isLoading">
-    <i class="fas fa-spinner fa-spin"></i> Spremanje...
-  </span>
-</button>
+          <button 
+            type="button" 
+            class="btn btn-success" 
+            (click)="updateGame()" 
+            [disabled]="isLoading || isLoadingReferees || isLoadingAbsences">
+            <span *ngIf="!isLoading">
+              <i class="fas fa-save"></i> Spremi Promjene
+            </span>
+            <span *ngIf="isLoading">
+              <i class="fas fa-spinner fa-spin"></i> Spremanje...
+            </span>
+          </button>
         </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
