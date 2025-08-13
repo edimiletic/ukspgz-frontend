@@ -152,6 +152,8 @@
 
           <div *ngIf="!isLoadingReferees && !isLoadingAbsences" class="referee-sections">
             
+
+
             <!-- Sudci Section -->
             <div class="referee-section">
               <h3>
@@ -167,6 +169,8 @@
                     <select 
                       [(ngModel)]="sudac.userId" 
                       name="sudac_{{i}}"
+                        (change)="onRefereeSelectionChange()"
+
                       class="form-control">
                       <option value="">Odaberite suca</option>
                       <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
@@ -205,6 +209,8 @@
                 <select 
                   [(ngModel)]="selectedReferees.delegat" 
                   name="delegat"
+                    (change)="onRefereeSelectionChange()"
+
                   class="form-control">
                   <option value="">Odaberite delegata</option>
                   <option *ngFor="let ref of availableDelegati" [value]="ref._id">
@@ -229,6 +235,8 @@
                     <select 
                       [(ngModel)]="pomocni.userId" 
                       name="pomocni_{{i}}"
+                        (change)="onRefereeSelectionChange()"
+
                       class="form-control">
                       <option value="">Odaberite pomoćnog suca</option>
                       <option *ngFor="let ref of availablePomocniSudciForIndex[i] || []" [value]="ref._id">

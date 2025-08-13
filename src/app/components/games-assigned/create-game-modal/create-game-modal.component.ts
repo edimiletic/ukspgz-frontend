@@ -387,13 +387,9 @@ private async isRefereeAvailable(referee: User, gameDate: string, gameTime: stri
 }
 
 // Check if referee has scheduling conflicts with existing games
+// Check if referee has scheduling conflicts with existing games
 private async checkSchedulingConflict(refereeId: string, gameDate: string, gameTime: string): Promise<boolean> {
   try {
-    // Parse the new game time
-    const [hours, minutes] = gameTime.split(':').map(Number);
-    const newGameDateTime = new Date(gameDate);
-    newGameDateTime.setHours(hours, minutes, 0, 0);
-
     // Get all games for the referee on the same date
     const existingGames = await this.basketballGameService.getGamesByRefereeAndDate(refereeId, gameDate).toPromise();
     
@@ -401,21 +397,23 @@ private async checkSchedulingConflict(refereeId: string, gameDate: string, gameT
       return false; // No conflicts
     }
 
+    // Parse the new game time (hours and minutes only, since we're on the same date)
+    const [newHours, newMinutes] = gameTime.split(':').map(Number);
+    const newGameMinutes = newHours * 60 + newMinutes; // Convert to total minutes
+
     // Check each existing game for time conflicts
     for (const game of existingGames) {
       const [existingHours, existingMinutes] = game.time.split(':').map(Number);
-      const existingGameDateTime = new Date(game.date);
-      existingGameDateTime.setHours(existingHours, existingMinutes, 0, 0);
+      const existingGameMinutes = existingHours * 60 + existingMinutes; // Convert to total minutes
 
-      // Calculate time difference in minutes
-      const timeDifferenceMs = Math.abs(newGameDateTime.getTime() - existingGameDateTime.getTime());
-      const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60);
+      // Calculate time difference in minutes (absolute difference on the same day)
+      const timeDifferenceMinutes = Math.abs(newGameMinutes - existingGameMinutes);
 
       // Conflict if games are within 1 hour (60 minutes) of each other
       if (timeDifferenceMinutes < 60) {
         console.log(`Scheduling conflict found for referee ${refereeId}:`, {
-          newGame: `${gameDate} ${gameTime}`,
-          existingGame: `${game.date} ${game.time}`,
+          newGame: `${gameDate} ${gameTime} (${newGameMinutes} minutes)`,
+          existingGame: `${game.date} ${game.time} (${existingGameMinutes} minutes)`,
           timeDifferenceMinutes: timeDifferenceMinutes
         });
         return true; // Conflict found
