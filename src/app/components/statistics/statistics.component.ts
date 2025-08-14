@@ -8,10 +8,11 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TravelExpenseService } from '../../services/travel-expense.service';
+import { HeaderComponent } from "../header/header.component";
 
 @Component({
   selector: 'app-statistics',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HeaderComponent],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.scss'
 })
@@ -26,8 +27,11 @@ export class StatisticsComponent implements OnInit {
   isLoadingAbsences = false;
   isLoadingExpenses = false;
 
+  selectedRole: string = 'Sudac'; // Default to 'Sudac'
+selectedAbsenceRole: string = 'Sudac'; // Default to 'Sudac'
+
   // Filter options
-  selectedPeriod: 'month' | 'year' | 'season' | 'custom' = 'month';
+selectedPeriod: 'month' | 'year' | 'season' | 'custom' = 'custom';
   selectedMonth: string = '';
   selectedYear: string = '';
   selectedSeason: string = '';
@@ -308,89 +312,94 @@ async loadExpenseStatistics() {
     }
   }
 
-  calculateRefereeStats(games: any[], referees: any[]) {
-    const refereesMap = new Map();
+calculateRefereeStats(games: any[], referees: any[]) {
+  const refereesMap = new Map();
 
-    // Initialize referee stats
-    referees.forEach(referee => {
-      refereesMap.set(referee._id, {
-        referee: referee,
-        totalGames: 0,
-        gamesInPeriod: 0,
-        competitions: {},
-        roles: {}
-      });
+  // Filter referees by selected role
+  const filteredReferees = referees.filter(referee => referee.role === this.selectedRole);
+
+  // Initialize referee stats for filtered referees only
+  filteredReferees.forEach(referee => {
+    refereesMap.set(referee._id, {
+      referee: referee,
+      totalGames: 0,
+      gamesInPeriod: 0,
+      competitions: {},
+      roles: {}
     });
+  });
 
-    // Count games for each referee
-    games.forEach(game => {
-      game.refereeAssignments?.forEach((assignment: any) => {
-        if (assignment.assignmentStatus === 'Accepted') {
-          const refereeId = assignment.userId._id;
-          const stats = refereesMap.get(refereeId);
+  // Rest of the method remains the same...
+  games.forEach(game => {
+    game.refereeAssignments?.forEach((assignment: any) => {
+      if (assignment.assignmentStatus === 'Accepted') {
+        const refereeId = assignment.userId._id;
+        const stats = refereesMap.get(refereeId);
+        
+        if (stats) {
+          stats.gamesInPeriod++;
           
-          if (stats) {
-            stats.gamesInPeriod++;
-            
-            // Count by competition
-            if (!stats.competitions[game.competition]) {
-              stats.competitions[game.competition] = 0;
-            }
-            stats.competitions[game.competition]++;
-            
-            // Count by role
-            if (!stats.roles[assignment.role]) {
-              stats.roles[assignment.role] = 0;
-            }
-            stats.roles[assignment.role]++;
+          if (!stats.competitions[game.competition]) {
+            stats.competitions[game.competition] = 0;
           }
+          stats.competitions[game.competition]++;
+          
+          if (!stats.roles[assignment.role]) {
+            stats.roles[assignment.role] = 0;
+          }
+          stats.roles[assignment.role]++;
         }
-      });
-    });
-
-    this.refereeStats = Array.from(refereesMap.values())
-      .filter(stats => stats.gamesInPeriod > 0)
-      .sort((a, b) => b.gamesInPeriod - a.gamesInPeriod);
-
-    this.totalRefereesActive = this.refereeStats.length;
-  }
-
-  calculateCompetitionStats(games: any[]) {
-    const competitionMap = new Map();
-
-    games.forEach(game => {
-      if (!competitionMap.has(game.competition)) {
-        competitionMap.set(game.competition, {
-          competition: game.competition,
-          totalGames: 0,
-          totalReferees: new Set(),
-          avgRefereesPerGame: 0
-        });
       }
+    });
+  });
 
-      const stats = competitionMap.get(game.competition);
-      stats.totalGames++;
+  this.refereeStats = Array.from(refereesMap.values())
+    .filter(stats => stats.gamesInPeriod > 0)
+    .sort((a, b) => b.gamesInPeriod - a.gamesInPeriod);
 
-      // Count unique referees
-      game.refereeAssignments?.forEach((assignment: any) => {
-        if (assignment.assignmentStatus === 'Accepted') {
+  this.totalRefereesActive = this.refereeStats.length;
+}
+
+calculateCompetitionStats(games: any[]) {
+  const competitionMap = new Map();
+
+  games.forEach(game => {
+    if (!competitionMap.has(game.competition)) {
+      competitionMap.set(game.competition, {
+        competition: game.competition,
+        totalGames: 0,
+        totalReferees: new Set(),
+        avgRefereesPerGame: 0
+      });
+    }
+
+    const stats = competitionMap.get(game.competition);
+    stats.totalGames++;
+
+    // Count unique referees of the selected role only
+    game.refereeAssignments?.forEach((assignment: any) => {
+      if (assignment.assignmentStatus === 'Accepted') {
+        // Check if the referee's role matches the selected role
+        // For Admin, count all roles
+        if (this.selectedRole === 'Admin' || assignment.role === this.selectedRole) {
           stats.totalReferees.add(assignment.userId._id);
         }
-      });
+      }
     });
+  });
 
-    this.competitionStats = Array.from(competitionMap.values())
-      .map(stats => ({
-        ...stats,
-        totalReferees: stats.totalReferees.size,
-        avgRefereesPerGame: stats.totalGames > 0 ? 
-          (stats.totalReferees.size / stats.totalGames).toFixed(1) : 0
-      }))
-      .sort((a, b) => b.totalGames - a.totalGames);
-  }
+  this.competitionStats = Array.from(competitionMap.values())
+    .map(stats => ({
+      ...stats,
+      totalReferees: stats.totalReferees.size,
+      avgRefereesPerGame: stats.totalGames > 0 ? 
+        (stats.totalReferees.size / stats.totalGames).toFixed(1) : 0
+    }))
+    .sort((a, b) => b.totalGames - a.totalGames);
+}
 
 calculateAbsenceStats(absences: any[]) {
-  console.log('Calculating absence stats, available referees:', this.availableReferees); // Debug log
+  console.log('Calculating absence stats, available referees:', this.availableReferees);
   
   const dateRange = this.getDateRange();
   let filteredAbsences = absences;
@@ -407,46 +416,59 @@ calculateAbsenceStats(absences: any[]) {
   }
 
   this.absenceStats = {
-    totalAbsences: filteredAbsences.length,
+    totalAbsences: 0,
     totalDays: 0,
     byReferee: {},
     byMonth: {}
   };
 
-  // Create a map of personalCode to referee name for quick lookup
+  // Create a map of personalCode to referee name for the selected role only
   const refereeMap = new Map();
   
-  // Make sure availableReferees is populated
-  if (this.availableReferees.sudci) {
-    this.availableReferees.sudci.forEach(ref => {
-      refereeMap.set(ref.personalCode, `${ref.name} ${ref.surname}`);
-    });
-  }
-  if (this.availableReferees.delegati) {
-    this.availableReferees.delegati.forEach(ref => {
-      refereeMap.set(ref.personalCode, `${ref.name} ${ref.surname}`);
-    });
-  }
-  if (this.availableReferees.pomocniSudci) {
-    this.availableReferees.pomocniSudci.forEach(ref => {
-      refereeMap.set(ref.personalCode, `${ref.name} ${ref.surname}`);
-    });
+  // Filter referees by the same selected role used for referee stats
+  let selectedRoleReferees = [];
+  switch(this.selectedRole) {
+    case 'Sudac':
+      selectedRoleReferees = this.availableReferees.sudci || [];
+      break;
+    case 'Delegat':
+      selectedRoleReferees = this.availableReferees.delegati || [];
+      break;
+    case 'Pomoćni Sudac':
+      selectedRoleReferees = this.availableReferees.pomocniSudci || [];
+      break;
+    case 'Admin':
+      // If Admin is selected, show all referees (or handle as needed)
+      selectedRoleReferees = [
+        ...(this.availableReferees.sudci || []),
+        ...(this.availableReferees.delegati || []),
+        ...(this.availableReferees.pomocniSudci || [])
+      ];
+      break;
   }
 
-  console.log('Referee map:', refereeMap); // Debug log
+  selectedRoleReferees.forEach(ref => {
+    refereeMap.set(ref.personalCode, `${ref.name} ${ref.surname}`);
+  });
 
-  filteredAbsences.forEach(absence => {
+  console.log('Referee map for role', this.selectedRole, ':', refereeMap);
+
+  // Filter absences to only include those from referees with the selected role
+  const roleFilteredAbsences = filteredAbsences.filter(absence => {
+    return refereeMap.has(absence.userPersonalCode);
+  });
+
+  this.absenceStats.totalAbsences = roleFilteredAbsences.length;
+
+  roleFilteredAbsences.forEach(absence => {
     const startDate = new Date(absence.startDate);
     const endDate = new Date(absence.endDate);
     const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     
     this.absenceStats.totalDays += days;
 
-    // By referee - use name instead of personal code
     const personalCode = absence.userPersonalCode || 'Unknown';
     const refereeName = refereeMap.get(personalCode) || `Unknown (${personalCode})`;
-    
-    console.log(`Personal code: ${personalCode}, Referee name: ${refereeName}`); // Debug log
     
     if (!this.absenceStats.byReferee[refereeName]) {
       this.absenceStats.byReferee[refereeName] = 0;
@@ -454,7 +476,7 @@ calculateAbsenceStats(absences: any[]) {
     this.absenceStats.byReferee[refereeName] += days;
 
     // By month
-    const month = startDate.toISOString().substring(0, 7); // YYYY-MM
+    const month = startDate.toISOString().substring(0, 7);
     if (!this.absenceStats.byMonth[month]) {
       this.absenceStats.byMonth[month] = 0;
     }
@@ -462,7 +484,7 @@ calculateAbsenceStats(absences: any[]) {
   });
 }
 
- calculateExpenseStats(expenses: any[]) {
+calculateExpenseStats(expenses: any[]) {
   const dateRange = this.getDateRange();
   let filteredExpenses = expenses;
 
@@ -477,9 +499,43 @@ calculateAbsenceStats(absences: any[]) {
     });
   }
 
+  // Create a map of user IDs to referee info for the selected role
+  const refereeMap = new Map();
+  let selectedRoleReferees = [];
+  
+  switch(this.selectedRole) {
+    case 'Sudac':
+      selectedRoleReferees = this.availableReferees.sudci || [];
+      break;
+    case 'Delegat':
+      selectedRoleReferees = this.availableReferees.delegati || [];
+      break;
+    case 'Pomoćni Sudac':
+      selectedRoleReferees = this.availableReferees.pomocniSudci || [];
+      break;
+    case 'Admin':
+      // For Admin, include all referees
+      selectedRoleReferees = [
+        ...(this.availableReferees.sudci || []),
+        ...(this.availableReferees.delegati || []),
+        ...(this.availableReferees.pomocniSudci || [])
+      ];
+      break;
+  }
+
+  selectedRoleReferees.forEach(ref => {
+    refereeMap.set(ref._id, `${ref.name} ${ref.surname}`);
+  });
+
+  // Filter expenses to only include those from referees with the selected role
+  const roleFilteredExpenses = filteredExpenses.filter(expense => {
+    const userId = expense.userId?._id || expense.userId;
+    return refereeMap.has(userId);
+  });
+
   // Initialize stats
   this.expenseStats = {
-    totalExpenses: filteredExpenses.length,
+    totalExpenses: roleFilteredExpenses.length,
     totalAmount: 0,
     avgAmountPerExpense: 0,
     byReferee: {},
@@ -488,25 +544,7 @@ calculateAbsenceStats(absences: any[]) {
     byType: {}
   };
 
-  // Create a map of user IDs to referee names
-  const refereeMap = new Map();
-  if (this.availableReferees.sudci) {
-    this.availableReferees.sudci.forEach(ref => {
-      refereeMap.set(ref._id, `${ref.name} ${ref.surname}`);
-    });
-  }
-  if (this.availableReferees.delegati) {
-    this.availableReferees.delegati.forEach(ref => {
-      refereeMap.set(ref._id, `${ref.name} ${ref.surname}`);
-    });
-  }
-  if (this.availableReferees.pomocniSudci) {
-    this.availableReferees.pomocniSudci.forEach(ref => {
-      refereeMap.set(ref._id, `${ref.name} ${ref.surname}`);
-    });
-  }
-
-  filteredExpenses.forEach(expense => {
+  roleFilteredExpenses.forEach(expense => {
     // Calculate total amount from expense items
     const expenseAmount = expense.expenses?.reduce((sum: number, item: any) => {
       return sum + (parseFloat(item.amount) || 0);
@@ -555,17 +593,19 @@ calculateAbsenceStats(absences: any[]) {
     : 0;
 }
 
-  calculateSummaryStats() {
-    // Most active referee
-    if (this.refereeStats.length > 0) {
-      this.mostActiveReferee = this.refereeStats[0];
-    }
-
-    // Most popular competition
-    if (this.competitionStats.length > 0) {
-      this.mostPopularCompetition = this.competitionStats[0].competition;
-    }
+calculateSummaryStats() {
+  // Most active referee from the filtered stats (not all referees)
+  if (this.refereeStats.length > 0) {
+    this.mostActiveReferee = this.refereeStats[0];
+  } else {
+    this.mostActiveReferee = null; // Reset if no referees found for selected role
   }
+
+  // Most popular competition
+  if (this.competitionStats.length > 0) {
+    this.mostPopularCompetition = this.competitionStats[0].competition;
+  }
+}
 
   onPeriodChange() {
     this.loadStatistics();
@@ -588,4 +628,9 @@ calculateAbsenceStats(absences: any[]) {
   getObjectValues(obj: any): any[] {
     return Object.values(obj);
   }
+
+  onRoleChange() {
+  this.loadStatistics();
+}
+
 }

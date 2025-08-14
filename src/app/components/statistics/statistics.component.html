@@ -1,14 +1,16 @@
 <!-- src/app/components/statistika/statistika.component.html -->
+<app-header></app-header>
+
 <div class="statistika-container">
   <div class="header">
     <h1>
       <i class="fas fa-chart-bar"></i>
       Statistike
     </h1>
-    <button class="btn btn-primary" (click)="exportStatistics()">
+    <!-- <button class="btn btn-primary" (click)="exportStatistics()">
       <i class="fas fa-download"></i>
       Izvezi statistike
-    </button>
+    </button> -->
   </div>
 
   <!-- Filters Section -->
@@ -70,6 +72,18 @@
           <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
         </select>
       </div>
+
+<!-- Add this after the competition filter -->
+<div class="filter-group">
+  <label for="role">Uloga:</label>
+  <select id="role" [(ngModel)]="selectedRole" (change)="onRoleChange()" class="form-control">
+    <option value="Sudac">Sudac</option>
+    <option value="Delegat">Delegat</option>
+    <option value="Pomoćni Sudac">Pomoćni Sudac</option>
+    <!-- <option value="Admin">Admin</option> -->
+  </select>
+</div>
+      
     </div>
   </div>
 
@@ -105,13 +119,13 @@
       <div class="card-icon">
         <i class="fas fa-trophy"></i>
       </div>
-      <div class="card-content">
-        <h3>{{ mostActiveReferee?.referee?.name || 'N/A' }} {{ mostActiveReferee?.referee?.surname || '' }}</h3>
-        <p>Najaktivniji sudac ({{ mostActiveReferee?.gamesInPeriod || 0 }} utakmica)</p>
-      </div>
+  <div class="card-content">
+    <h3>{{ mostActiveReferee?.referee?.name || 'N/A' }} {{ mostActiveReferee?.referee?.surname || '' }}</h3>
+    <p>Najaktivniji {{ selectedRole.toLowerCase() }} ({{ mostActiveReferee?.gamesInPeriod || 0 }} utakmica)</p>
+  </div>
     </div>
 
-    <div class="summary-card">
+    <!-- <div class="summary-card">
       <div class="card-icon">
         <i class="fas fa-medal"></i>
       </div>
@@ -119,7 +133,7 @@
         <h3>{{ mostPopularCompetition || 'N/A' }}</h3>
         <p>Najpopularnije natjecanje</p>
       </div>
-    </div>
+    </div> -->
   </div>
 
   <!-- Statistics Sections -->
@@ -129,7 +143,7 @@
     <div class="stats-section">
       <h2>
         <i class="fas fa-user-tie"></i>
-        Statistike sudaca
+        Statistike {{selectedRole}}
       </h2>
       
       <div class="table-container" *ngIf="refereeStats.length > 0; else noRefereeData">
@@ -138,7 +152,7 @@
             <tr>
               <th>Sudac</th>
               <th>Broj utakmica</th>
-              <th>Glavna uloga</th>
+              <!-- <th>Glavna uloga</th> -->
               <th>Najčešće natjecanje</th>
             </tr>
           </thead>
@@ -146,12 +160,12 @@
             <tr *ngFor="let stat of refereeStats.slice(0, 10)">
               <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
               <td>{{ stat.gamesInPeriod }}</td>
-              <td>
+              <!-- <td>
                 <span *ngFor="let role of getObjectKeys(stat.roles); let i = index">
                   {{ role }} ({{ stat.roles[role] }})
                   <span *ngIf="i < getObjectKeys(stat.roles).length - 1">, </span>
                 </span>
-              </td>
+              </td> -->
               <td>
                 <span *ngIf="getObjectKeys(stat.competitions).length > 0">
                   {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0] }})
@@ -166,86 +180,93 @@
       <ng-template #noRefereeData>
         <div class="no-data">
           <i class="fas fa-info-circle"></i>
-          <p>Nema podataka o sudcima za odabrano razdoblje.</p>
+          <p>Nema podataka o {{ selectedRole.toLowerCase() }}e za odabrano razdoblje.</p>
         </div>
       </ng-template>
     </div>
 
     <!-- Competition Statistics -->
-    <div class="stats-section">
-      <h2>
-        <i class="fas fa-trophy"></i>
-        Statistike natjecanja
-      </h2>
-      
-      <div class="table-container" *ngIf="competitionStats.length > 0; else noCompetitionData">
-        <table class="stats-table">
-          <thead>
-            <tr>
-              <th>Natjecanje</th>
-              <th>Broj utakmica</th>
-              <th>Broj sudaca</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let stat of competitionStats">
-              <td>{{ stat.competition }}</td>
-              <td>{{ stat.totalGames }}</td>
-              <td>{{ stat.totalReferees }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+<!-- Competition Statistics -->
+<div class="stats-section">
+  <h2>
+    <i class="fas fa-trophy"></i>
+    Statistike natjecanja
+  </h2>
+  
+  <div class="table-container" *ngIf="competitionStats.length > 0; else noCompetitionData">
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>Natjecanje</th>
+          <th>Broj utakmica</th>
+          <th>Broj {{ selectedRole === 'Sudac' ? 'sudaca' : selectedRole === 'Delegat' ? 'delegata' : selectedRole === 'Pomoćni Sudac' ? 'pomoćnih sudaca' : selectedRole === 'Admin' ? 'admina' : 'korisnika' }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let stat of competitionStats">
+          <td>{{ stat.competition }}</td>
+          <td>{{ stat.totalGames }}</td>
+          <td>{{ stat.totalReferees }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-      <ng-template #noCompetitionData>
-        <div class="no-data">
-          <i class="fas fa-info-circle"></i>
-          <p>Nema podataka o natjecanjima za odabrano razdoblje.</p>
-        </div>
-      </ng-template>
+  <ng-template #noCompetitionData>
+    <div class="no-data">
+      <i class="fas fa-info-circle"></i>
+      <p>Nema podataka o natjecanjima za odabrano razdoblje.</p>
     </div>
+  </ng-template>
+</div>
 
-    <!-- Absence Statistics -->
-    <div class="stats-section">
-      <h2>
-        <i class="fas fa-calendar-times"></i>
-        Statistike odsustva
-      </h2>
-      
-      <div class="absence-stats">
-        <div class="stats-row">
-          <div class="stat-item">
-            <strong>Ukupno odsustva:</strong> {{ absenceStats.totalAbsences }}
-          </div>
-          <div class="stat-item">
-            <strong>Ukupno dana:</strong> {{ absenceStats.totalDays }}
-          </div>
-        </div>
-
-        <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
-          <h4>Top 5 sudaca s najviše dana odsustva:</h4>
-          <div class="absence-list">
-            <div class="absence-item" *ngFor="let referee of getObjectKeys(absenceStats.byReferee).slice(0, 5)">
-              <span class="referee-name">{{ referee }}</span>
-              <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
-            </div>
-          </div>
-        </div>
+<!-- Update the absence statistics section -->
+<div class="stats-section">
+  <h2>
+    <i class="fas fa-calendar-times"></i>
+    Statistike odsustva - {{ selectedRole }}
+  </h2>
+  
+  <div class="absence-stats">
+    <div class="stats-row">
+      <div class="stat-item">
+        <strong>Ukupno odsustva ({{ selectedRole }}):</strong> {{ absenceStats.totalAbsences }}
+      </div>
+      <div class="stat-item">
+        <strong>Ukupno dana:</strong> {{ absenceStats.totalDays }}
       </div>
     </div>
 
-    <!-- Expense Statistics -->
-  <!-- Expense Statistics -->
+    <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
+      <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s najviše dana odsustva:</h4>
+      <div class="absence-list">
+        <div class="absence-item" *ngFor="let referee of getObjectKeys(absenceStats.byReferee).slice(0, 5)">
+          <span class="referee-name">{{ referee }}</span>
+          <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length === 0">
+      <div class="no-data">
+        <i class="fas fa-info-circle"></i>
+        <p>Nema podataka o odsustavu za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Statistics -->
 <div class="stats-section">
   <h2>
     <i class="fas fa-money-bill-wave"></i>
-    Statistike troškova
+    Statistike troškova - {{ selectedRole }}
   </h2>
   
   <div class="expense-stats">
     <div class="stats-row">
       <div class="stat-item">
-        <strong>Ukupno troškova:</strong> {{ expenseStats.totalExpenses }}
+        <strong>Ukupno troškova ({{ selectedRole }}):</strong> {{ expenseStats.totalExpenses }}
       </div>
       <div class="stat-item">
         <strong>Ukupan iznos:</strong> {{ expenseStats.totalAmount | number:'1.2-2' }} €
@@ -268,13 +289,13 @@
 
     <!-- Top 5 Referees by Amount -->
     <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length > 0">
-      <h4>Top 5 sudaca s najviše troškova:</h4>
+      <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s najviše troškova:</h4>
       <div class="expense-list">
         <div class="expense-item" *ngFor="let referee of getObjectKeys(expenseStats.byReferee).slice(0, 5)">
           <span class="referee-name">{{ referee }}</span>
           <div class="expense-details">
             <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
-            <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2' }} HRK</span>
+            <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2' }} €</span>
           </div>
         </div>
       </div>
@@ -291,7 +312,7 @@
       </div>
     </div>
 
-    <!-- Monthly breakdown (last 6 months) -->
+    <!-- Monthly breakdown -->
     <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byMonth).length > 0">
       <h4>Mjesečni pregled (zadnjih 6 mjeseci):</h4>
       <div class="monthly-stats">
@@ -299,9 +320,17 @@
           <span class="month-name">{{ month }}</span>
           <div class="month-details">
             <span class="month-count">{{ expenseStats.byMonth[month].count }} troškova</span>
-            <span class="month-amount">{{ expenseStats.byMonth[month].amount | number:'1.2-2' }} HRK</span>
+            <span class="month-amount">{{ expenseStats.byMonth[month].amount | number:'1.2-2' }} €</span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- No data message -->
+    <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length === 0">
+      <div class="no-data">
+        <i class="fas fa-info-circle"></i>
+        <p>Nema podataka o troškovima za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
       </div>
     </div>
   </div>
