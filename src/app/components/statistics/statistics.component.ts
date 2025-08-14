@@ -30,6 +30,12 @@ export class StatisticsComponent implements OnInit {
   selectedRole: string = 'Sudac'; // Default to 'Sudac'
 selectedAbsenceRole: string = 'Sudac'; // Default to 'Sudac'
 
+// Add these properties with your other component properties
+showAllAbsences = false;
+showAllExpenses = false;
+showAllReferees = false; // Add this
+showAllCompetitions = false; // Add this
+
   // Filter options
 selectedPeriod: 'month' | 'year' | 'season' | 'custom' = 'custom';
   selectedMonth: string = '';
@@ -611,9 +617,6 @@ calculateSummaryStats() {
     this.loadStatistics();
   }
 
-  onFiltersChange() {
-    this.loadStatistics();
-  }
 
   exportStatistics() {
     // Placeholder for export functionality
@@ -629,8 +632,31 @@ calculateSummaryStats() {
     return Object.values(obj);
   }
 
-  onRoleChange() {
+onRoleChange() {
+  // Reset expanded states when role changes
+  this.showAllAbsences = false;
+  this.showAllExpenses = false;
+  this.showAllReferees = false; // Add this
+  this.showAllCompetitions = false; // Add this
   this.loadStatistics();
+}
+
+onFiltersChange() {
+  // Reset expanded states when filters change
+  this.showAllAbsences = false;
+  this.showAllExpenses = false;
+  this.showAllReferees = false; // Add this
+  this.showAllCompetitions = false; // Add this
+  this.loadStatistics();
+}
+getSortedAbsenceReferees(): string[] {
+  return Object.keys(this.absenceStats.byReferee)
+    .sort((a, b) => this.absenceStats.byReferee[b] - this.absenceStats.byReferee[a]);
+}
+
+getSortedExpenseReferees(): string[] {
+  return Object.keys(this.expenseStats.byReferee)
+    .sort((a, b) => this.expenseStats.byReferee[b].amount - this.expenseStats.byReferee[a].amount);
 }
 
 }

@@ -62,24 +62,22 @@ export class TimeAbsentModalComponent {
     });
   }
 
-  onStartDateChange() {
-    // Reset end date if it's before the new start date
-    if (this.endDate && this.endDate <= this.startDate) {
-      this.endDate = '';
-    }
-    
-    // Set minimum end date to be the day after start date
-    if (this.startDate) {
-      const startDateObj = new Date(this.startDate);
-      startDateObj.setDate(startDateObj.getDate() + 1);
-      this.minEndDate = startDateObj.toISOString().split('T')[0];
-    } else {
-      this.minEndDate = '';
-    }
+onStartDateChange() {
+  // Reset end date if it's before the new start date
+  if (this.endDate && this.endDate < this.startDate) {
+    this.endDate = '';
   }
+  
+  // Set minimum end date to be the same as start date (allowing same day)
+  if (this.startDate) {
+    this.minEndDate = this.startDate; // Changed from adding 1 day
+  } else {
+    this.minEndDate = '';
+  }
+}
 
   isFormValid(): boolean {
-    return !!(this.startDate && this.endDate && this.startDate < this.endDate && this.currentUser);
+    return !!(this.startDate && this.endDate && this.startDate <= this.endDate && this.currentUser);
   }
 
   saveAbsence(): void {

@@ -536,3 +536,21 @@
     }
   }
 }
+
+.view-all-link {
+  margin-top: 1rem;
+  text-align: center;
+  
+  .link-text {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: #2980b9;
+      text-decoration: underline;
+    }
+  }
+}

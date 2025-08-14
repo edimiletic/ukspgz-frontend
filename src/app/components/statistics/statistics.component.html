@@ -139,53 +139,67 @@
   <!-- Statistics Sections -->
   <div class="statistics-sections" *ngIf="!isLoading">
     
-    <!-- Referee Statistics -->
-    <div class="stats-section">
-      <h2>
-        <i class="fas fa-user-tie"></i>
-        Statistike {{selectedRole}}
-      </h2>
-      
-      <div class="table-container" *ngIf="refereeStats.length > 0; else noRefereeData">
-        <table class="stats-table">
-          <thead>
-            <tr>
-              <th>Sudac</th>
-              <th>Broj utakmica</th>
-              <!-- <th>Glavna uloga</th> -->
-              <th>Najčešće natjecanje</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let stat of refereeStats.slice(0, 10)">
-              <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
-              <td>{{ stat.gamesInPeriod }}</td>
-              <!-- <td>
-                <span *ngFor="let role of getObjectKeys(stat.roles); let i = index">
-                  {{ role }} ({{ stat.roles[role] }})
-                  <span *ngIf="i < getObjectKeys(stat.roles).length - 1">, </span>
-                </span>
-              </td> -->
-              <td>
-                <span *ngIf="getObjectKeys(stat.competitions).length > 0">
-                  {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0] }})
-                </span>
-                <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <ng-template #noRefereeData>
-        <div class="no-data">
-          <i class="fas fa-info-circle"></i>
-          <p>Nema podataka o {{ selectedRole.toLowerCase() }}e za odabrano razdoblje.</p>
-        </div>
-      </ng-template>
+<!-- Referee Statistics -->
+<div class="stats-section">
+  <h2>
+    <i class="fas fa-user-tie"></i>
+    Statistike {{selectedRole}}
+  </h2>
+  
+  <div class="table-container" *ngIf="refereeStats.length > 0; else noRefereeData">
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>Sudac</th>
+          <th>Broj utakmica</th>
+          <th>Najčešće natjecanje</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Show first 10 referees -->
+        <tr *ngFor="let stat of refereeStats.slice(0, 10)">
+          <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
+          <td>{{ stat.gamesInPeriod }}</td>
+          <td>
+            <span *ngIf="getObjectKeys(stat.competitions).length > 0">
+              {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0] }})
+            </span>
+            <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
+          </td>
+        </tr>
+        
+        <!-- Show remaining referees when expanded -->
+        <ng-container *ngIf="showAllReferees">
+          <tr *ngFor="let stat of refereeStats.slice(10)">
+            <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
+            <td>{{ stat.gamesInPeriod }}</td>
+            <td>
+              <span *ngIf="getObjectKeys(stat.competitions).length > 0">
+                {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0] }})
+              </span>
+              <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+    
+    <!-- Show/Hide all link for referees -->
+    <div class="view-all-link" *ngIf="refereeStats.length > 10">
+      <a href="javascript:void(0)" (click)="showAllReferees = !showAllReferees" class="link-text">
+        {{ showAllReferees ? 'Prikaži manje' : 'Prikaži sve (' + refereeStats.length + ')' }}
+      </a>
     </div>
+  </div>
 
-    <!-- Competition Statistics -->
+  <ng-template #noRefereeData>
+    <div class="no-data">
+      <i class="fas fa-info-circle"></i>
+      <p>Nema podataka o {{ selectedRole.toLowerCase() }}e za odabrano razdoblje.</p>
+    </div>
+  </ng-template>
+</div>
+
 <!-- Competition Statistics -->
 <div class="stats-section">
   <h2>
@@ -203,13 +217,30 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let stat of competitionStats">
+        <!-- Show first 10 competitions -->
+        <tr *ngFor="let stat of competitionStats.slice(0, 10)">
           <td>{{ stat.competition }}</td>
           <td>{{ stat.totalGames }}</td>
           <td>{{ stat.totalReferees }}</td>
         </tr>
+        
+        <!-- Show remaining competitions when expanded -->
+        <ng-container *ngIf="showAllCompetitions">
+          <tr *ngFor="let stat of competitionStats.slice(10)">
+            <td>{{ stat.competition }}</td>
+            <td>{{ stat.totalGames }}</td>
+            <td>{{ stat.totalReferees }}</td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
+    
+    <!-- Show/Hide all link for competitions -->
+    <div class="view-all-link" *ngIf="competitionStats.length > 10">
+      <a href="javascript:void(0)" (click)="showAllCompetitions = !showAllCompetitions" class="link-text">
+        {{ showAllCompetitions ? 'Prikaži manje' : 'Prikaži sve (' + competitionStats.length + ')' }}
+      </a>
+    </div>
   </div>
 
   <ng-template #noCompetitionData>
@@ -237,15 +268,30 @@
       </div>
     </div>
 
-    <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
-      <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s najviše dana odsustva:</h4>
-      <div class="absence-list">
-        <div class="absence-item" *ngFor="let referee of getObjectKeys(absenceStats.byReferee).slice(0, 5)">
-          <span class="referee-name">{{ referee }}</span>
-          <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
-        </div>
-      </div>
+<div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
+  <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s najviše dana odsustva:</h4>
+  <div class="absence-list">
+    <div class="absence-item" *ngFor="let referee of getSortedAbsenceReferees().slice(0, 5)">
+      <span class="referee-name">{{ referee }}</span>
+      <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
     </div>
+  </div>
+  
+  <!-- The link should appear now -->
+  <div class="view-all-link" *ngIf="getSortedAbsenceReferees().length > 5">
+    <a href="javascript:void(0)" (click)="showAllAbsences = !showAllAbsences" class="link-text">
+      {{ showAllAbsences ? 'Prikaži manje' : 'Prikaži sve (' + getSortedAbsenceReferees().length + ')' }}
+    </a>
+  </div>
+
+  <!-- Show remaining absences when expanded -->
+  <div class="absence-list" *ngIf="showAllAbsences">
+    <div class="absence-item" *ngFor="let referee of getSortedAbsenceReferees().slice(5)">
+      <span class="referee-name">{{ referee }}</span>
+      <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
+    </div>
+  </div>
+</div>
 
     <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length === 0">
       <div class="no-data">
@@ -289,17 +335,33 @@
 
     <!-- Top 5 Referees by Amount -->
     <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length > 0">
-      <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s najviše troškova:</h4>
-      <div class="expense-list">
-        <div class="expense-item" *ngFor="let referee of getObjectKeys(expenseStats.byReferee).slice(0, 5)">
-          <span class="referee-name">{{ referee }}</span>
-          <div class="expense-details">
-            <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
-            <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2' }} €</span>
-          </div>
-        </div>
+  <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s najviše troškova:</h4>
+  <div class="expense-list">
+    <div class="expense-item" *ngFor="let referee of getSortedExpenseReferees().slice(0, 5)">
+      <span class="referee-name">{{ referee }}</span>
+      <div class="expense-details">
+        <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
+        <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2' }} €</span>
       </div>
     </div>
+  </div>
+  
+  <div class="view-all-link" *ngIf="getSortedExpenseReferees().length > 5">
+    <a href="javascript:void(0)" (click)="showAllExpenses = !showAllExpenses" class="link-text">
+      {{ showAllExpenses ? 'Prikaži manje' : 'Prikaži sve (' + getSortedExpenseReferees().length + ')' }}
+    </a>
+  </div>
+
+  <div class="expense-list" *ngIf="showAllExpenses">
+    <div class="expense-item" *ngFor="let referee of getSortedExpenseReferees().slice(5)">
+      <span class="referee-name">{{ referee }}</span>
+      <div class="expense-details">
+        <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
+        <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2' }} €</span>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- By Type -->
     <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byType).length > 0">
