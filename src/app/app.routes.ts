@@ -13,6 +13,7 @@ import { TakeExamComponent } from './components/take-exam/take-exam.component';
 import { ExamResultComponent } from './components/exam-result/exam-result.component';
 import { ExamReviewComponent } from './components/exam-review/exam-review.component';
 import { StatisticsComponent } from './components/statistics/statistics.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
 
 export const routes: Routes = [
   {path: 'login', component: AuthComponent},
@@ -36,4 +37,9 @@ export const routes: Routes = [
   component: StatisticsComponent, 
   canActivate: [AuthGuard]
 },
+{
+  path: 'notifications',
+  component: NotificationsComponent,
+  canActivate: [AuthGuard] // Add auth guard if you have one
+}
 ];

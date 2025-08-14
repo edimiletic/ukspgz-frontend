@@ -13,7 +13,7 @@
         </div>
         <div class="dropdown-menu notification-menu">
           <div class="notification-header">
-            <span>Obavještenja</span>
+            <span>Obavijesti</span>
             <button *ngIf="notifications.length > 0" class="mark-all-read" (click)="markAllAsRead()">
               Označi sve kao pročitano
             </button>
@@ -21,7 +21,7 @@
           
           <div class="notification-list">
             <div *ngIf="notifications.length === 0" class="no-notifications">
-              Nema novih obavještenja
+              Nema novih obavijesti
             </div>
             
             <div *ngFor="let notification of notifications" 
@@ -39,9 +39,9 @@
           </div>
           
           <div *ngIf="notifications.length > 3" class="notification-footer">
-            <button class="view-all-btn" (click)="viewAllNotifications()">
-              Prikaži sve obavještenja
-            </button>
+<button class="view-all-btn" (click)="viewAllNotifications()">
+  Prikaži sve obavijesti
+</button>
           </div>
         </div>
       </div>

@@ -97,6 +97,35 @@
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
           }
         }
+
+      // Add styles for the clear filters button
+      .filter-btn {
+        padding: 0.75rem 1rem;
+        border: 1px solid #6c757d;
+        background-color: white;
+        color: #6c757d;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+         width: fit-content; // Add this to make button only as wide as content
+        max-width: 150px; // Add this to limit maximum width
+        white-space: nowrap; // Prevent text wrapping
+
+
+        &:hover {
+          background-color: #6c757d;
+          color: white;
+        }
+
+        i {
+          font-size: 0.9rem;
+        }
+      }
       }
     }
   }
@@ -551,6 +580,14 @@
     &:hover {
       color: #2980b9;
       text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-section {
+    .filters-grid {
+      grid-template-columns: 1fr;
     }
   }
 }

@@ -1,0 +1,180 @@
+<app-header></app-header>
+<app-sidebar></app-sidebar>
+
+
+<div class="main-layout">
+  <section class="content">
+    <!-- Back Button Row -->
+    <div class="back-row">
+      <button class="back-button" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Sve obavijesti</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="markAllAsRead()" 
+                [disabled]="notifications.length === 0">
+          <i class="fas fa-check-double"></i>
+          Označi sve kao pročitano
+        </button>
+      </div>
+    </div>
+
+
+<!-- Filters Section -->
+<div class="filters-section">
+  <div class="filter-row">
+    <div class="filter-group">
+      <label>Tip Obavijesti:</label>
+      <select [(ngModel)]="filterType" (change)="onFilterChange()" class="form-control">
+        <option value="">Svi tipovi</option>
+        <option value="GAME_ASSIGNMENT">Nominacije</option>
+        <!-- Only show this option for admin users -->
+        <option value="ASSIGNMENT_RESPONSE" *ngIf="isAdmin">Odgovori na nominacije</option>
+        <option value="KONTROLA_RECEIVED">Kontrole</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="showOnlyUnread" (change)="onFilterChange()">
+        Prikaži samo nepročitana
+      </label>
+    </div>
+    <div class="filter-group">
+      <button class="btn btn-outline-secondary" (click)="clearFilters()">
+        <i class="fas fa-times"></i> Očisti
+      </button>
+    </div>
+  </div>
+</div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions" *ngIf="notifications.length > 0">
+      <div class="selection-info">
+        <label class="checkbox-label">
+          <input type="checkbox" [checked]="selectAll" (change)="toggleSelectAll()">
+          Odaberi sve
+        </label>
+        <span *ngIf="selectedNotifications.length > 0" class="selected-count">
+          ({{ selectedNotifications.length }} odabrano)
+        </span>
+      </div>
+      <div class="bulk-buttons" *ngIf="selectedNotifications.length > 0">
+        <button class="btn btn-sm btn-success" (click)="markSelectedAsRead()">
+          <i class="fas fa-check"></i>
+          Označi kao pročitano
+        </button>
+        <!-- Uncomment when delete is implemented
+        <button class="btn btn-sm btn-danger" (click)="deleteSelected()">
+          <i class="fas fa-trash"></i>
+          Obriši
+        </button>
+        -->
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="loading-spinner"></div>
+      <p>Učitavanje obavijesti...</p>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-container" *ngIf="!isLoading">
+      <div class="notifications-stats" *ngIf="notifications.length > 0">
+        <span>Prikazano {{ notifications.length }} od {{ totalNotifications }} obavijesti</span>
+      </div>
+
+      <div class="notifications-list" *ngIf="notifications.length > 0">
+        <div class="notification-item" 
+             *ngFor="let notification of notifications"
+             [class.unread]="!notification.isRead"
+             [class.selected]="isSelected(notification._id)">
+          
+          <div class="notification-checkbox">
+            <input type="checkbox" 
+                   [checked]="isSelected(notification._id)"
+                   (change)="toggleSelectNotification(notification._id)">
+          </div>
+          
+          <div class="notification-icon">
+            <i [class]="getNotificationIcon(notification.type)"></i>
+          </div>
+          
+          <div class="notification-content" (click)="markAsRead(notification)">
+            <div class="notification-header">
+              <span class="notification-type">{{ getNotificationTypeLabel(notification.type) }}</span>
+              <span class="notification-time">{{ formatNotificationTime(notification.createdAt) }}</span>
+            </div>
+            <div class="notification-message">{{ notification.message }}</div>
+          </div>
+          
+          <div class="notification-status">
+            <span *ngIf="!notification.isRead" class="unread-dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Notifications -->
+      <div class="no-notifications" *ngIf="notifications.length === 0 && !isLoading">
+        <i class="fas fa-bell-slash"></i>
+        <h3>Nema obavijesti</h3>
+        <p>Trenutno nemate obavijesti za prikaz.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-container" *ngIf="totalPages > 1">
+        <div class="pagination">
+          <button class="page-btn" 
+                  [disabled]="currentPage === 1" 
+                  (click)="goToPreviousPage()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          
+          <button class="page-btn" 
+                  *ngFor="let page of getPages()"
+                  [class.active]="page === currentPage"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          
+          <button class="page-btn" 
+                  [disabled]="currentPage === totalPages" 
+                  (click)="goToNextPage()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="pagination-info">
+          Stranica {{ currentPage }} od {{ totalPages }}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-container">
+  <div *ngIf="successMessage" class="toast toast-success">
+    <span class="toast-emoji">✅</span>
+    <span class="toast-message">{{ successMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="toast toast-error">
+    <span class="toast-emoji">❌</span>
+    <span class="toast-message">{{ errorMessage }}</span>
+    <button class="toast-close" (click)="clearMessages()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+
+<app-footer></app-footer>

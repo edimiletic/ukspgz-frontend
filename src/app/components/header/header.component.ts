@@ -118,11 +118,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  viewAllNotifications() {
-    // Navigate to a dedicated notifications page (if you create one)
-    // For now, just navigate to games page
-    this.router.navigate(['/assigned']);
-  }
+viewAllNotifications() {
+  this.router.navigate(['/notifications']);
+}
 
   formatNotificationTime(dateString: string): string {
     const date = new Date(dateString);

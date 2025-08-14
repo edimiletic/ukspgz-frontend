@@ -659,4 +659,39 @@ getSortedExpenseReferees(): string[] {
     .sort((a, b) => this.expenseStats.byReferee[b].amount - this.expenseStats.byReferee[a].amount);
 }
 
+
+clearAllFilters() {
+  // Reset all filter values to defaults
+  this.selectedPeriod = 'custom';
+  this.selectedMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+  this.selectedYear = String(new Date().getFullYear());
+  
+  // Reset season to current season
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const seasonStartYear = currentMonth >= 9 ? currentDate.getFullYear() : currentDate.getFullYear() - 1;
+  this.selectedSeason = `${seasonStartYear}/${seasonStartYear + 1}`;
+  
+  // Clear custom date range
+  this.startDate = '';
+  this.endDate = '';
+  
+  // Clear competition filter
+  this.selectedCompetition = '';
+  
+  // Reset role to default
+  this.selectedRole = 'Sudac';
+  
+  // Reset expanded states
+  this.showAllAbsences = false;
+  this.showAllExpenses = false;
+  this.showAllReferees = false;
+  this.showAllCompetitions = false;
+  
+  // Reload statistics with cleared filters
+  this.loadStatistics();
+}
+
+
+
 }

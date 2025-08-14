@@ -1,12 +1,11 @@
-// src/app/model/notification.model.ts
-
 export interface Notification {
   _id: string;
   userId: string;
-  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE';
+  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED'; // Add KONTROLA_RECEIVED
   message: string;
   gameId?: string;
   assignmentId?: string;
+  kontrolaId?: string; // Add this for kontrola notifications
   isRead: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -14,12 +13,14 @@ export interface Notification {
 
 export interface CreateNotificationRequest {
   userId: string;
-  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE';
+  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED'; // Add KONTROLA_RECEIVED
   message: string;
   gameId?: string;
   assignmentId?: string;
+  kontrolaId?: string; // Add this
 }
 
+export type NotificationType = 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED'; // Add KONTROLA_RECEIVED
 export interface NotificationResponse {
   notifications: Notification[];
   totalPages: number;
@@ -39,7 +40,6 @@ export interface MarkMultipleAsReadResponse {
   modified: number;
 }
 
-export type NotificationType = 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE';
 
 // Utility type for notification creation without system fields
 export type NotificationCreateData = Omit<Notification, '_id' | 'isRead' | 'createdAt' | 'updatedAt'>;
