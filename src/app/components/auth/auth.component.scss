@@ -1,12 +1,16 @@
-.page-container{
-    background-color: #e7e7e4;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
+// auth.component.scss - Responsive version
+.page-container {
+  background-color: #e7e7e4;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem; // Add padding for mobile
 }
 
 .login-container {
-  width: 400px;
+  width: 100%;
+  max-width: 400px; // Use max-width instead of fixed width
   margin: auto;
   padding: 2rem;
   background-color: #ffffff;
@@ -23,10 +27,13 @@
 .logo {
   max-width: 9rem;
   height: auto;
+  width: 100%; // Ensure logo scales on small screens
 }
 
-h2{
+h2 {
   margin-bottom: 1.5rem;
+  font-size: 1.5rem; // Slightly smaller on mobile
+  color: #2c3e50;
 }
 
 /* Error message styling */
@@ -43,6 +50,7 @@ h2{
   justify-content: center;
   gap: 0.5rem;
   animation: slideIn 0.3s ease-out;
+  text-align: left; // Better readability
 }
 
 .error-message i {
@@ -81,11 +89,14 @@ input[type="password"] {
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.3s ease;
+  width: 100%;
+  box-sizing: border-box; // Ensure padding doesn't cause overflow
 }
 
 input:focus {
   border-color: #007bff;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); // Better focus indicator
 }
 
 /* Disabled input styling */
@@ -109,18 +120,20 @@ button[type="submit"] {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px; // Minimum touch target size
 }
 
 button:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
-// /* Disabled button styling */
-// button:disabled {
-//   background-color: #6c757d;
-//   cursor: not-allowed;
-//   opacity: 0.7;
-// }
+button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
 
 /* Loading spinner */
 .fa-spinner {
@@ -136,7 +149,7 @@ button:hover:not(:disabled) {
   }
 }
 
-/* Success message (if you want to add one later) */
+/* Success message */
 .success-message {
   background-color: #d4edda;
   color: #155724;
@@ -150,4 +163,175 @@ button:hover:not(:disabled) {
   justify-content: center;
   gap: 0.5rem;
   animation: slideIn 0.3s ease-out;
+  text-align: left;
+}
+
+// RESPONSIVE BREAKPOINTS
+
+/* Tablet and small desktop (768px - 1024px) */
+@media (max-width: 1024px) {
+  .page-container {
+    padding: 1.5rem;
+  }
+  
+  .login-container {
+    max-width: 400px;
+    padding: 2.5rem;
+  }
+}
+
+/* Mobile landscape and small tablets (576px - 768px) */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+    align-items: center ;
+    padding-top: 2rem; // Add some top spacing on mobile
+  }
+  
+  .login-container {
+    max-width: 400px;
+    padding: 1.5rem;
+    margin: 0;
+    border-radius: 8px; // Slightly smaller border radius
+  }
+  
+  .logo {
+    max-width: 8rem; // Slightly smaller logo
+  }
+  
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  input[type="text"],
+  input[type="password"] {
+    padding: 0.875rem; // Slightly larger padding for easier touch
+    font-size: 1rem;
+  }
+  
+  button[type="submit"] {
+    padding: 0.875rem;
+    font-size: 1rem;
+    min-height: 50px; // Larger touch target
+  }
+}
+
+/* Mobile portrait (up to 576px) */
+@media (max-width: 576px) {
+  .page-container {
+    padding: 0.75rem;
+    padding-top: 1.5rem;
+  }
+  
+  .login-container {
+    padding: 1.25rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); // Lighter shadow
+  }
+  
+  .logo {
+    max-width: 7rem;
+  }
+  
+  h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  
+  form {
+    gap: 0.875rem;
+  }
+  
+  input[type="text"],
+  input[type="password"] {
+    padding: 1rem; // Even larger padding for mobile
+    font-size: 1.1rem; // Slightly larger text
+  }
+  
+  button[type="submit"] {
+    padding: 1rem;
+    font-size: 1.1rem;
+    min-height: 52px; // Larger touch target for mobile
+  }
+  
+  .error-message,
+  .success-message {
+    font-size: 0.85rem;
+    padding: 0.625rem;
+  }
+}
+
+/* Very small screens (up to 375px) */
+@media (max-width: 375px) {
+  .page-container {
+    padding: 0.5rem;
+    padding-top: 1rem;
+  }
+  
+  .login-container {
+    padding: 1rem;
+  }
+  
+  .logo {
+    max-width: 6rem;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-container {
+    align-items: center;
+    padding-top: 1rem;
+  }
+  
+  .login-container {
+    margin-top: 0;
+    padding: 1rem;
+  }
+  
+  .logo {
+    max-width: 6rem;
+  }
+  
+  h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+  }
+  
+  form {
+    gap: 0.75rem;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .login-container {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  // Add dark mode styles here if needed
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .error-message,
+  .success-message {
+    animation: none;
+  }
+  
+  .fa-spinner {
+    animation: none;
+  }
+  
+  * {
+    transition: none !important;
+  }
 }
