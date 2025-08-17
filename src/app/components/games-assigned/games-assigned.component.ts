@@ -34,6 +34,25 @@ export class GamesAssignedComponent implements OnInit {
   allConfirmedGames: BasketballGame[] = [];
   allGameHistory: BasketballGame[] = [];
   
+  // ADD PAGINATION PROPERTIES
+  // Pagination for Pending Games
+  pendingPage = 1;
+  pendingLimit = 10;
+  pendingTotalPages = 1;
+  pendingDisplayedGames: BasketballGame[] = [];
+  
+  // Pagination for Confirmed Games
+  confirmedPage = 1;
+  confirmedLimit = 10;
+  confirmedTotalPages = 1;
+  confirmedDisplayedGames: BasketballGame[] = [];
+  
+  // Pagination for Game History
+  historyPage = 1;
+  historyLimit = 10;
+  historyTotalPages = 1;
+  historyDisplayedGames: BasketballGame[] = [];
+  
   // Loading states
   isLoading = true;
   isLoadingPending = false;
@@ -288,7 +307,7 @@ onGameCreated(result: any) {
     }
   }
 
-  categorizeGames(games: BasketballGame[]) {
+ categorizeGames(games: BasketballGame[]) {
     console.log('Categorizing games:', games);
     const now = new Date();
     
@@ -337,7 +356,7 @@ onGameCreated(result: any) {
       });
     }
     
-    // Apply filters after categorization
+    // Apply filters after categorization (which will also update pagination)
     this.applyFilters();
   }
 
@@ -371,50 +390,33 @@ onGameCreated(result: any) {
     this.respondToAssignment(this.gameToReject._id, 'Rejected', rejectionReason);
   }
 
-private respondToAssignment(gameId: string, response: 'Accepted' | 'Rejected', rejectionReason?: string) {
-  const requestBody: any = { response };
-  if (rejectionReason) {
-    requestBody.rejectionReason = rejectionReason;
-  }
-
-  this.basketballGameService.respondToAssignment(gameId, requestBody).subscribe({
-    next: (updatedGame) => {
-      if (response === 'Accepted') {
-        this.showSuccess('Nominacija je uspješno prihvaćena! Administrator je obavješten.');
-      } else {
-        this.showSuccess('Nominacija je uspješno odbijena! Administrator je obavješten.');
-      }
-      
-      // Update local game lists
-      if (response === 'Rejected') {
-        this.pendingGames = this.pendingGames.filter(game => game._id !== gameId);
-        this.closeRejectionModal();
-      } else {
-        // Move from pending to confirmed
-        const gameIndex = this.pendingGames.findIndex(game => game._id === gameId);
-        if (gameIndex !== -1) {
-          const updatedGameData = { ...this.pendingGames[gameIndex] };
-          // Update the assignment status in the local data
-          const myAssignment = updatedGameData.refereeAssignments.find(
-            assignment => assignment.userId._id === this.currentUser?._id
-          );
-          if (myAssignment) {
-            myAssignment.assignmentStatus = 'Accepted';
-            myAssignment.respondedAt = new Date().toISOString();
-          }
-          
-          // Remove from pending and add to confirmed
-          this.pendingGames.splice(gameIndex, 1);
-          this.confirmedGames.unshift(updatedGameData);
-        }
-      }
-    },
-    error: (error) => {
-      console.error('Error responding to assignment:', error);
-      this.showError('Greška pri odgovaranju na nominaciju.');
+  private respondToAssignment(gameId: string, response: 'Accepted' | 'Rejected', rejectionReason?: string) {
+    const requestBody: any = { response };
+    if (rejectionReason) {
+      requestBody.rejectionReason = rejectionReason;
     }
-  });
-}
+
+    this.basketballGameService.respondToAssignment(gameId, requestBody).subscribe({
+      next: (updatedGame) => {
+        if (response === 'Accepted') {
+          this.showSuccess('Nominacija je uspješno prihvaćena! Administrator je obavješten.');
+        } else {
+          this.showSuccess('Nominacija je uspješno odbijena! Administrator je obavješten.');
+        }
+        
+        // Reload all games to ensure accurate data and smart pagination
+        this.loadMyGames();
+        
+        if (response === 'Rejected') {
+          this.closeRejectionModal();
+        }
+      },
+      error: (error) => {
+        console.error('Error responding to assignment:', error);
+        this.showError('Greška pri odgovaranju na nominaciju.');
+      }
+    });
+  }
 
   // Helper methods for display
   formatDate(dateString: string): string {
@@ -636,13 +638,6 @@ private respondToAssignment(gameId: string, response: 'Accepted' | 'Rejected', r
     this.errorMessage = '';
   }
 
-  // Filtering methods
-  applyFilters() {
-    // Filter each category
-    this.pendingGames = this.filterGames(this.allPendingGames);
-    this.confirmedGames = this.filterGames(this.allConfirmedGames);
-    this.gameHistory = this.filterGames(this.allGameHistory);
-  }
 
   private filterGames(games: BasketballGame[]): BasketballGame[] {
     return games.filter(game => {
@@ -702,6 +697,10 @@ private respondToAssignment(gameId: string, response: 'Accepted' | 'Rejected', r
       competition: '',
       date: ''
     };
+    this.pendingPage = 1;
+    this.confirmedPage = 1;
+    this.historyPage = 1;
+    
     this.applyFilters();
   }
 
@@ -803,5 +802,125 @@ async openKontrolaModal(game: BasketballGame): Promise<void> {
     }, 10);
   }
 }
+
+  updatePagination() {
+    this.updatePendingPagination();
+    this.updateConfirmedPagination();
+    this.updateHistoryPagination();
+  }
+
+  updatePendingPagination() {
+    this.pendingTotalPages = Math.ceil(this.pendingGames.length / this.pendingLimit);
+    
+    // Only change page if current page is invalid
+    if (this.pendingPage > this.pendingTotalPages && this.pendingTotalPages > 0) {
+      this.pendingPage = this.pendingTotalPages;
+    } else if (this.pendingTotalPages === 0) {
+      this.pendingPage = 1;
+    }
+    
+    const startIndex = (this.pendingPage - 1) * this.pendingLimit;
+    const endIndex = startIndex + this.pendingLimit;
+    this.pendingDisplayedGames = this.pendingGames.slice(startIndex, endIndex);
+  }
+
+  updateConfirmedPagination() {
+    this.confirmedTotalPages = Math.ceil(this.confirmedGames.length / this.confirmedLimit);
+    
+    // Only change page if current page is invalid
+    if (this.confirmedPage > this.confirmedTotalPages && this.confirmedTotalPages > 0) {
+      this.confirmedPage = this.confirmedTotalPages;
+    } else if (this.confirmedTotalPages === 0) {
+      this.confirmedPage = 1;
+    }
+    
+    const startIndex = (this.confirmedPage - 1) * this.confirmedLimit;
+    const endIndex = startIndex + this.confirmedLimit;
+    this.confirmedDisplayedGames = this.confirmedGames.slice(startIndex, endIndex);
+  }
+
+  updateHistoryPagination() {
+    this.historyTotalPages = Math.ceil(this.gameHistory.length / this.historyLimit);
+    
+    // Only change page if current page is invalid
+    if (this.historyPage > this.historyTotalPages && this.historyTotalPages > 0) {
+      this.historyPage = this.historyTotalPages;
+    } else if (this.historyTotalPages === 0) {
+      this.historyPage = 1;
+    }
+    
+    const startIndex = (this.historyPage - 1) * this.historyLimit;
+    const endIndex = startIndex + this.historyLimit;
+    this.historyDisplayedGames = this.gameHistory.slice(startIndex, endIndex);
+  }
+
+  // Pending games pagination methods
+  goToPendingPage(page: number) {
+    if (page >= 1 && page <= this.pendingTotalPages && page !== this.pendingPage) {
+      this.pendingPage = page;
+      this.updatePendingPagination();
+    }
+  }
+
+  getPendingPages(): number[] {
+    const pages = [];
+    const start = Math.max(1, this.pendingPage - 2);
+    const end = Math.min(this.pendingTotalPages, this.pendingPage + 2);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // Confirmed games pagination methods
+  goToConfirmedPage(page: number) {
+    if (page >= 1 && page <= this.confirmedTotalPages && page !== this.confirmedPage) {
+      this.confirmedPage = page;
+      this.updateConfirmedPagination();
+    }
+  }
+
+  getConfirmedPages(): number[] {
+    const pages = [];
+    const start = Math.max(1, this.confirmedPage - 2);
+    const end = Math.min(this.confirmedTotalPages, this.confirmedPage + 2);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // History games pagination methods
+  goToHistoryPage(page: number) {
+    if (page >= 1 && page <= this.historyTotalPages && page !== this.historyPage) {
+      this.historyPage = page;
+      this.updateHistoryPagination();
+    }
+  }
+
+  getHistoryPages(): number[] {
+    const pages = [];
+    const start = Math.max(1, this.historyPage - 2);
+    const end = Math.min(this.historyTotalPages, this.historyPage + 2);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // UPDATE EXISTING METHODS
+  applyFilters() {
+    // Filter each category
+    this.pendingGames = this.filterGames(this.allPendingGames);
+    this.confirmedGames = this.filterGames(this.allConfirmedGames);
+    this.gameHistory = this.filterGames(this.allGameHistory);
+    
+    // ADD PAGINATION UPDATE
+    this.updatePagination();
+  }
+
 
 }

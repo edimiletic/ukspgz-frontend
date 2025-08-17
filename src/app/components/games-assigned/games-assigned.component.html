@@ -109,7 +109,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of pendingGames">
+              <tr *ngFor="let game of pendingDisplayedGames">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
@@ -148,6 +148,27 @@
               </tr>
             </tbody>
           </table>
+          <div class="pagination-container" *ngIf="pendingTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ pendingDisplayedGames.length }} od {{ pendingGames.length }} •
+              Stranica {{ pendingPage }} od {{ pendingTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="pendingPage === 1" (click)="goToPendingPage(pendingPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button class="page-btn" *ngFor="let page of getPendingPages()" [class.active]="page === pendingPage"
+                (click)="goToPendingPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="pendingPage === pendingTotalPages"
+                (click)="goToPendingPage(pendingPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -172,7 +193,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of confirmedGames">
+              <tr *ngFor="let game of confirmedDisplayedGames">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
@@ -191,6 +212,27 @@
               </tr>
             </tbody>
           </table>
+          <div class="pagination-container" *ngIf="confirmedTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ confirmedDisplayedGames.length }} od {{ confirmedGames.length }} •
+              Stranica {{ confirmedPage }} od {{ confirmedTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="confirmedPage === 1" (click)="goToConfirmedPage(confirmedPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button class="page-btn" *ngFor="let page of getConfirmedPages()" [class.active]="page === confirmedPage"
+                (click)="goToConfirmedPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="confirmedPage === confirmedTotalPages"
+                (click)="goToConfirmedPage(confirmedPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -224,7 +266,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of gameHistory">
+              <tr *ngFor="let game of historyDisplayedGames">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
@@ -279,9 +321,31 @@
               </tr>
             </tbody>
           </table>
+          <div class="pagination-container" *ngIf="historyTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ historyDisplayedGames.length }} od {{ gameHistory.length }} •
+              Stranica {{ historyPage }} od {{ historyTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="historyPage === 1" (click)="goToHistoryPage(historyPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button class="page-btn" *ngFor="let page of getHistoryPages()" [class.active]="page === historyPage"
+                (click)="goToHistoryPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="historyPage === historyTotalPages"
+                (click)="goToHistoryPage(historyPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+            </div>
+
   </section>
 </div>
 
