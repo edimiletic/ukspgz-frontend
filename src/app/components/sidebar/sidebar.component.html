@@ -1,90 +1,112 @@
 <!-- src/app/components/sidebar/sidebar.component.html -->
-<nav class="sidebar">
-  <ul>
-    <li>
-      <a 
-        (click)="navigateToPage('/home')" 
-        [class.active]="isActiveRoute('/home')"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="navigateToPage('/home')"
-        (keydown.space)="navigateToPage('/home')">
-        Početna stranica
-      </a>
-    </li>
-    <li>
-      <a 
-        (click)="navigateToPage('/assigned')" 
-        [class.active]="isActiveRoute('/assigned')"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="navigateToPage('/assigned')"
-        (keydown.space)="navigateToPage('/assigned')">
-        Moje utakmice
-      </a>
-    </li>
-    <li>
-      <a 
-        (click)="navigateToPage('/absence')" 
-        [class.active]="isActiveRoute('/absence')"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="navigateToPage('/absence')"
-        (keydown.space)="navigateToPage('/absence')">
-        Odsustvo
-      </a>
-    </li>
-    <li>
-      <a 
-        (click)="navigateToPage('/expenses')" 
-        [class.active]="isActiveRoute('/expenses')"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="navigateToPage('/expenses')"
-        (keydown.space)="navigateToPage('/expenses')">
-        Putni troškovi
-      </a>
-    </li>
-    <li>
-      <a 
-        (click)="navigateToPage('/documents')" 
-        [class.active]="isActiveRoute('/documents')"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="navigateToPage('/documents')"
-        (keydown.space)="navigateToPage('/documents')">
-        Dokumenti
-      </a>
-    </li>
-    <li>
-      <a 
-        (click)="navigateToPage('/exams')" 
-        [class.active]="isActiveRoute('/exams')"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="navigateToPage('/exams')"
-        (keydown.space)="navigateToPage('/exams')">
-        Ispiti
-      </a>
-    </li>
-    <!-- <li>
-      <a 
-        role="button"
-        tabindex="0">
-        Upute za korištenje sustava
-      </a>
-    </li> -->
-    <!-- Add this <li> item after the "Ispiti" item in your sidebar -->
-<li *ngIf="isAdmin()">
-  <a
-    (click)="navigateToPage('/statistics')"
-    [class.active]="isActiveRoute('/statistics')"
-    role="button"
-    tabindex="0"
-    (keydown.enter)="navigateToPage('/statistics')"
-    (keydown.space)="navigateToPage('/statistics')">
-    Statistika
-  </a>
-</li>
-  </ul>
+<nav class="sidebar" [class.sidebar-open]="isSidebarOpen">
+  <!-- Hamburger Menu Button (only visible on tablet/mobile) -->
+  <button 
+    class="hamburger-btn" 
+    (click)="toggleSidebar()"
+    [class.active]="isSidebarOpen"
+    aria-label="Toggle menu">
+    <div class="hamburger-container">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </div>
+  </button>
+
+  <!-- Sidebar Content -->
+  <div class="sidebar-content" [class.open]="isSidebarOpen">
+    <ul>
+      <li>
+        <a 
+          (click)="navigateToPage('/home')" 
+          [class.active]="isActiveRoute('/home')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/home')"
+          (keydown.space)="navigateToPage('/home')">
+          <i class="fas fa-home"></i>
+          <span>Početna stranica</span>
+        </a>
+      </li>
+      <li>
+        <a 
+          (click)="navigateToPage('/assigned')" 
+          [class.active]="isActiveRoute('/assigned')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/assigned')"
+          (keydown.space)="navigateToPage('/assigned')">
+          <i class="fas fa-basketball-ball"></i>
+          <span>Moje utakmice</span>
+        </a>
+      </li>
+      <li>
+        <a 
+          (click)="navigateToPage('/absence')" 
+          [class.active]="isActiveRoute('/absence')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/absence')"
+          (keydown.space)="navigateToPage('/absence')">
+          <i class="fas fa-calendar-times"></i>
+          <span>Odsustvo</span>
+        </a>
+      </li>
+      <li>
+        <a 
+          (click)="navigateToPage('/expenses')" 
+          [class.active]="isActiveRoute('/expenses')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/expenses')"
+          (keydown.space)="navigateToPage('/expenses')">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>Putni troškovi</span>
+        </a>
+      </li>
+      <li>
+        <a 
+          (click)="navigateToPage('/documents')" 
+          [class.active]="isActiveRoute('/documents')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/documents')"
+          (keydown.space)="navigateToPage('/documents')">
+          <i class="fas fa-file-alt"></i>
+          <span>Dokumenti</span>
+        </a>
+      </li>
+      <li>
+        <a 
+          (click)="navigateToPage('/exams')" 
+          [class.active]="isActiveRoute('/exams')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/exams')"
+          (keydown.space)="navigateToPage('/exams')">
+          <i class="fas fa-graduation-cap"></i>
+          <span>Ispiti</span>
+        </a>
+      </li>
+      <li *ngIf="isAdmin()">
+        <a
+          (click)="navigateToPage('/statistics')"
+          [class.active]="isActiveRoute('/statistics')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/statistics')"
+          (keydown.space)="navigateToPage('/statistics')">
+          <i class="fas fa-chart-bar"></i>
+          <span>Statistika</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Overlay for mobile (clicking outside closes menu) -->
+  <div 
+    class="sidebar-overlay" 
+    [class.active]="isSidebarOpen"
+    (click)="closeSidebar()">
+  </div>
 </nav>
