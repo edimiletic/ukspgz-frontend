@@ -10,7 +10,7 @@
     <div class="page-header">
       <h1>Putni troškovi</h1>
       <div class="page-actions" *ngIf="!isAdmin">
-        <button class="btn-create" (click)="openModal()">        <i class="fas fa-plus"></i>Kreiraj</button>
+        <button class="btn-create" (click)="openModal()"> <i class="fas fa-plus"></i>Kreiraj</button>
       </div>
     </div>
 
@@ -20,46 +20,23 @@
         <div class="filter-row">
           <div class="filter-group">
             <label>ID</label>
-            <input
-              type="text"
-              placeholder="Pretraži po ID-u"
-
-              class="form-control"
-              [(ngModel)]="filterValues.id"
-              (input)="onFilterChange()"
-            />
+            <input type="text" placeholder="Pretraži po ID-u" class="form-control" [(ngModel)]="filterValues.id"
+              (input)="onFilterChange()" />
           </div>
           <div class="filter-group" *ngIf="isAdmin">
             <label>Vrsta</label>
-            <input
-              type="text"
-              placeholder="Pretraži po vrsti"
-
-              class="form-control"
-              [(ngModel)]="filterValues.type"
-              (input)="onFilterChange()"
-            />
+            <input type="text" placeholder="Pretraži po vrsti" class="form-control" [(ngModel)]="filterValues.type"
+              (input)="onFilterChange()" />
           </div>
           <div class="filter-group">
             <label>Korisnik</label>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Pretraži po korisniku"
-
-              [(ngModel)]="filterValues.userName"
-              [(ngModel)]="filterValues.userSurname"
-              (input)="onFilterChange()"
-            />
+            <input type="text" class="form-control" placeholder="Pretraži po korisniku"
+              [(ngModel)]="filterValues.userName" [(ngModel)]="filterValues.userSurname" (input)="onFilterChange()" />
           </div>
           <div class="filter-group">
             <label>Godina</label>
-            <select
-              class="form-control"
-              [(ngModel)]="filterValues.year"
-placeholder="Pretraži po godini"
-              (change)="onFilterChange()"
-            >
+            <select class="form-control" [(ngModel)]="filterValues.year" placeholder="Pretraži po godini"
+              (change)="onFilterChange()">
               <option value="">Pretraži po mjesecu</option>
               <option value="2025">2025</option>
               <option value="2024">2024</option>
@@ -69,11 +46,7 @@ placeholder="Pretraži po godini"
           </div>
           <div class="filter-group">
             <label>Mjesec</label>
-            <select
-              class="form-control"
-              [(ngModel)]="filterValues.month"
-              (change)="onFilterChange()"
-            >
+            <select class="form-control" [(ngModel)]="filterValues.month" (change)="onFilterChange()">
               <option value="">Pretraži po mjesecu</option>
               <option value="Siječanj">Siječanj</option>
               <option value="Veljača">Veljača</option>
@@ -100,23 +73,20 @@ placeholder="Pretraži po godini"
             />
           </div> -->
           <div class="filter-group">
-            <button
-              class="btn btn-outline-secondary filter-btn"
-              (click)="clearFilters()"
-            >
+            <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
               <i class="fas fa-times"></i> Očisti
             </button>
           </div>
         </div>
       </div>
 
-    <!-- Filter Status -->
-    <div *ngIf=" hasActiveFilters" class="admin-filter-status">
-      <span class="filter-indicator">
-        <i class="fas fa-filter"></i> 
-        Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
-      </span>
-    </div>
+      <!-- Filter Status -->
+      <div *ngIf=" hasActiveFilters" class="admin-filter-status">
+        <span class="filter-indicator">
+          <i class="fas fa-filter"></i>
+          Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
+        </span>
+      </div>
 
       <!-- Submitted Reports Table (Predano) -->
       <div class="table-section">
@@ -139,12 +109,10 @@ placeholder="Pretraži po godini"
               </tr>
             </thead>
             <tbody>
-              <tr
-                *ngFor="
-                  let expense of submittedExpenses;
+              <tr *ngFor="
+                  let expense of submittedDisplayedExpenses;
                   trackBy: trackByExpenseId
-                "
-              >
+                ">
                 <td>{{ expense.id }}</td>
                 <td>{{ expense.type }}</td>
                 <td>{{ expense.userName }} {{ expense.userSurname }}</td>
@@ -156,25 +124,13 @@ placeholder="Pretraži po godini"
                 <td>{{ formatDate(expense.submittedAt!) }}</td>
                 <td>
                   <div class="action-buttons">
-                    <button
-                      class="btn-icon btn-view"
-                      title="Pregled"
-                      (click)="editTravelExpense(expense)"
-                    >
+                    <button class="btn-icon btn-view" title="Pregled" (click)="editTravelExpense(expense)">
                       <i class="fas fa-eye"></i>
                     </button>
-                    <button
-                      class="btn-icon btn-approve"
-                      title="Odobri"
-                      (click)="approveExpense(expense)"
-                    >
+                    <button class="btn-icon btn-approve" title="Odobri" (click)="approveExpense(expense)">
                       <i class="fas fa-check"></i>
                     </button>
-                    <button
-                      class="btn-icon btn-reject"
-                      title="Odbaci"
-                      (click)="rejectExpense(expense)"
-                    >
+                    <button class="btn-icon btn-reject" title="Odbaci" (click)="rejectExpense(expense)">
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
@@ -187,6 +143,27 @@ placeholder="Pretraži po godini"
               </tr>
             </tbody>
           </table>
+          <div class="pagination-container" *ngIf="submittedTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ submittedDisplayedExpenses.length }} od {{ submittedExpenses.length }} •
+              Stranica {{ submittedPage }} od {{ submittedTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="submittedPage === 1" (click)="goToSubmittedPage(submittedPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button class="page-btn" *ngFor="let page of getSubmittedPages()" [class.active]="page === submittedPage"
+                (click)="goToSubmittedPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="submittedPage === submittedTotalPages"
+                (click)="goToSubmittedPage(submittedPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -211,12 +188,10 @@ placeholder="Pretraži po godini"
               </tr>
             </thead>
             <tbody>
-              <tr
-                *ngFor="
-                  let expense of approvedExpenses;
+              <tr *ngFor="
+                  let expense of approvedDisplayedExpenses;
                   trackBy: trackByExpenseId
-                "
-              >
+                ">
                 <td>{{ expense.id }}</td>
                 <td>{{ expense.type }}</td>
                 <td>{{ expense.userName }} {{ expense.userSurname }}</td>
@@ -228,25 +203,13 @@ placeholder="Pretraži po godini"
                 <td>{{ formatDate(expense.reviewedAt!) }}</td>
                 <td>
                   <div class="action-buttons">
-                    <button
-                      class="btn-icon btn-view"
-                      title="Pregled"
-                      (click)="editTravelExpense(expense)"
-                    >
+                    <button class="btn-icon btn-view" title="Pregled" (click)="editTravelExpense(expense)">
                       <i class="fas fa-eye"></i>
                     </button>
-                    <button
-                      class="btn-icon btn-reset"
-                      title="Vrati u pregled"
-                      (click)="resetToSubmitted(expense)"
-                    >
+                    <button class="btn-icon btn-reset" title="Vrati u pregled" (click)="resetToSubmitted(expense)">
                       <i class="fas fa-undo"></i>
                     </button>
-                    <button
-                      class="btn-icon btn-reject"
-                      title="Odbaci"
-                      (click)="rejectExpense(expense)"
-                    >
+                    <button class="btn-icon btn-reject" title="Odbaci" (click)="rejectExpense(expense)">
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
@@ -257,6 +220,27 @@ placeholder="Pretraži po godini"
               </tr>
             </tbody>
           </table>
+          <div class="pagination-container" *ngIf="approvedTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ approvedDisplayedExpenses.length }} od {{ approvedExpenses.length }} •
+              Stranica {{ approvedPage }} od {{ approvedTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="approvedPage === 1" (click)="goToApprovedPage(approvedPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button class="page-btn" *ngFor="let page of getApprovedPages()" [class.active]="page === approvedPage"
+                (click)="goToApprovedPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="approvedPage === approvedTotalPages"
+                (click)="goToApprovedPage(approvedPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -281,12 +265,10 @@ placeholder="Pretraži po godini"
               </tr>
             </thead>
             <tbody>
-              <tr
-                *ngFor="
-                  let expense of rejectedExpenses;
+              <tr *ngFor="
+                  let expense of rejectedDisplayedExpenses;
                   trackBy: trackByExpenseId
-                "
-              >
+                ">
                 <td>{{ expense.id }}</td>
                 <td>{{ expense.type }}</td>
                 <td>{{ expense.userName }} {{ expense.userSurname }}</td>
@@ -298,25 +280,13 @@ placeholder="Pretraži po godini"
                 <td>{{ formatDate(expense.reviewedAt!) }}</td>
                 <td>
                   <div class="action-buttons">
-                    <button
-                      class="btn-icon btn-view"
-                      title="Pregled"
-                      (click)="editTravelExpense(expense)"
-                    >
+                    <button class="btn-icon btn-view" title="Pregled" (click)="editTravelExpense(expense)">
                       <i class="fas fa-eye"></i>
                     </button>
-                    <button
-                      class="btn-icon btn-reset"
-                      title="Vrati u pregled"
-                      (click)="resetToSubmitted(expense)"
-                    >
+                    <button class="btn-icon btn-reset" title="Vrati u pregled" (click)="resetToSubmitted(expense)">
                       <i class="fas fa-undo"></i>
                     </button>
-                    <button
-                      class="btn-icon btn-approve"
-                      title="Odobri"
-                      (click)="approveExpense(expense)"
-                    >
+                    <button class="btn-icon btn-approve" title="Odobri" (click)="approveExpense(expense)">
                       <i class="fas fa-check"></i>
                     </button>
                   </div>
@@ -327,162 +297,162 @@ placeholder="Pretraži po godini"
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
+          <!-- Rejected Pagination -->
+          <div class="pagination-container" *ngIf="rejectedTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ rejectedDisplayedExpenses.length }} od {{ rejectedExpenses.length }} •
+              Stranica {{ rejectedPage }} od {{ rejectedTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="rejectedPage === 1" (click)="goToRejectedPage(rejectedPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
 
-    <!-- Regular User View - Single Table -->
-    <div *ngIf="!isAdmin" class="user-view">
-      <div class="filter-section">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>ID</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="filterValues.id"
-              (input)="onFilterChange()"
-            />
-          </div>
-          <div class="filter-group">
-            <label>Vrsta</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="filterValues.type"
-              (input)="onFilterChange()"
-            />
-          </div>
-          <div class="filter-group">
-            <label>Godina</label>
-            <select
-              class="form-control"
-              [(ngModel)]="filterValues.year"
-              [ariaPlaceholder]=""
-              (change)="onFilterChange()"
-            >
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Mjesec</label>
-            <select
-              class="form-control"
-              [ariaPlaceholder]=""
-              [(ngModel)]="filterValues.month"
-              (change)="onFilterChange()"
-            >
-              <option value="Siječanj">Siječanj</option>
-              <option value="Veljača">Veljača</option>
-              <option value="Ožujak">Ožujak</option>
-              <option value="Travanj">Travanj</option>
-              <option value="Svibanj">Svibanj</option>
-              <option value="Lipanj">Lipanj</option>
-              <option value="Srpanj">Srpanj</option>
-              <option value="Kolovoz">Kolovoz</option>
-              <option value="Rujan">Rujan</option>
-              <option value="Listopad">Listopad</option>
-              <option value="Studeni">Studeni</option>
-              <option value="Prosinac">Prosinac</option>
-            </select>
-          </div>
-          <div class="filter-group" *ngIf="!isAdmin">
-            <label>Status</label>
-            <select
-              class="form-control"
-              [(ngModel)]="filterValues.state"
-              [ariaPlaceholder]=""
-              (change)="onFilterChange()"
-            >
-              <option value="Skica">Skica</option>
-              <option value="Predano">Predano</option>
-              <option value="Potvrđeno">Potvrđeno</option>
-              <option value="Odbijeno">Odbijeno</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <button
-              class="btn btn-outline-secondary filter-btn"
-              (click)="clearFilters()"
-            >
-              <i class="fas fa-times"></i> Očisti
-            </button>
+              <button class="page-btn" *ngFor="let page of getRejectedPages()" [class.active]="page === rejectedPage"
+                (click)="goToRejectedPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="rejectedPage === rejectedTotalPages"
+                (click)="goToRejectedPage(rejectedPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="table-info">
-        <span>Ukupno unosa: {{ travelExpenses.length }}</span>
-      </div>
-      <div class="table-container">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Vrsta</th>
-              <!-- <th>Korisnik</th> -->
-              <th>Godina</th>
-              <th>Mjesec</th>
-              <th>Status</th>
-              <th>Opcije</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              *ngFor="let expense of travelExpenses; trackBy: trackByExpenseId"
-            >
-              <td>{{ expense.id }}</td>
-              <td>{{ expense.type }}</td>
-              <!-- <td>{{ expense.userName }} {{ expense.userSurname }}</td> -->
-              <td>{{ expense.year }}</td>
-              <td>{{ expense.month }}</td>
-              <td>{{ expense.state }}</td>
-              <td>
-                <div class="action-buttons">
-                  <div
-                    class="btn-icon btn-edit"
-                    title="Uredi"
-                    (click)="editTravelExpense(expense)"
-                  >
-                    <i class="fa-solid fa-pen"></i>
+
+      <!-- Regular User View - Single Table -->
+      <div *ngIf="!isAdmin" class="user-view">
+        <div class="filter-section">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label>ID</label>
+              <input type="text" class="form-control" [(ngModel)]="filterValues.id" (input)="onFilterChange()" />
+            </div>
+            <div class="filter-group">
+              <label>Vrsta</label>
+              <input type="text" class="form-control" [(ngModel)]="filterValues.type" (input)="onFilterChange()" />
+            </div>
+            <div class="filter-group">
+              <label>Godina</label>
+              <select class="form-control" [(ngModel)]="filterValues.year" [ariaPlaceholder]=""
+                (change)="onFilterChange()">
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Mjesec</label>
+              <select class="form-control" [ariaPlaceholder]="" [(ngModel)]="filterValues.month"
+                (change)="onFilterChange()">
+                <option value="Siječanj">Siječanj</option>
+                <option value="Veljača">Veljača</option>
+                <option value="Ožujak">Ožujak</option>
+                <option value="Travanj">Travanj</option>
+                <option value="Svibanj">Svibanj</option>
+                <option value="Lipanj">Lipanj</option>
+                <option value="Srpanj">Srpanj</option>
+                <option value="Kolovoz">Kolovoz</option>
+                <option value="Rujan">Rujan</option>
+                <option value="Listopad">Listopad</option>
+                <option value="Studeni">Studeni</option>
+                <option value="Prosinac">Prosinac</option>
+              </select>
+            </div>
+            <div class="filter-group" *ngIf="!isAdmin">
+              <label>Status</label>
+              <select class="form-control" [(ngModel)]="filterValues.state" [ariaPlaceholder]=""
+                (change)="onFilterChange()">
+                <option value="Skica">Skica</option>
+                <option value="Predano">Predano</option>
+                <option value="Potvrđeno">Potvrđeno</option>
+                <option value="Odbijeno">Odbijeno</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
+                <i class="fas fa-times"></i> Očisti
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="table-info">
+          <span>Ukupno unosa: {{ travelExpenses.length }}</span>
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vrsta</th>
+                <!-- <th>Korisnik</th> -->
+                <th>Godina</th>
+                <th>Mjesec</th>
+                <th>Status</th>
+                <th>Opcije</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let expense of userDisplayedExpenses; trackBy: trackByExpenseId">
+                <td>{{ expense.id }}</td>
+                <td>{{ expense.type }}</td>
+                <!-- <td>{{ expense.userName }} {{ expense.userSurname }}</td> -->
+                <td>{{ expense.year }}</td>
+                <td>{{ expense.month }}</td>
+                <td>{{ expense.state }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <div class="btn-icon btn-edit" title="Uredi" (click)="editTravelExpense(expense)">
+                      <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div *ngIf="expense.state === 'Skica'" class="btn-icon btn-info" title="Obriši"
+                      (click)="openDeleteModal(expense)">
+                      <i class="fas fa-trash"></i>
+                    </div>
                   </div>
-                  <div
-                    *ngIf="expense.state === 'Skica'"
-                    class="btn-icon btn-info"
-                    title="Obriši"
-                    (click)="openDeleteModal(expense)"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            <tr *ngIf="travelExpenses.length === 0">
-              <td colspan="7" class="text-center">Nema podataka za prikaz</td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+              </tr>
+              <tr *ngIf="travelExpenses.length === 0">
+                <td colspan="7" class="text-center">Nema podataka za prikaz</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination-container" *ngIf="userTotalPages > 1">
+            <div class="pagination-info">
+              Prikazano {{ userDisplayedExpenses.length }} od {{ travelExpenses.length }} •
+              Stranica {{ userPage }} od {{ userTotalPages }}
+            </div>
+            <div class="pagination">
+              <button class="page-btn" [disabled]="userPage === 1" (click)="goToUserPage(userPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <button class="page-btn" *ngFor="let page of getUserPages()" [class.active]="page === userPage"
+                (click)="goToUserPage(page)">
+                {{ page }}
+              </button>
+
+              <button class="page-btn" [disabled]="userPage === userTotalPages" (click)="goToUserPage(userPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+            </div>
+
   </section>
 </div>
 
 <!-- Modal Component -->
-<app-expenses-modal
-  [isOpen]="isModalOpen"
-  (close)="closeModal()"
-  (success)="onReportCreated($event)"
->
+<app-expenses-modal [isOpen]="isModalOpen" (close)="closeModal()" (success)="onReportCreated($event)">
 </app-expenses-modal>
 
-<app-delete-expenses-modal
-  [isOpen]="isDeleteModalOpen"
-  [expenseToDelete]="expenseToDelete"
-  (close)="closeDeleteModal()"
-  (deleteConfirmed)="onDeleteConfirmed($event)"
->
+<app-delete-expenses-modal [isOpen]="isDeleteModalOpen" [expenseToDelete]="expenseToDelete" (close)="closeDeleteModal()"
+  (deleteConfirmed)="onDeleteConfirmed($event)">
 </app-delete-expenses-modal>
 
 <div class="toast-container">

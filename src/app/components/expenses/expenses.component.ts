@@ -33,7 +33,6 @@ export class ExpensesComponent implements OnInit {
   isModalOpen = false;
   isDeleteModalOpen = false;
   travelExpenses: TravelExpense[] = [];
-
   // Original data (unfiltered)
   allTravelExpenses: TravelExpense[] = [];
   allSubmittedExpenses: TravelExpense[] = [];
@@ -44,6 +43,32 @@ export class ExpensesComponent implements OnInit {
   submittedExpenses: TravelExpense[] = []; // Predano
   approvedExpenses: TravelExpense[] = []; // Potvrđeno
   rejectedExpenses: TravelExpense[] = []; // Odbijeno
+
+  // ADD PAGINATION PROPERTIES
+  // Pagination for Submitted Expenses
+  submittedPage = 1;
+  submittedLimit = 10;
+  submittedTotalPages = 1;
+  submittedDisplayedExpenses: TravelExpense[] = [];
+  
+  // Pagination for Approved Expenses
+  approvedPage = 1;
+  approvedLimit = 10;
+  approvedTotalPages = 1;
+  approvedDisplayedExpenses: TravelExpense[] = [];
+  
+  // Pagination for Rejected Expenses
+  rejectedPage = 1;
+  rejectedLimit = 10;
+  rejectedTotalPages = 1;
+  rejectedDisplayedExpenses: TravelExpense[] = [];
+
+  // Pagination for User View
+  userPage = 1;
+  userLimit = 10;
+  userTotalPages = 1;
+  userDisplayedExpenses: TravelExpense[] = [];
+
 
   successMessage = '';
   errorMessage = '';
@@ -213,18 +238,168 @@ export class ExpensesComponent implements OnInit {
     console.log('Rejected (Odbijeno):', this.allRejectedExpenses.length);
   }
 
-  applyFilters() {
+applyFilters() {
+  if (this.isAdmin) {
+    // Filter each category for admin
+    this.submittedExpenses = this.filterExpenses(this.allSubmittedExpenses);
+    this.approvedExpenses = this.filterExpenses(this.allApprovedExpenses);
+    this.rejectedExpenses = this.filterExpenses(this.allRejectedExpenses);
+  } else {
+    // Filter for regular users
+    this.travelExpenses = this.filterExpenses(this.allTravelExpenses);
+  }
+  
+  // ADD THIS LINE - Update pagination after filtering
+  this.updatePagination();
+}
+
+  updatePagination() {
     if (this.isAdmin) {
-      // Filter each category for admin
-      this.submittedExpenses = this.filterExpenses(this.allSubmittedExpenses);
-      this.approvedExpenses = this.filterExpenses(this.allApprovedExpenses);
-      this.rejectedExpenses = this.filterExpenses(this.allRejectedExpenses);
+     
+      // Update pagination for each admin table
+      this.updateSubmittedPagination();
+      this.updateApprovedPagination();
+      this.updateRejectedPagination();
     } else {
-      // Filter for regular users
-      this.travelExpenses = this.filterExpenses(this.allTravelExpenses);
+      // Reset page for user view
+      this.userPage = 1;
+      this.updateUserPagination();
     }
   }
 
+ updateSubmittedPagination() {
+  this.submittedTotalPages = Math.ceil(this.submittedExpenses.length / this.submittedLimit);
+  
+  // Smart page handling - if current page is beyond available pages, go to last page
+  if (this.submittedPage > this.submittedTotalPages && this.submittedTotalPages > 0) {
+    this.submittedPage = this.submittedTotalPages;
+  }else if (this.submittedTotalPages === 0) {
+    this.submittedPage = 1;
+  }
+  
+  const startIndex = (this.submittedPage - 1) * this.submittedLimit;
+  const endIndex = startIndex + this.submittedLimit;
+  this.submittedDisplayedExpenses = this.submittedExpenses.slice(startIndex, endIndex);
+}
+
+updateApprovedPagination() {
+  this.approvedTotalPages = Math.ceil(this.approvedExpenses.length / this.approvedLimit);
+  
+  // Smart page handling
+  if (this.approvedPage > this.approvedTotalPages && this.approvedTotalPages > 0) {
+    this.approvedPage = this.approvedTotalPages;
+  }else if (this.approvedTotalPages === 0) {
+    this.approvedPage = 1;
+  }
+  
+  const startIndex = (this.approvedPage - 1) * this.approvedLimit;
+  const endIndex = startIndex + this.approvedLimit;
+  this.approvedDisplayedExpenses = this.approvedExpenses.slice(startIndex, endIndex);
+}
+
+updateRejectedPagination() {
+  this.rejectedTotalPages = Math.ceil(this.rejectedExpenses.length / this.rejectedLimit);
+  
+  // Smart page handling
+  if (this.rejectedPage > this.rejectedTotalPages && this.rejectedTotalPages > 0) {
+    this.rejectedPage = this.rejectedTotalPages;
+  }else if (this.rejectedTotalPages === 0) {
+    this.rejectedPage = 1;
+  }
+  
+  const startIndex = (this.rejectedPage - 1) * this.rejectedLimit;
+  const endIndex = startIndex + this.rejectedLimit;
+  this.rejectedDisplayedExpenses = this.rejectedExpenses.slice(startIndex, endIndex);
+}
+
+updateUserPagination() {
+  this.userTotalPages = Math.ceil(this.travelExpenses.length / this.userLimit);
+  
+  // Smart page handling
+  if (this.userPage > this.userTotalPages && this.userTotalPages > 0) {
+    this.userPage = this.userTotalPages;
+  }else if (this.userTotalPages === 0) {
+    this.userPage = 1;
+  }
+  
+  const startIndex = (this.userPage - 1) * this.userLimit;
+  const endIndex = startIndex + this.userLimit;
+  this.userDisplayedExpenses = this.travelExpenses.slice(startIndex, endIndex);
+}
+
+// Navigation methods
+goToSubmittedPage(page: number) {
+  if (page >= 1 && page <= this.submittedTotalPages && page !== this.submittedPage) {
+    this.submittedPage = page;
+    this.updateSubmittedPagination();
+  }
+}
+
+getSubmittedPages(): number[] {
+  const pages = [];
+  const start = Math.max(1, this.submittedPage - 2);
+  const end = Math.min(this.submittedTotalPages, this.submittedPage + 2);
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+}
+
+goToApprovedPage(page: number) {
+  if (page >= 1 && page <= this.approvedTotalPages && page !== this.approvedPage) {
+    this.approvedPage = page;
+    this.updateApprovedPagination();
+  }
+}
+
+getApprovedPages(): number[] {
+  const pages = [];
+  const start = Math.max(1, this.approvedPage - 2);
+  const end = Math.min(this.approvedTotalPages, this.approvedPage + 2);
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+}
+
+goToRejectedPage(page: number) {
+  if (page >= 1 && page <= this.rejectedTotalPages && page !== this.rejectedPage) {
+    this.rejectedPage = page;
+    this.updateRejectedPagination();
+  }
+}
+
+getRejectedPages(): number[] {
+  const pages = [];
+  const start = Math.max(1, this.rejectedPage - 2);
+  const end = Math.min(this.rejectedTotalPages, this.rejectedPage + 2);
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+}
+
+goToUserPage(page: number) {
+  if (page >= 1 && page <= this.userTotalPages && page !== this.userPage) {
+    this.userPage = page;
+    this.updateUserPagination();
+  }
+}
+
+getUserPages(): number[] {
+  const pages = [];
+  const start = Math.max(1, this.userPage - 2);
+  const end = Math.min(this.userTotalPages, this.userPage + 2);
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+}
+  
   private filterExpenses(expenses: TravelExpense[]): TravelExpense[] {
     return expenses.filter((expense) => {
       // ID filter
@@ -316,6 +491,16 @@ if (this.filterValues.submitDate && expense.submittedAt) {
       month: '',
       state: '',
     };
+
+  // Reset to page 1 only when clearing filters
+  if (this.isAdmin) {
+    this.submittedPage = 1;
+    this.approvedPage = 1;
+    this.rejectedPage = 1;
+  } else {
+    this.userPage = 1;
+  }
+
     this.applyFilters();
   }
 

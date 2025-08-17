@@ -39,6 +39,23 @@ isModalOpen = false;
   ongoingAbsences: AbsenceWithUser[] = [];
   pastAbsences: AbsenceWithUser[] = [];
   
+  futurePage = 1;
+  futureLimit = 10;
+  futureTotalPages = 1;
+  futureDisplayedAbsences: AbsenceWithUser[] = [];
+
+  // Pagination for Ongoing Absences
+  ongoingPage = 1;
+  ongoingLimit = 10;
+  ongoingTotalPages = 1;
+  ongoingDisplayedAbsences: AbsenceWithUser[] = [];
+  
+  // Pagination for Past Absences
+  pastPage = 1;
+  pastLimit = 10;
+  pastTotalPages = 1;
+  pastDisplayedAbsences: AbsenceWithUser[] = [];
+
   isLoading = false;
   isDeleteModalOpen = false;
   isEditModalOpen = false;
@@ -165,6 +182,120 @@ isModalOpen = false;
     
     // Also maintain the single absences array for backward compatibility
     this.absences = this.filterAbsences(this.allAbsences);
+  
+      this.updatePagination();
+  }
+
+   updatePagination() {
+    // Reset pages when filters change
+    this.futurePage = 1;
+    this.ongoingPage = 1;
+    this.pastPage = 1;
+    
+    // Update pagination for each table
+    this.updateFuturePagination();
+    this.updateOngoingPagination();
+    this.updatePastPagination();
+  }
+
+  updateFuturePagination() {
+    this.futureTotalPages = Math.max(1, Math.ceil(this.futureAbsences.length / this.futureLimit));
+    
+    // Ensure current page is within bounds
+    if (this.futurePage > this.futureTotalPages) {
+      this.futurePage = this.futureTotalPages;
+    }
+    
+    const startIndex = (this.futurePage - 1) * this.futureLimit;
+    const endIndex = startIndex + this.futureLimit;
+    this.futureDisplayedAbsences = this.futureAbsences.slice(startIndex, endIndex);
+    
+    console.log('Future pagination updated:', {
+      page: this.futurePage,
+      totalPages: this.futureTotalPages,
+      totalItems: this.futureAbsences.length,
+      displayedItems: this.futureDisplayedAbsences.length
+    });
+  }
+
+  updateOngoingPagination() {
+    this.ongoingTotalPages = Math.max(1, Math.ceil(this.ongoingAbsences.length / this.ongoingLimit));
+    
+    if (this.ongoingPage > this.ongoingTotalPages) {
+      this.ongoingPage = this.ongoingTotalPages;
+    }
+    
+    const startIndex = (this.ongoingPage - 1) * this.ongoingLimit;
+    const endIndex = startIndex + this.ongoingLimit;
+    this.ongoingDisplayedAbsences = this.ongoingAbsences.slice(startIndex, endIndex);
+  }
+
+  updatePastPagination() {
+    this.pastTotalPages = Math.max(1, Math.ceil(this.pastAbsences.length / this.pastLimit));
+    
+    if (this.pastPage > this.pastTotalPages) {
+      this.pastPage = this.pastTotalPages;
+    }
+    
+    const startIndex = (this.pastPage - 1) * this.pastLimit;
+    const endIndex = startIndex + this.pastLimit;
+    this.pastDisplayedAbsences = this.pastAbsences.slice(startIndex, endIndex);
+  }
+
+  goToFuturePage(page: number) {
+    if (page >= 1 && page <= this.futureTotalPages && page !== this.futurePage) {
+      this.futurePage = page;
+      this.updateFuturePagination();
+    }
+  }
+
+  getFuturePages(): number[] {
+    const pages = [];
+    const start = Math.max(1, this.futurePage - 2);
+    const end = Math.min(this.futureTotalPages, this.futurePage + 2);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // Ongoing table pagination methods
+  goToOngoingPage(page: number) {
+    if (page >= 1 && page <= this.ongoingTotalPages && page !== this.ongoingPage) {
+      this.ongoingPage = page;
+      this.updateOngoingPagination();
+    }
+  }
+
+  getOngoingPages(): number[] {
+    const pages = [];
+    const start = Math.max(1, this.ongoingPage - 2);
+    const end = Math.min(this.ongoingTotalPages, this.ongoingPage + 2);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // Past table pagination methods
+  goToPastPage(page: number) {
+    if (page >= 1 && page <= this.pastTotalPages && page !== this.pastPage) {
+      this.pastPage = page;
+      this.updatePastPagination();
+    }
+  }
+
+  getPastPages(): number[] {
+    const pages = [];
+    const start = Math.max(1, this.pastPage - 2);
+    const end = Math.min(this.pastTotalPages, this.pastPage + 2);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   private filterAbsences(absences: AbsenceWithUser[]): AbsenceWithUser[] {
