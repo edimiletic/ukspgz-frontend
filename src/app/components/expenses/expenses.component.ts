@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
 import { ExpensesModalComponent } from './expenses-modal/expenses-modal.component';
@@ -75,6 +75,8 @@ export class ExpensesComponent implements OnInit {
   expenseToDelete: TravelExpense | null = null;
   isAdmin = false;
   currentUser: any = null;
+
+isMobileFiltersOpen: boolean = false;
 
   // Filter properties
   filterValues = {
@@ -501,6 +503,10 @@ if (this.filterValues.submitDate && expense.submittedAt) {
     this.userPage = 1;
   }
 
+  if (window.innerWidth <= 693) {
+  this.isMobileFiltersOpen = false;
+}
+
     this.applyFilters();
   }
 
@@ -648,4 +654,15 @@ if (this.filterValues.submitDate && expense.submittedAt) {
     }
     return `${amount.toFixed(2)} €`;
   }
+
+    toggleMobileFilters(): void {
+  this.isMobileFiltersOpen = !this.isMobileFiltersOpen;
+}
+
+@HostListener('window:resize', ['$event'])
+onResize(event: any): void {
+  if (event.target.innerWidth > 693) {
+    this.isMobileFiltersOpen = false;
+  }
+}
 }
