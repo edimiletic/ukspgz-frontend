@@ -1,4 +1,3 @@
-
 :host {
     display: block;
     font-family: 'Segoe UI', sans-serif;
@@ -9,31 +8,14 @@
 .main-layout {
     display: flex;
     min-height: 100vh;
-    
-    // Account for both fixed header and sidebar
     margin-left: 250px;
-    margin-top: 60px; // Add margin for fixed header (adjust to your header height)
+    margin-top: 92px;
 }
 
 .content {
     flex: 1;
-padding: 3rem 2rem 2rem;
-    min-height: calc(100vh - 60px); // Subtract header height
+    padding: 1rem 2rem;
     width: 100%;
-}
-
-// Responsive design
-@media (max-width: 768px) {
-  .main-layout {
-    flex-direction: column;
-    margin-left: 0;
-    margin-top: 120px; // Header + mobile sidebar height
-  }
-  
-  .content {
-    padding: 1rem;
-    min-height: calc(100vh - 120px);
-  }
 }
 
 .material-library {
@@ -45,8 +27,6 @@ padding: 3rem 2rem 2rem;
 }
 
 .library-title {
-  // font-size: 2rem;
-  // font-weight: 300;
   color: #2c3e50;
   margin-bottom: 1rem;
 }
@@ -56,17 +36,16 @@ padding: 3rem 2rem 2rem;
   font-size: 1rem;
   line-height: 1.6;
   max-width: 600px;
+  
+  a {
+    color: #3498db;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
-
-.library-description a {
-  color: #3498db;
-  text-decoration: none;
-}
-
-.library-description a:hover {
-  text-decoration: underline;
-}
-
 
 .materials-grid {
   display: grid;
@@ -81,11 +60,11 @@ padding: 3rem 2rem 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-}
 
-.material-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .material-card {
@@ -111,38 +90,39 @@ padding: 3rem 2rem 2rem;
   padding: 0.5rem;
   position: relative;
   overflow: hidden;
-}
+  flex-shrink: 0;
 
-.material-cover.individual {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-}
+  &.individual {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  }
 
-.material-cover.three-person {
-  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-}
+  &.three-person {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  }
 
-.material-cover.terminology {
-  background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
-}
+  &.terminology {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+  }
 
-.material-cover.table-officials {
-  background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
-}
+  &.table-officials {
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+  }
 
-.material-cover.official-rules {
-  background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
-}
+  &.official-rules {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+  }
 
-.material-cover.interpretations {
-  background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
-}
+  &.interpretations {
+    background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+  }
 
-.material-cover.equipment {
-  background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
-}
+  &.equipment {
+    background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
+  }
 
-.material-cover.changes {
-  background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+  &.changes {
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+  }
 }
 
 .cover-title {
@@ -169,6 +149,7 @@ padding: 3rem 2rem 2rem;
 
 .material-info {
   flex: 1;
+  min-width: 0; // Allows text to wrap properly
 }
 
 .material-meta {
@@ -197,4 +178,266 @@ padding: 3rem 2rem 2rem;
   font-weight: 500;
   color: #2c3e50;
   line-height: 1.3;
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+    
+    &:hover {
+      color: #3498db;
+    }
+  }
+}
+
+// RESPONSIVE DESIGN - MATCHING OTHER COMPONENTS
+@media (max-width: 995px) {
+  .materials-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.25rem;
+  }
+  
+  .material-card {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+  
+  .library-description {
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column;
+    margin-left: 0;
+    margin-top: 125px;
+  }
+
+  .content {
+    padding: 1rem;
+  }
+
+  .library-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .library-title {
+    font-size: 2rem;
+  }
+
+  .library-description {
+    font-size: 0.95rem;
+    text-align: left;
+  }
+
+  .materials-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .material-card {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .material-cover {
+    width: 80px;
+    height: 110px;
+    font-size: 0.6rem;
+    
+    .cover-title {
+      font-size: 0.55rem;
+    }
+    
+    .cover-subtitle {
+      font-size: 0.5rem;
+    }
+    
+    .cover-version {
+      font-size: 0.4rem;
+    }
+  }
+
+  .material-title {
+    font-size: 0.9rem;
+  }
+
+  .material-date {
+    font-size: 0.75rem;
+  }
+
+  .material-badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 0.75rem;
+  }
+
+  .library-header {
+    margin-bottom: 1rem;
+  }
+
+  .library-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .library-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .materials-grid {
+    gap: 0.75rem;
+  }
+
+  .material-card {
+    padding: 0.75rem;
+    gap: 0.75rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .material-cover {
+    width: 70px;
+    height: 95px;
+    font-size: 0.55rem;
+    
+    .cover-title {
+      font-size: 0.5rem;
+    }
+    
+    .cover-subtitle {
+      font-size: 0.45rem;
+    }
+    
+    .cover-version {
+      font-size: 0.35rem;
+      padding: 0.1rem 0.2rem;
+    }
+  }
+
+  .material-info {
+    text-align: center;
+  }
+
+  .material-meta {
+    justify-content: center;
+  }
+
+  .material-title {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .material-date {
+    font-size: 0.7rem;
+  }
+
+  .material-badge {
+    font-size: 0.6rem;
+  }
+}
+
+// LANDSCAPE MOBILE
+@media (max-width: 768px) and (orientation: landscape) {
+  .main-layout {
+    margin-top: 140px;
+  }
+
+  .materials-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .material-card {
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .material-info {
+    text-align: left;
+  }
+
+  .material-meta {
+    justify-content: flex-start;
+  }
+}
+
+// VERY SMALL MOBILE
+@media (max-width: 360px) {
+  .library-title {
+    font-size: 1.5rem;
+  }
+
+  .library-description {
+    font-size: 0.85rem;
+  }
+
+  .material-card {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .material-cover {
+    width: 60px;
+    height: 80px;
+    font-size: 0.5rem;
+    
+    .cover-title {
+      font-size: 0.45rem;
+    }
+    
+    .cover-subtitle {
+      font-size: 0.4rem;
+    }
+    
+    .cover-version {
+      font-size: 0.3rem;
+    }
+  }
+
+  .material-title {
+    font-size: 0.8rem;
+  }
+
+  .material-date,
+  .material-badge {
+    font-size: 0.65rem;
+  }
+}
+
+// PRINT STYLES
+@media print {
+  .main-layout {
+    display: block;
+    margin: 0;
+  }
+  
+  .content {
+    padding: 0;
+  }
+  
+  .materials-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .material-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .material-card {
+    padding: 1rem;
+  }
+  
+  .material-cover {
+    print-color-adjust: exact;
+  }
 }
