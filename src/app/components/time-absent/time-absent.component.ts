@@ -1,6 +1,6 @@
 import { AbsenceService } from './../../services/absence.service';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostBinding, HostListener } from '@angular/core';
 import { HeaderComponent } from "../header/header.component";
 import { FooterComponent } from "../footer/footer.component";
 import { AbsenceData, TimeAbsentModalComponent } from './time-absent-modal/time-absent-modal.component';
@@ -63,6 +63,8 @@ isModalOpen = false;
   absenceToDelete: Absence | null = null;
   isAdmin = false;
   users: User[] = []; // Store users for name lookup
+
+isMobileFiltersOpen: boolean = false;
 
   // Filter properties
   filterValues = {
@@ -354,6 +356,10 @@ isModalOpen = false;
       startDate: '',
       endDate: ''
     };
+if (window.innerWidth <= 693) {
+  this.isMobileFiltersOpen = false;
+}
+
     this.applyFilters();
   }
 
@@ -461,4 +467,15 @@ isModalOpen = false;
     this.successMessage = '';
     this.errorMessage = '';
   }
+
+  toggleMobileFilters(): void {
+  this.isMobileFiltersOpen = !this.isMobileFiltersOpen;
+}
+
+@HostListener('window:resize', ['$event'])
+onResize(event: any): void {
+  if (event.target.innerWidth > 693) {
+    this.isMobileFiltersOpen = false;
+  }
+}
 }

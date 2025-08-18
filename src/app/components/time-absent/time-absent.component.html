@@ -21,35 +21,48 @@
             'Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac. Neće vam biti dodijeljene utakmice za ta razdoblja.'
             }}
         </div>
-        <div class="filter-section">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>ID</label>
-                    <input type="text" class="form-control" placeholder="Pretraži po ID" [(ngModel)]="filterValues.id"
-                        (input)="onFilterChange()">
-                </div>
-                <div class="filter-group" *ngIf="isAdmin">
-                    <label>Korisnik</label>
-                    <input type="text" class="form-control" placeholder="Pretraži po imenu"
-                        [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
-                </div>
-                <div class="filter-group">
-                    <label>Početak odsustva</label>
-                    <input type="date" class="form-control" placeholder="Točan datum početka"
-                        [(ngModel)]="filterValues.startDate" (change)="onFilterChange()">
-                </div>
-                <div class="filter-group">
-                    <label>Završetak odsustva</label>
-                    <input type="date" class="form-control" placeholder="Točan datum završetka"
-                        [(ngModel)]="filterValues.endDate" (change)="onFilterChange()">
-                </div>
-                <div class="filter-group">
-                    <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
-                        <i class="fas fa-times"></i> Očisti
-                    </button>
-                </div>
-            </div>
-        </div>
+<!-- Updated Filter Section HTML - Replace your existing filter section with this -->
+<div class="filter-section">
+  <!-- Mobile Filter Toggle Button (visible only on mobile) -->
+  <button class="mobile-filter-toggle" 
+          [class.active]="isMobileFiltersOpen" 
+          (click)="toggleMobileFilters()">
+    <i class="fas fa-filter"></i>
+    {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
+    <i class="fas fa-chevron-down"></i>
+  </button>
+
+  <!-- Filter Content (collapsible on mobile) -->
+  <div class="filter-content" [class.open]="isMobileFiltersOpen">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>ID</label>
+        <input type="text" class="form-control" placeholder="Pretraži po ID" [(ngModel)]="filterValues.id"
+            (input)="onFilterChange()">
+      </div>
+      <div class="filter-group" *ngIf="isAdmin">
+        <label>Korisnik</label>
+        <input type="text" class="form-control" placeholder="Pretraži po imenu"
+            [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <label>Početak odsustva</label>
+        <input type="date" class="form-control" placeholder="Točan datum početka"
+            [(ngModel)]="filterValues.startDate" (change)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <label>Završetak odsustva</label>
+        <input type="date" class="form-control" placeholder="Točan datum završetka"
+            [(ngModel)]="filterValues.endDate" (change)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
+          <i class="fas fa-times"></i> Očisti
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
         <div class="table-info" *ngIf="!isAdmin">
             <span>Ukupno unosa: {{ absences.length }}</span>
             <span *ngIf="hasActiveFilters" class="filter-status">
