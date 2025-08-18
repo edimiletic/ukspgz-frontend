@@ -272,8 +272,7 @@
 @media (max-width: 768px) and (orientation: landscape) {
   .sidebar {
     .sidebar-content {
-      max-height: calc(100vh - 90px);
-      top: 0px;
+      top: 125px;
       
       ul {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));

@@ -23,50 +23,52 @@
     </div>
 
     <!-- Filter Section -->
-    <div *ngIf="!isLoading" class="filter-section">
-      <div class="filter-row">
-        <!-- <div class="filter-group">
-          <label>ID</label>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Pretraži po ID"
-            [(ngModel)]="filterValues.id"
-            (input)="onFilterChange()">
-        </div> -->
-        <div class="filter-group">
-          <label>Datum</label>
-          <input type="date" class="form-control" [(ngModel)]="filterValues.date" (change)="onFilterChange()">
-        </div>
-        <div class="filter-group">
-          <label>Mjesto</label>
-          <input type="text" class="form-control" placeholder="Pretraži po mjestu" [(ngModel)]="filterValues.venue"
-            (input)="onFilterChange()">
-        </div>
-        <div class="filter-group">
-          <label>Domaći Tim</label>
-          <input type="text" class="form-control" placeholder="Pretraži po domaćem timu"
-            [(ngModel)]="filterValues.homeTeam" (input)="onFilterChange()">
-        </div>
-        <div class="filter-group">
-          <label>Gostujući Tim</label>
-          <input type="text" class="form-control" placeholder="Pretraži po gostujućem timu"
-            [(ngModel)]="filterValues.awayTeam" (input)="onFilterChange()">
-        </div>
+<!-- Updated Filter Section HTML - Replace your existing filter section with this -->
+<div *ngIf="!isLoading" class="filter-section">
+  <!-- Mobile Filter Toggle Button (visible only on mobile) -->
+  <button class="mobile-filter-toggle" 
+          [class.active]="isMobileFiltersOpen" 
+          (click)="toggleMobileFilters()">
+    <i class="fas fa-filter"></i>
+    {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
+    <i class="fas fa-chevron-down"></i>
+  </button>
 
-        <div class="filter-group">
-          <label>Natjecanje</label>
-          <input type="text" class="form-control" placeholder="Pretraži po natjecanju"
-            [(ngModel)]="filterValues.competition" (input)="onFilterChange()">
-        </div>
-
-        <div class="filter-group">
-          <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
-            <i class="fas fa-times"></i> Očisti
-          </button>
-        </div>
+  <!-- Filter Content (collapsible on mobile) -->
+  <div class="filter-content" [class.open]="isMobileFiltersOpen">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Datum</label>
+        <input type="date" class="form-control" [(ngModel)]="filterValues.date" (change)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <label>Mjesto</label>
+        <input type="text" class="form-control" placeholder="Pretraži po mjestu" [(ngModel)]="filterValues.venue"
+          (input)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <label>Domaći Tim</label>
+        <input type="text" class="form-control" placeholder="Pretraži po domaćem timu"
+          [(ngModel)]="filterValues.homeTeam" (input)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <label>Gostujući Tim</label>
+        <input type="text" class="form-control" placeholder="Pretraži po gostujućem timu"
+          [(ngModel)]="filterValues.awayTeam" (input)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <label>Natjecanje</label>
+        <input type="text" class="form-control" placeholder="Pretraži po natjecanju"
+          [(ngModel)]="filterValues.competition" (input)="onFilterChange()">
+      </div>
+      <div class="filter-group">
+        <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
+          <i class="fas fa-times"></i> Očisti
+        </button>
       </div>
     </div>
+  </div>
+</div>
 
     <!-- Filter Status -->
     <div *ngIf="!isLoading && hasActiveFilters" class="admin-filter-status">

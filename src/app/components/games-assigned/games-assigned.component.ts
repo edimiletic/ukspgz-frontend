@@ -1,5 +1,5 @@
 import { BasketballGameService } from './../../services/basketballGame.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from "../header/header.component";
 import { FooterComponent } from "../footer/footer.component";
@@ -63,6 +63,8 @@ export class GamesAssignedComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   
+isMobileFiltersOpen: boolean = false;
+
   // Current user
   currentUser: any = null;
   
@@ -701,6 +703,10 @@ onGameCreated(result: any) {
     this.confirmedPage = 1;
     this.historyPage = 1;
     
+if (window.innerWidth <= 693) {
+  this.isMobileFiltersOpen = false;
+}
+
     this.applyFilters();
   }
 
@@ -922,5 +928,14 @@ async openKontrolaModal(game: BasketballGame): Promise<void> {
     this.updatePagination();
   }
 
+toggleMobileFilters(): void {
+  this.isMobileFiltersOpen = !this.isMobileFiltersOpen;
+}
 
+@HostListener('window:resize', ['$event'])
+onResize(event: any): void {
+  if (event.target.innerWidth > 693) {
+    this.isMobileFiltersOpen = false;
+  }
+}
 }
