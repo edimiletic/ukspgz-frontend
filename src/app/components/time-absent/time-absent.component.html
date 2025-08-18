@@ -16,53 +16,49 @@
         <div class="alert alert-success">
             <i class="icon-message"></i>
             <strong>{{ isAdmin ? 'Admin View:' : 'Message:' }}</strong>
-            {{ isAdmin ?
-            'Pregled odsustva svih sudaca. Možete vidjeti kada sudci neće biti dostupni za utakmice.' :
-            'Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac. Neće vam biti dodijeljene utakmice za ta razdoblja.'
+            {{ isAdmin ?            'Pregled odsustva svih sudaca. Možete vidjeti kada sudci neće biti dostupni za utakmice.' :            'Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac. Neće vam biti dodijeljene utakmice za            ta razdoblja.'
             }}
         </div>
-<!-- Updated Filter Section HTML - Replace your existing filter section with this -->
-<div class="filter-section">
-  <!-- Mobile Filter Toggle Button (visible only on mobile) -->
-  <button class="mobile-filter-toggle" 
-          [class.active]="isMobileFiltersOpen" 
-          (click)="toggleMobileFilters()">
-    <i class="fas fa-filter"></i>
-    {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
-    <i class="fas fa-chevron-down"></i>
-  </button>
+        <!-- Updated Filter Section HTML - Replace your existing filter section with this -->
+        <div class="filter-section">
+            <!-- Mobile Filter Toggle Button (visible only on mobile) -->
+            <button class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()">
+                <i class="fas fa-filter"></i>
+                {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
+                <i class="fas fa-chevron-down"></i>
+            </button>
 
-  <!-- Filter Content (collapsible on mobile) -->
-  <div class="filter-content" [class.open]="isMobileFiltersOpen">
-    <div class="filter-row">
-      <div class="filter-group">
-        <label>ID</label>
-        <input type="text" class="form-control" placeholder="Pretraži po ID" [(ngModel)]="filterValues.id"
-            (input)="onFilterChange()">
-      </div>
-      <div class="filter-group" *ngIf="isAdmin">
-        <label>Korisnik</label>
-        <input type="text" class="form-control" placeholder="Pretraži po imenu"
-            [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <label>Početak odsustva</label>
-        <input type="date" class="form-control" placeholder="Točan datum početka"
-            [(ngModel)]="filterValues.startDate" (change)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <label>Završetak odsustva</label>
-        <input type="date" class="form-control" placeholder="Točan datum završetka"
-            [(ngModel)]="filterValues.endDate" (change)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
-          <i class="fas fa-times"></i> Očisti
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+            <!-- Filter Content (collapsible on mobile) -->
+            <div class="filter-content" [class.open]="isMobileFiltersOpen">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>ID</label>
+                        <input type="text" class="form-control" placeholder="Pretraži po ID"
+                            [(ngModel)]="filterValues.id" (input)="onFilterChange()">
+                    </div>
+                    <div class="filter-group" *ngIf="isAdmin">
+                        <label>Korisnik</label>
+                        <input type="text" class="form-control" placeholder="Pretraži po imenu"
+                            [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Početak odsustva</label>
+                        <input type="date" class="form-control" placeholder="Točan datum početka"
+                            [(ngModel)]="filterValues.startDate" (change)="onFilterChange()">
+                    </div>
+                    <div class="filter-group">
+                        <label>Završetak odsustva</label>
+                        <input type="date" class="form-control" placeholder="Točan datum završetka"
+                            [(ngModel)]="filterValues.endDate" (change)="onFilterChange()">
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
+                            <i class="fas fa-times"></i> Očisti
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="table-info" *ngIf="!isAdmin">
             <span>Ukupno unosa: {{ absences.length }}</span>
             <span *ngIf="hasActiveFilters" class="filter-status">
@@ -241,224 +237,214 @@
                     </div>
                 </div>
             </div>
-            <!-- User View: Filter status and total count -->
-            <!-- <div class="table-info" *ngIf="!isAdmin">
-            <span>Ukupno unosa: {{ totalFilteredCount }}</span>
-            <span *ngIf="hasActiveFilters" class="filter-status">
-                <i class="fas fa-filter"></i> Filteri aktivni
-            </span>
-        </div> -->
+        </div>
 
-            <!-- User View: Three separate tables -->
-            <div *ngIf="!isAdmin && !isLoading">
-                <!-- Filter status for users -->
-                <div class="admin-filter-status" *ngIf="hasActiveFilters">
-                    <span class="filter-indicator">
-                        <i class="fas fa-filter"></i>
-                        Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
-                    </span>
+        <!-- User View: Three separate tables -->
+        <div *ngIf="!isAdmin && !isLoading">
+            <!-- Filter status for users -->
+            <div class="admin-filter-status" *ngIf="hasActiveFilters">
+                <span class="filter-indicator">
+                    <i class="fas fa-filter"></i>
+                    Filteri aktivni - Ukupno prikazano: {{ totalFilteredCount }}
+                </span>
+            </div>
+
+            <!-- Future Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Buduća odsustva</h3>
+                    <span class="badge badge-future">{{ futureAbsences.length }}</span>
                 </div>
-
-                <!-- Future Absences -->
-                <div class="admin-table-section">
-                    <div class="section-header">
-                        <h3>Buduća odsustva</h3>
-                        <span class="badge badge-future">{{ futureAbsences.length }}</span>
-                    </div>
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Početak odsudstva</th>
-                                    <th>Kraj odsutstva</th>
-                                    <th>Razlog</th>
-                                    <th>Opcije</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let absence of futureDisplayedAbsences">
-                                    <td>{{ absence._id }}</td>
-                                    <td>{{ formatDate(absence.startDate) }}</td>
-                                    <td>{{ formatDate(absence.endDate) }}</td>
-                                    <td>{{ absence.reason || '-' }}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
-                                                <i class="fa-solid fa-pen"></i>
-                                            </div>
-                                            <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
-                                                <i class="fas fa-trash"></i>
-                                            </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                                <th>Opcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of futureDisplayedAbsences">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
                                         </div>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="futureAbsences.length === 0">
-                                    <td colspan="5" class="no-data">Nema budućih odsustva</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="pagination-container" *ngIf="futureTotalPages > 1">
-                            <div class="pagination-info">
-                                Prikazano {{ futureDisplayedAbsences.length }} od {{ futureAbsences.length }} •
-                                Stranica {{ futurePage }} od {{ futureTotalPages }}
-                            </div>
-                            <div class="pagination">
-                                <button class="page-btn" [disabled]="futurePage === 1"
-                                    (click)="goToFuturePage(futurePage - 1)">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="futureAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema budućih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination-container" *ngIf="futureTotalPages > 1">
+                        <div class="pagination-info">
+                            Prikazano {{ futureDisplayedAbsences.length }} od {{ futureAbsences.length }} •
+                            Stranica {{ futurePage }} od {{ futureTotalPages }}
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" [disabled]="futurePage === 1"
+                                (click)="goToFuturePage(futurePage - 1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
 
-                                <button class="page-btn" *ngFor="let page of getFuturePages()"
-                                    [class.active]="page === futurePage" (click)="goToFuturePage(page)">
-                                    {{ page }}
-                                </button>
+                            <button class="page-btn" *ngFor="let page of getFuturePages()"
+                                [class.active]="page === futurePage" (click)="goToFuturePage(page)">
+                                {{ page }}
+                            </button>
 
-                                <button class="page-btn" [disabled]="futurePage === futureTotalPages"
-                                    (click)="goToFuturePage(futurePage + 1)">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
+                            <button class="page-btn" [disabled]="futurePage === futureTotalPages"
+                                (click)="goToFuturePage(futurePage + 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-                <!-- Ongoing Absences -->
-                <div class="admin-table-section">
-                    <div class="section-header">
-                        <h3>Trenutna odsustva</h3>
-                        <span class="badge badge-ongoing">{{ ongoingAbsences.length }}</span>
-                    </div>
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Početak odsudstva</th>
-                                    <th>Kraj odsutstva</th>
-                                    <th>Razlog</th>
-                                    <th>Opcije</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let absence of ongoingDisplayedAbsences" class="ongoing-row">
-                                    <td>{{ absence._id }}</td>
-                                    <td>{{ formatDate(absence.startDate) }}</td>
-                                    <td>{{ formatDate(absence.endDate) }}</td>
-                                    <td>{{ absence.reason || '-' }}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
-                                                <i class="fa-solid fa-pen"></i>
-                                            </div>
-                                            <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
-                                                <i class="fas fa-trash"></i>
-                                            </div>
+            </div>
+            <!-- Ongoing Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Trenutna odsustva</h3>
+                    <span class="badge badge-ongoing">{{ ongoingAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                                <th>Opcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of ongoingDisplayedAbsences" class="ongoing-row">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
                                         </div>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="ongoingAbsences.length === 0">
-                                    <td colspan="5" class="no-data">Nema trenutnih odsustva</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <!-- Ongoing Pagination -->
-                        <div class="pagination-container" *ngIf="ongoingTotalPages > 1">
-                            <div class="pagination-info">
-                                Prikazano {{ ongoingDisplayedAbsences.length }} od {{ ongoingAbsences.length }} •
-                                Stranica {{ ongoingPage }} od {{ ongoingTotalPages }}
-                            </div>
-                            <div class="pagination">
-                                <button class="page-btn" [disabled]="ongoingPage === 1"
-                                    (click)="goToOngoingPage(ongoingPage - 1)">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="ongoingAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema trenutnih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Ongoing Pagination -->
+                    <div class="pagination-container" *ngIf="ongoingTotalPages > 1">
+                        <div class="pagination-info">
+                            Prikazano {{ ongoingDisplayedAbsences.length }} od {{ ongoingAbsences.length }} •
+                            Stranica {{ ongoingPage }} od {{ ongoingTotalPages }}
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" [disabled]="ongoingPage === 1"
+                                (click)="goToOngoingPage(ongoingPage - 1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
 
-                                <button class="page-btn" *ngFor="let page of getOngoingPages()"
-                                    [class.active]="page === ongoingPage" (click)="goToOngoingPage(page)">
-                                    {{ page }}
-                                </button>
+                            <button class="page-btn" *ngFor="let page of getOngoingPages()"
+                                [class.active]="page === ongoingPage" (click)="goToOngoingPage(page)">
+                                {{ page }}
+                            </button>
 
-                                <button class="page-btn" [disabled]="ongoingPage === ongoingTotalPages"
-                                    (click)="goToOngoingPage(ongoingPage + 1)">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
+                            <button class="page-btn" [disabled]="ongoingPage === ongoingTotalPages"
+                                (click)="goToOngoingPage(ongoingPage + 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Past Absences -->
-                <div class="admin-table-section">
-                    <div class="section-header">
-                        <h3>Prošla odsustva</h3>
-                        <span class="badge badge-past">{{ pastAbsences.length }}</span>
-                    </div>
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Početak odsudstva</th>
-                                    <th>Kraj odsutstva</th>
-                                    <th>Razlog</th>
-                                    <th>Opcije</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let absence of pastDisplayedAbsences" class="past-row">
-                                    <td>{{ absence._id }}</td>
-                                    <td>{{ formatDate(absence.startDate) }}</td>
-                                    <td>{{ formatDate(absence.endDate) }}</td>
-                                    <td>{{ absence.reason || '-' }}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
-                                                <i class="fa-solid fa-pen"></i>
-                                            </div>
-                                            <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
-                                                <i class="fas fa-trash"></i>
-                                            </div>
+            <!-- Past Absences -->
+            <div class="admin-table-section">
+                <div class="section-header">
+                    <h3>Prošla odsustva</h3>
+                    <span class="badge badge-past">{{ pastAbsences.length }}</span>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Početak odsudstva</th>
+                                <th>Kraj odsutstva</th>
+                                <th>Razlog</th>
+                                <th>Opcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let absence of pastDisplayedAbsences" class="past-row">
+                                <td>{{ absence._id }}</td>
+                                <td>{{ formatDate(absence.startDate) }}</td>
+                                <td>{{ formatDate(absence.endDate) }}</td>
+                                <td>{{ absence.reason || '-' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
                                         </div>
-                                    </td>
-                                </tr>
-                                <tr *ngIf="pastAbsences.length === 0">
-                                    <td colspan="5" class="no-data">Nema prošlih odsustva</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="pagination-container" *ngIf="pastTotalPages > 1">
-                            <div class="pagination-info">
-                                Prikazano {{ pastDisplayedAbsences.length }} od {{ pastAbsences.length }} •
-                                Stranica {{ pastPage }} od {{ pastTotalPages }}
-                            </div>
-                            <div class="pagination">
-                                <button class="page-btn" [disabled]="pastPage === 1"
-                                    (click)="goToPastPage(pastPage - 1)">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr *ngIf="pastAbsences.length === 0">
+                                <td colspan="5" class="no-data">Nema prošlih odsustva</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="pagination-container" *ngIf="pastTotalPages > 1">
+                        <div class="pagination-info">
+                            Prikazano {{ pastDisplayedAbsences.length }} od {{ pastAbsences.length }} •
+                            Stranica {{ pastPage }} od {{ pastTotalPages }}
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" [disabled]="pastPage === 1" (click)="goToPastPage(pastPage - 1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
 
-                                <button class="page-btn" *ngFor="let page of getPastPages()"
-                                    [class.active]="page === pastPage" (click)="goToPastPage(page)">
-                                    {{ page }}
-                                </button>
+                            <button class="page-btn" *ngFor="let page of getPastPages()"
+                                [class.active]="page === pastPage" (click)="goToPastPage(page)">
+                                {{ page }}
+                            </button>
 
-                                <button class="page-btn" [disabled]="pastPage === pastTotalPages"
-                                    (click)="goToPastPage(pastPage + 1)">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
+                            <button class="page-btn" [disabled]="pastPage === pastTotalPages"
+                                (click)="goToPastPage(pastPage + 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="loading-container" *ngIf="isLoading">
-                    <div class="loading-spinner">Učitavanje...</div>
-                </div>
-                                </div>
-
-                                                </div>
-
-    </section>
+            <div class="loading-container" *ngIf="isLoading">
+                <div class="loading-spinner">Učitavanje...</div>
+            </div>
+        </div>
+</section>
 </div>
 
 <!-- Toast Notifications -->
