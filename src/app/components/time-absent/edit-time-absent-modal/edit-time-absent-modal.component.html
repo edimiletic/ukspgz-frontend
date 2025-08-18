@@ -44,8 +44,8 @@
             class="btn btn-primary" 
             [disabled]="!isFormValid() || isSubmitting"
             (click)="saveChanges()">
-            <span *ngIf="isSubmitting">Čuvanje...</span>
-            <span *ngIf="!isSubmitting">Sačuvaj izmjene</span>
+            <span *ngIf="isSubmitting">Spremanje...</span>
+            <span *ngIf="!isSubmitting">Spremi</span>
           </button>
         </div>
       </div>
