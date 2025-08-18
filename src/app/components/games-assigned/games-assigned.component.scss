@@ -737,6 +737,9 @@
 
 // RESPONSIVE DESIGN - MATCHING HOME COMPONENT
 @media (max-width: 768px) {
+  h1{
+    text-align: center;
+  }
   .main-layout {
     flex-direction: column;
     margin-left: 0;
