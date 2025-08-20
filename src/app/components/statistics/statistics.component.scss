@@ -1,6 +1,6 @@
 .statistika-container {
   max-width: 1200px;
-  margin: 92px auto;
+  margin-top: 92px;
   padding: 2rem;
   background-color: #f8f9fa;
   min-height: 100vh;
@@ -361,13 +361,38 @@
         }
       }
 
-      .stats-subsection {
-        margin-top: 1.5rem;
+    
+
+      .placeholder-message {
+        text-align: center;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #bdc3c7;
+
+        i {
+          font-size: 1.5rem;
+          color: #f39c12;
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          margin: 0;
+          color: #7f8c8d;
+          font-style: italic;
+        }
+      }
+    }
+  }
+
+
+ .stats-subsection {
+        margin-top: 2rem;
 
         h4 {
           color: #34495e;
           margin-bottom: 1rem;
-          font-size: 1.1rem;
+          font-size: 1.5rem;
           font-weight: 600;
         }
 
@@ -401,29 +426,6 @@
           }
         }
       }
-
-      .placeholder-message {
-        text-align: center;
-        padding: 2rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        border: 1px dashed #bdc3c7;
-
-        i {
-          font-size: 1.5rem;
-          color: #f39c12;
-          margin-bottom: 0.5rem;
-        }
-
-        p {
-          margin: 0;
-          color: #7f8c8d;
-          font-style: italic;
-        }
-      }
-    }
-  }
-
 
 .grades-stats {
   .grade-distribution {

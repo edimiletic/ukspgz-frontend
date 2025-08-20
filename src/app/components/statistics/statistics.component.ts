@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { AbsenceStats, CompetitionStats, ExpenseStats, RefereeStats } from '../../model/statistics.model';
+import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { BasketballGameService } from '../../services/basketballGame.service';
@@ -9,10 +9,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TravelExpenseService } from '../../services/travel-expense.service';
 import { HeaderComponent } from "../header/header.component";
+import { KontrolaService } from '../../services/kontrola.service';
+import { FooterComponent } from "../footer/footer.component";
 
 @Component({
   selector: 'app-statistics',
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.scss'
 })
@@ -26,6 +28,8 @@ export class StatisticsComponent implements OnInit {
   isLoadingGames = false;
   isLoadingAbsences = false;
   isLoadingExpenses = false;
+  isLoadingGrades = false;
+
 
   selectedRole: string = 'Sudac'; // Default to 'Sudac'
 selectedAbsenceRole: string = 'Sudac'; // Default to 'Sudac'
@@ -35,6 +39,22 @@ showAllAbsences = false;
 showAllExpenses = false;
 showAllReferees = false; // Add this
 showAllCompetitions = false; // Add this
+showAllGrades = false;
+
+
+gradeStats: GradeStats = {
+  totalEvaluations: 0,
+  averageGrade: 0,
+  gradeDistribution: {},
+  byReferee: {},
+  byCategory: {
+    ocjena: 0,
+    pogreske: 0,
+    prekrsaji: 0,
+    tehnikaMehanika: 0,
+    timskiRad: 0,
+    kontrolaUtakmice: 0
+  }};
 
   // Filter options
 selectedPeriod: 'month' | 'year' | 'season' | 'custom' = 'custom';
@@ -129,7 +149,8 @@ private travelExpenseService = inject(TravelExpenseService);
     private userService: UserService,
     private basketballGameService: BasketballGameService,
     private absenceService: AbsenceService,
-    private router: Router
+    private router: Router,
+    private kontrolaService: KontrolaService
   ) {}
 
   ngOnInit() {
@@ -165,7 +186,8 @@ loadStatistics() {
   this.loadGameStatistics().then(() => {
     return Promise.all([
       this.loadAbsenceStatistics(),
-      this.loadExpenseStatistics() // ← Uncomment this line
+      this.loadExpenseStatistics(), // ← Uncomment this line
+      this.loadGradeStatistics()
     ]);
   }).finally(() => {
     this.isLoading = false;
@@ -173,6 +195,66 @@ loadStatistics() {
   });
 }
 
+
+async loadGradeStatistics() {
+  this.isLoadingGrades = true;
+  console.log('Starting to load grade statistics...');
+  
+  try {
+    // Build filters for the request
+    const filters: any = {};
+    
+    // Add date filters based on selected period
+    const dateRange = this.getDateRange();
+    if (dateRange.start && dateRange.end) {
+      filters.startDate = dateRange.start;
+      filters.endDate = dateRange.end;
+      console.log('Added date filter:', dateRange);
+    }
+    
+    // Add competition filter
+    if (this.selectedCompetition) {
+      filters.competition = this.selectedCompetition;
+      console.log('Added competition filter:', this.selectedCompetition);
+    }
+    
+    // Add role filter
+    filters.role = this.selectedRole;
+    console.log('Added role filter:', this.selectedRole);
+    
+    console.log('Final filters for kontrola request:', filters);
+    
+    // Get kontrola data from backend
+    const kontrolaData = await this.kontrolaService.getAllKontrolaForStatistics(filters).toPromise();
+    
+    console.log('Received kontrola data:', kontrolaData?.length || 0, 'records');
+    
+    // Process the data (this will further filter by role on frontend)
+    this.processKontrolaData(kontrolaData || []);
+    
+    console.log('Final grade stats:', this.gradeStats);
+    
+  } catch (error) {
+    console.error('Error loading grade statistics:', error);
+    // Set safe default values
+    this.gradeStats = {
+      totalEvaluations: 0,
+      averageGrade: 0,
+      gradeDistribution: {},
+      byReferee: {},
+      byCategory: {
+        ocjena: 0,
+        pogreske: 0,
+        prekrsaji: 0,
+        tehnikaMehanika: 0,
+        timskiRad: 0,
+        kontrolaUtakmice: 0
+      }
+    };
+  } finally {
+    this.isLoadingGrades = false;
+  }
+}
 async loadGameStatistics() {
   this.isLoadingGames = true;
   try {
@@ -283,40 +365,45 @@ async loadExpenseStatistics() {
     return filters;
   }
 
-  getDateRange(): { start: string; end: string } {
-    const currentYear = parseInt(this.selectedYear);
-    
-    switch (this.selectedPeriod) {
-      case 'month':
-        const month = parseInt(this.selectedMonth);
-        return {
-          start: `${currentYear}-${this.selectedMonth.padStart(2, '0')}-01`,
-          end: `${currentYear}-${this.selectedMonth.padStart(2, '0')}-${new Date(currentYear, month, 0).getDate()}`
-        };
+getDateRange(): { start: string; end: string } {
+  const currentYear = parseInt(this.selectedYear);
+  let result = { start: '', end: '' };
+  
+  switch (this.selectedPeriod) {
+    case 'month':
+      const month = parseInt(this.selectedMonth);
+      result = {
+        start: `${currentYear}-${this.selectedMonth.padStart(2, '0')}-01`,
+        end: `${currentYear}-${this.selectedMonth.padStart(2, '0')}-${new Date(currentYear, month, 0).getDate()}`
+      };
+      break;
 
-      case 'year':
-        return {
-          start: `${currentYear}-01-01`,
-          end: `${currentYear}-12-31`
-        };
+    case 'year':
+      result = {
+        start: `${currentYear}-01-01`,
+        end: `${currentYear}-12-31`
+      };
+      break;
 
-      case 'season':
-        const seasonStartYear = parseInt(this.selectedSeason.split('/')[0]);
-        return {
-          start: `${seasonStartYear}-09-01`,
-          end: `${seasonStartYear + 1}-08-31`
-        };
+    case 'season':
+      const seasonStartYear = parseInt(this.selectedSeason.split('/')[0]);
+      result = {
+        start: `${seasonStartYear}-09-01`,
+        end: `${seasonStartYear + 1}-08-31`
+      };
+      break;
 
-      case 'custom':
-        return {
-          start: this.startDate,
-          end: this.endDate
-        };
-
-      default:
-        return { start: '', end: '' };
-    }
+    case 'custom':
+      result = {
+        start: this.startDate,
+        end: this.endDate
+      };
+      break;
   }
+  
+  console.log('Date range calculated:', result, 'for period:', this.selectedPeriod); // Debug log
+  return result;
+}
 
 calculateRefereeStats(games: any[], referees: any[]) {
   const refereesMap = new Map();
@@ -614,6 +701,7 @@ calculateSummaryStats() {
 }
 
   onPeriodChange() {
+      console.log('Period changed, reloading all statistics...'); // Debug log
     this.loadStatistics();
   }
 
@@ -638,6 +726,7 @@ onRoleChange() {
   this.showAllExpenses = false;
   this.showAllReferees = false; // Add this
   this.showAllCompetitions = false; // Add this
+  this.showAllGrades= false;
   this.loadStatistics();
 }
 
@@ -647,6 +736,8 @@ onFiltersChange() {
   this.showAllExpenses = false;
   this.showAllReferees = false; // Add this
   this.showAllCompetitions = false; // Add this
+    this.showAllGrades = false; // Add this line
+
   this.loadStatistics();
 }
 getSortedAbsenceReferees(): string[] {
@@ -687,11 +778,183 @@ clearAllFilters() {
   this.showAllExpenses = false;
   this.showAllReferees = false;
   this.showAllCompetitions = false;
+    this.showAllGrades = false; // Add this line
+
   
   // Reload statistics with cleared filters
   this.loadStatistics();
 }
 
+// Replace the problematic section in processKontrolaData with this:
+processKontrolaData(kontrolaData: any[]) {
+  const gradeValues: { [key: string]: number } = {
+    'Izvrsno': 5,
+    'Iznad Prosjeka': 4,
+    'Prosječno': 3,
+    'Ispod Prosjeka': 2,
+    'Loše': 1
+  };
+
+  const stats: GradeStats = {
+    totalEvaluations: 0,
+    averageGrade: 0,
+    gradeDistribution: {},
+    byReferee: {},
+    byCategory: {
+      ocjena: 0,
+      pogreske: 0,
+      prekrsaji: 0,
+      tehnikaMehanika: 0,
+      timskiRad: 0,
+      kontrolaUtakmice: 0
+    }
+  };
+
+  // Initialize grade distribution
+  Object.keys(gradeValues).forEach(grade => {
+    stats.gradeDistribution[grade] = 0;
+  });
+
+  // Temporary storage for calculations
+  const tempRefereeData: any = {};
+
+  kontrolaData.forEach(kontrola => {
+    if (!kontrola.refereeGrades) return;
+
+    kontrola.refereeGrades.forEach((grade: any) => {
+      // Filter by selected role
+      if (this.selectedRole !== 'Admin' && grade.refereeRole !== this.selectedRole) {
+        return;
+      }
+
+      const refereeKey = grade.refereeName;
+      
+      // Initialize temp data if not exists
+      if (!tempRefereeData[refereeKey]) {
+        tempRefereeData[refereeKey] = {
+          refereeId: grade.refereeId,
+          refereeName: grade.refereeName,
+          refereeRole: grade.refereeRole,
+          evaluationCount: 0,
+          gradeSums: {
+            ocjena: 0, pogreske: 0, prekrsaji: 0, 
+            tehnikaMehanika: 0, timskiRad: 0, kontrolaUtakmice: 0
+          },
+          totalSum: 0,
+          totalCount: 0
+        };
+      }
+
+      const tempRef = tempRefereeData[refereeKey];
+      tempRef.evaluationCount++;
+      stats.totalEvaluations++;
+
+      // Process each grade category
+      const categories = ['ocjena', 'pogreske', 'prekrsaji', 'tehnikaMehanika', 'timskiRad', 'kontrolaUtakmice'];
+      
+      categories.forEach(category => {
+        const gradeText: string = grade[category];
+        
+        // Check if gradeText exists and is a valid key
+        if (gradeText && typeof gradeText === 'string' && gradeValues.hasOwnProperty(gradeText)) {
+          const gradeValue = gradeValues[gradeText];
+
+          tempRef.gradeSums[category] += gradeValue;
+          tempRef.totalSum += gradeValue;
+          tempRef.totalCount++;
+
+          stats.byCategory[category] += gradeValue;
+          
+          // Initialize if doesn't exist
+          if (!stats.gradeDistribution[gradeText]) {
+            stats.gradeDistribution[gradeText] = 0;
+          }
+          stats.gradeDistribution[gradeText]++;
+        }
+      });
+    });
+  });
+
+  // Convert temp data to final format
+  Object.keys(tempRefereeData).forEach(refereeKey => {
+    const tempRef = tempRefereeData[refereeKey];
+    
+    stats.byReferee[refereeKey] = {
+      refereeId: tempRef.refereeId,
+      refereeName: tempRef.refereeName,
+      refereeRole: tempRef.refereeRole,
+      totalEvaluations: tempRef.evaluationCount,
+      averageGrade: tempRef.totalCount > 0 ? tempRef.totalSum / tempRef.totalCount : 0,
+      categoryAverages: {
+        ocjena: tempRef.evaluationCount > 0 ? tempRef.gradeSums.ocjena / tempRef.evaluationCount : 0,
+        pogreske: tempRef.evaluationCount > 0 ? tempRef.gradeSums.pogreske / tempRef.evaluationCount : 0,
+        prekrsaji: tempRef.evaluationCount > 0 ? tempRef.gradeSums.prekrsaji / tempRef.evaluationCount : 0,
+        tehnikaMehanika: tempRef.evaluationCount > 0 ? tempRef.gradeSums.tehnikaMehanika / tempRef.evaluationCount : 0,
+        timskiRad: tempRef.evaluationCount > 0 ? tempRef.gradeSums.timskiRad / tempRef.evaluationCount : 0,
+        kontrolaUtakmice: tempRef.evaluationCount > 0 ? tempRef.gradeSums.kontrolaUtakmice / tempRef.evaluationCount : 0
+      },
+      trend: 'stable' as any
+    };
+  });
+
+  // Calculate overall averages
+  const totalGradeSum = Object.values(tempRefereeData).reduce((sum: number, ref: any) => sum + ref.totalSum, 0);
+  const totalGradeCount = Object.values(tempRefereeData).reduce((sum: number, ref: any) => sum + ref.totalCount, 0);
+  
+  stats.averageGrade = totalGradeCount > 0 ? totalGradeSum / totalGradeCount : 0;
+
+  Object.keys(stats.byCategory).forEach(category => {
+    stats.byCategory[category] = stats.totalEvaluations > 0 
+      ? stats.byCategory[category] / stats.totalEvaluations 
+      : 0;
+  });
+
+  this.gradeStats = stats;
+}
+
+getSortedGradeReferees(): string[] {
+  return Object.keys(this.gradeStats.byReferee)
+    .sort((a, b) => {
+      const avgA = this.gradeStats.byReferee[a].averageGrade;
+      const avgB = this.gradeStats.byReferee[b].averageGrade;
+      return avgB - avgA; // Sort descending (highest grade first)
+    });
+}
+
+// Add these helper methods for category-specific sorting:
+getSortedRefereesByCategory(category: string): string[] {
+  return Object.keys(this.gradeStats.byReferee)
+    .sort((a, b) => {
+      const avgA = this.gradeStats.byReferee[a].categoryAverages[category] || 0;
+      const avgB = this.gradeStats.byReferee[b].categoryAverages[category] || 0;
+      return avgB - avgA; // Sort descending (highest grade first)
+    });
+}
+// Helper method to get grade class for styling
+getGradeClass(average: number): string {
+  if (average >= 4.5) return 'excellent';
+  if (average >= 4.0) return 'above-average';
+  if (average >= 3.0) return 'average';
+  if (average >= 2.0) return 'below-average';
+  return 'poor';
+}
+
+// Helper method to get grade text from number
+getGradeText(average: number): string {
+  if (average >= 4.5) return 'Izvrsno';
+  if (average >= 4.0) return 'Iznad Prosjeka';
+  if (average >= 3.0) return 'Prosječno';
+  if (average >= 2.0) return 'Ispod Prosjeka';
+  return 'Loše';
+}
+
+// Helper method to get rank class
+getRankClass(position: number): string {
+  if (position === 1) return 'gold';
+  if (position === 2) return 'silver';
+  if (position === 3) return 'bronze';
+  return '';
+}
 
 
 }

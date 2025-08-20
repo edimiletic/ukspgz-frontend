@@ -1,7 +1,7 @@
 // src/app/services/kontrola.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { KontrolaData, ViewKontrolaData } from '../model/kontrola.model';
 
@@ -111,4 +111,44 @@ getKontrolaForEdit(gameId: string): Observable<any> {
     );
 }
 
+
+getAllKontrolaData(): Observable<any[]> {
+  console.log('KontrolaService: Getting all kontrola data for statistics');
+  
+  const headers = this.getAuthHeaders();
+  
+  return this.http.get<any[]>(`${this.apiUrl}/kontrola/statistics/all`, { headers })
+    .pipe(
+      catchError((error) => {
+        console.log('Kontrola statistics endpoint not available, returning empty array');
+        return of([]); // Return empty array if endpoint doesn't exist
+      })
+    );
+}
+
+getAllKontrolaForStatistics(filters?: any): Observable<any[]> {
+  console.log('KontrolaService: Getting all kontrola data for statistics with filters:', filters);
+  
+  const headers = this.getAuthHeaders();
+  
+  // Build query parameters
+  let params = new URLSearchParams();
+  if (filters) {
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.competition) params.append('competition', filters.competition);
+    if (filters.role) params.append('role', filters.role);
+  }
+  
+  const queryString = params.toString();
+  const url = `${this.apiUrl}/kontrola/statistics${queryString ? '?' + queryString : ''}`;
+  
+  console.log('Making request to:', url); // Debug log
+  
+  return this.http.get<any[]>(url, { headers })
+    .pipe(
+      tap((response) => console.log('KontrolaService: Statistics response:', response.length, 'records')),
+      catchError(this.handleError.bind(this))
+    );
+}
 }
