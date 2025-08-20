@@ -11,6 +11,8 @@
   justify-content: center;
   z-index: 1091;
   padding: 1rem;
+    overflow-y: auto; // Allow backdrop to scroll if needed
+
 }
 
 .modal-content {
@@ -20,10 +22,13 @@
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
+    min-height: 200px; // Minimum height to prevent collapse
   overflow: hidden;
   display: flex;
   flex-direction: column;
   animation: modalSlideIn 0.3s ease-out;
+    margin: auto; // Center in viewport
+
 }
 
 @keyframes modalSlideIn {
@@ -132,6 +137,25 @@
   overflow-y: auto;
   padding: 2rem 1rem 0rem;
 
+scroll-behavior: smooth;
+
+ // Custom scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }}
 
    // When it's the first page, center content vertically
   &:has(.first-page) {
@@ -405,9 +429,8 @@
 // Modal Footer
 .modal-footer {
   background: #f8f9fa;
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
   border-top: 1px solid #e9ecef;
-
   .footer-buttons {
     display: flex;
     justify-content: flex-end;
@@ -491,7 +514,7 @@
     padding: 1rem 1.5rem;
 
     .footer-buttons {
-      flex-direction: column;
+      // flex-direction: column;
       
       .btn {
         justify-content: center;
@@ -887,7 +910,6 @@
   }
 
   .modal-footer .footer-buttons {
-    flex-direction: column;
     gap: 0.5rem;
     
     .btn {
