@@ -1,11 +1,9 @@
-// src/app/components/statistika/statistika.component.scss
 .statistika-container {
   max-width: 1200px;
-  margin: 7rem auto;
+  margin: 92px auto;
   padding: 2rem;
   background-color: #f8f9fa;
   min-height: 100vh;
-
 
   .header {
     display: flex;
@@ -69,6 +67,46 @@
       font-weight: 600;
     }
 
+    // Mobile filter toggle button (hidden by default)
+    .mobile-filter-toggle {
+      display: none;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      margin-bottom: 1rem;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+
+      &:hover {
+        background-color: #2980b9;
+      }
+
+      &.active {
+        background-color: #2980b9;
+        
+        i {
+          transform: rotate(180deg);
+        }
+      }
+
+      i {
+        transition: transform 0.3s ease;
+      }
+    }
+
+    // Filter content wrapper
+    .filter-content {
+      transition: all 0.3s ease;
+    }
+
     .filters-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -98,34 +136,33 @@
           }
         }
 
-      // Add styles for the clear filters button
-      .filter-btn {
-        padding: 0.75rem 1rem;
-        border: 1px solid #6c757d;
-        background-color: white;
-        color: #6c757d;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        justify-content: center;
-         width: fit-content; // Add this to make button only as wide as content
-        max-width: 150px; // Add this to limit maximum width
-        white-space: nowrap; // Prevent text wrapping
+        // Add styles for the clear filters button
+        .filter-btn {
+          padding: 0.75rem 1rem;
+          border: 1px solid #6c757d;
+          background-color: white;
+          color: #6c757d;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          justify-content: center;
+          width: fit-content;
+          max-width: 150px;
+          white-space: nowrap;
 
+          &:hover {
+            background-color: #6c757d;
+            color: white;
+          }
 
-        &:hover {
-          background-color: #6c757d;
-          color: white;
+          i {
+            font-size: 0.9rem;
+          }
         }
-
-        i {
-          font-size: 0.9rem;
-        }
-      }
       }
     }
   }
@@ -387,9 +424,274 @@
     }
   }
 
-  // Responsive design
+
+.grades-stats {
+  .grade-distribution {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .grade-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      border-left: 3px solid #f39c12;
+
+      .grade-name {
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .grade-count {
+        color: #f39c12;
+        font-weight: 600;
+        background-color: #fef9e7;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .ranking-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .ranking-header {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px 120px 80px;
+      gap: 1rem;
+      padding: 0.75rem;
+      background-color: #34495e;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      align-items: center;
+    }
+
+    .ranking-item {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px 120px 80px;
+      gap: 1rem;
+      padding: 0.75rem;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      border-left: 3px solid #3498db;
+      align-items: center;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #e9ecef;
+      }
+
+      .rank-number {
+        display: flex;
+        justify-content: center;
+
+        .rank-position {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          color: white;
+          font-size: 0.9rem;
+          background-color: #95a5a6;
+
+          &.gold {
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            box-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
+          }
+
+          &.silver {
+            background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);
+            box-shadow: 0 2px 8px rgba(189, 195, 199, 0.3);
+          }
+
+          &.bronze {
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+            box-shadow: 0 2px 8px rgba(211, 84, 0, 0.3);
+          }
+        }
+      }
+
+      .referee-name {
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .grade-count {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .average-grade {
+        text-align: center;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+
+        &.excellent {
+          background-color: #d5edda;
+          color: #155724;
+        }
+
+        &.above-average {
+          background-color: #d4edda;
+          color: #155724;
+        }
+
+        &.average {
+          background-color: #fff3cd;
+          color: #856404;
+        }
+
+        &.below-average {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
+
+        &.poor {
+          background-color: #f5c6cb;
+          color: #721c24;
+        }
+      }
+
+      .grade-trend {
+        text-align: center;
+        font-size: 1.2rem;
+
+        i {
+          &.fa-arrow-up {
+            color: #27ae60;
+          }
+
+          &.fa-arrow-down {
+            color: #e74c3c;
+          }
+
+          &.fa-minus {
+            color: #95a5a6;
+          }
+
+          &.fa-question {
+            color: #f39c12;
+          }
+        }
+      }
+    }
+  }
+
+  .category-grades {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+
+    .category-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      border-left: 3px solid #9b59b6;
+
+      .category-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+      }
+
+      .category-average {
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+
+        &.excellent {
+          background-color: #d5edda;
+          color: #155724;
+        }
+
+        &.above-average {
+          background-color: #d4edda;
+          color: #155724;
+        }
+
+        &.average {
+          background-color: #fff3cd;
+          color: #856404;
+        }
+
+        &.below-average {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
+
+        &.poor {
+          background-color: #f5c6cb;
+          color: #721c24;
+        }
+      }
+    }
+  }
+}
+
+
+  // RESPONSIVE DESIGN - MATCHING OTHER COMPONENTS
+  @media (max-width: 995px) {
+    .filters-section {
+      .filters-grid {
+        grid-template-columns: repeat(3, 1fr);
+        
+        .filter-group:last-child {
+          justify-self: end;
+        }
+      }
+    }
+  }
+
+
+
   @media (max-width: 768px) {
-    padding: 1rem;
+
+
+.filters-section {
+      .mobile-filter-toggle {
+        display: flex;
+      }
+
+      .filter-content {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        padding: 0;
+        margin: 0;
+
+        &.open {
+          max-height: 800px;
+          opacity: 1;
+          padding-top: 1rem;
+          margin-top: 1rem;
+          border-top: 1px solid #e9ecef;
+        }
+      }
+
+      .filters-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
 
     .header {
       flex-direction: column;
@@ -407,6 +709,8 @@
     }
 
     .filters-section {
+      padding: 1rem;
+      
       .filters-grid {
         grid-template-columns: 1fr;
       }
@@ -414,6 +718,7 @@
 
     .summary-cards {
       grid-template-columns: 1fr;
+      gap: 1rem;
     }
 
     .stats-section {
@@ -437,19 +742,115 @@
         }
       }
     }
+
+    .grades-stats {
+    .ranking-table {
+      .ranking-header,
+      .ranking-item {
+        grid-template-columns: 50px 1fr 80px 100px 60px;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+
+      .ranking-item {
+        .rank-position {
+          width: 28px;
+          height: 28px;
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .grade-distribution {
+      grid-template-columns: 1fr;
+    }
+
+    .category-grades {
+      grid-template-columns: 1fr;
+    }
+  }
   }
 
   @media (max-width: 480px) {
+
+
     .header h1 {
       font-size: 1.5rem;
     }
 
-    .summary-cards .summary-card {
-      .card-content h3 {
-        font-size: 1.4rem;
+    .summary-cards {
+      .summary-card {
+        padding: 1rem;
+        
+        .card-content h3 {
+          font-size: 1.4rem;
+        }
+      }
+    }
+
+    .filters-section {
+      padding: 0.75rem;
+    }
+
+    .stats-section {
+      padding: 0.75rem;
+    }
+
+     .grades-stats {
+    .ranking-table {
+      .ranking-header,
+      .ranking-item {
+        grid-template-columns: 40px 1fr 60px 80px 50px;
+        gap: 0.25rem;
+        padding: 0.375rem;
+        font-size: 0.75rem;
+      }
+
+      .ranking-item {
+        .rank-position {
+          width: 24px;
+          height: 24px;
+          font-size: 0.7rem;
+        }
+
+        .referee-name {
+          font-size: 0.8rem;
+        }
       }
     }
   }
+  }
+
+  // LANDSCAPE MOBILE
+  @media (max-width: 768px) and (orientation: landscape) {
+    .filters-section {
+      .filters-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+    }
+  }
+
+  // VERY SMALL MOBILE
+  @media (max-width: 360px) {
+    .filters-section {
+      .filter-content.open .filters-grid {
+        grid-template-columns: 1fr;
+        
+        .filter-group {
+          .filter-btn {
+            width: 100%;
+            max-width: none;
+          }
+        }
+      }
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+    }
+  }
+
 }
 
 .expense-stats {
@@ -580,14 +981,6 @@
     &:hover {
       color: #2980b9;
       text-decoration: underline;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .filters-section {
-    .filters-grid {
-      grid-template-columns: 1fr;
     }
   }
 }
