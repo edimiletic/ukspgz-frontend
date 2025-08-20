@@ -1,5 +1,5 @@
-// src/app/components/header/header.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { NotificationService } from '../../services/notification.service';
@@ -19,21 +19,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
   hasUnreadNotifications = false;
   private notificationSubscription?: Subscription;
   private pollSubscription?: Subscription;
+  private isBrowser: boolean;
 
   constructor(
     private authService: AuthService,
     private notificationService: NotificationService,
-    private router: Router
-  ) {}
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit() {
-    this.loadNotifications();
-    this.startNotificationPolling();
+    // Only load notifications in browser
+    if (this.isBrowser) {
+      this.loadNotifications();
+      this.startNotificationPolling();
+    }
   }
 
   navigateToPage(route: string) {
     // Check auth before navigating to prevent login flash
-    if (typeof window !== 'undefined') {
+    if (this.isBrowser) {
       const token = localStorage.getItem('token');
       if (token) {
         this.router.navigate([route]);
@@ -55,6 +62,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   loadNotifications() {
+    if (!this.isBrowser) {
+      return;
+    }
+
     this.notificationSubscription = this.notificationService.getNotifications().subscribe({
       next: (notifications) => {
         this.notifications = notifications.slice(0, 5); // Show only recent 5
@@ -72,6 +83,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private startNotificationPolling() {
+    if (!this.isBrowser) {
+      return;
+    }
+
     // Poll for new notifications every 30 seconds
     this.pollSubscription = interval(30000).subscribe(() => {
       this.loadNotifications();
@@ -79,6 +94,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   markAsRead(notification: Notification) {
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (!notification.isRead) {
       this.notificationService.markAsRead(notification._id).subscribe({
         next: () => {
@@ -101,6 +120,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   markAllAsRead() {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const unreadIds = this.notifications
       .filter(n => !n.isRead)
       .map(n => n._id);
@@ -118,9 +141,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-viewAllNotifications() {
-  this.router.navigate(['/notifications']);
-}
+  viewAllNotifications() {
+    this.router.navigate(['/notifications']);
+  }
 
   formatNotificationTime(dateString: string): string {
     const date = new Date(dateString);

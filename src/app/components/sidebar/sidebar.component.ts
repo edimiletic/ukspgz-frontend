@@ -1,6 +1,6 @@
-// sidebar.component.ts - Updated with responsive functionality
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/login.service';
 
@@ -10,10 +10,19 @@ import { AuthService } from '../../services/login.service';
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   isSidebarOpen = false;
+  private isBrowser: boolean;
+  private touchStartX = 0;
+  private touchEndX = 0;
   
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit() {
     // Load user data if not available
@@ -27,7 +36,7 @@ export class SidebarComponent implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.router.navigate([route]);
       // Close sidebar on mobile after navigation
-      if (window.innerWidth <= 768) {
+      if (this.isBrowser && window.innerWidth <= 768) {
         this.closeSidebar();
       }
     } else {
@@ -48,16 +57,25 @@ export class SidebarComponent implements OnInit {
   // Toggle sidebar (hamburger menu)
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+    if (this.isBrowser) {
+      this.toggleBodyScroll(this.isSidebarOpen);
+    }
   }
 
   // Close sidebar
   closeSidebar() {
     this.isSidebarOpen = false;
+    if (this.isBrowser) {
+      this.toggleBodyScroll(false);
+    }
   }
 
   // Open sidebar
   openSidebar() {
     this.isSidebarOpen = true;
+    if (this.isBrowser) {
+      this.toggleBodyScroll(true);
+    }
   }
 
   // Close sidebar when clicking outside or pressing escape
@@ -71,7 +89,7 @@ export class SidebarComponent implements OnInit {
   // Close sidebar when window is resized to desktop
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
-    if (event.target.innerWidth > 768 && this.isSidebarOpen) {
+    if (this.isBrowser && event.target.innerWidth > 768 && this.isSidebarOpen) {
       this.closeSidebar();
     }
   }
@@ -79,6 +97,8 @@ export class SidebarComponent implements OnInit {
   // Prevent body scroll when sidebar is open on mobile
   @HostListener('document:touchmove', ['$event'])
   onTouchMove(event: TouchEvent) {
+    if (!this.isBrowser) return;
+
     if (this.isSidebarOpen && window.innerWidth <= 768) {
       // Allow scrolling only within the sidebar content
       const target = event.target as Element;
@@ -90,26 +110,24 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Handle swipe gestures on mobile
-  private touchStartX = 0;
-  private touchEndX = 0;
-
   @HostListener('document:touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {
-    if (window.innerWidth <= 768) {
+    if (this.isBrowser && window.innerWidth <= 768) {
       this.touchStartX = event.changedTouches[0].screenX;
     }
   }
 
   @HostListener('document:touchend', ['$event'])
   onTouchEnd(event: TouchEvent) {
-    if (window.innerWidth <= 768) {
+    if (this.isBrowser && window.innerWidth <= 768) {
       this.touchEndX = event.changedTouches[0].screenX;
       this.handleSwipeGesture();
     }
   }
 
   private handleSwipeGesture() {
+    if (!this.isBrowser) return;
+
     const swipeThreshold = 50;
     const swipeDistance = this.touchEndX - this.touchStartX;
 
@@ -126,6 +144,8 @@ export class SidebarComponent implements OnInit {
 
   // Prevent scroll when sidebar is open on mobile
   private toggleBodyScroll(disable: boolean) {
+    if (!this.isBrowser) return;
+
     if (window.innerWidth <= 768) {
       if (disable) {
         document.body.style.overflow = 'hidden';
@@ -139,13 +159,10 @@ export class SidebarComponent implements OnInit {
     }
   }
 
-  // Watch for sidebar state changes to handle body scroll
-  ngOnChanges() {
-    this.toggleBodyScroll(this.isSidebarOpen);
-  }
-
   // Clean up when component is destroyed
   ngOnDestroy() {
-    this.toggleBodyScroll(false);
+    if (this.isBrowser) {
+      this.toggleBodyScroll(false);
+    }
   }
 }

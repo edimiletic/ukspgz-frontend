@@ -1,4 +1,9 @@
-    <div *ngIf="!isInitialized" class="app-loading">
-      <div class="loading-spinner"></div>
-    </div>
-    <router-outlet *ngIf="isInitialized"></router-outlet>
+<!-- app.component.html - This should prevent the login flash -->
+<div *ngIf="isInitializing" class="loading-screen">
+  <div class="spinner-container">
+    <div class="spinner"></div>
+    <p>Učitavanje...</p>
+  </div>
+</div>
+
+<router-outlet *ngIf="!isInitializing"></router-outlet>

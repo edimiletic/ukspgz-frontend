@@ -1,6 +1,5 @@
-// src/app/app.component.ts - Fixed to prevent login page flash
-import { Component, OnInit } from '@angular/core';
-import { AuthComponent } from "./components/auth/auth.component";
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/login.service';
@@ -14,52 +13,67 @@ import { filter } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
   title = 'uhks';
-  isInitialized = false;
-  private hasNavigated = false;
+  isInitializing = true;
+  private isBrowser: boolean;
 
   constructor(
-    private router: Router, 
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
   ) {
-    // Prevent any navigation until we're initialized
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.hasNavigated = true;
-    });
+    this.isBrowser = isPlatformBrowser(platformId);
   }
 
   ngOnInit() {
-    this.initializeApp();
+    console.log('🚀 App component initializing... isBrowser:', this.isBrowser);
+    
+    // Track navigation for debugging
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      console.log('🧭 Navigation to:', event.url);
+    });
+
+    this.initializeAuth();
   }
 
-  private async initializeApp() {
-    // Wait a bit longer to ensure everything is ready
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const currentUrl = this.router.url;
-      
-      if (token && this.authService.isAuthenticated()) {
-        // Token is valid
-        if (!this.authService.currentUserValue) {
-          this.authService.loadUserData();
-        }
-        
-        // Only navigate if we're on login page or root
-        if (currentUrl === '/login' || currentUrl === '/' || currentUrl === '') {
-          await this.router.navigate(['/home']);
-        }
-      } else {
-        // No valid token
-        if (currentUrl !== '/login') {
-          await this.router.navigate(['/login']);
-        }
-      }
+  private initializeAuth(): void {
+    console.log('🔐 Initializing auth...');
+    
+    // On server-side, finish initialization immediately
+    if (!this.isBrowser) {
+      console.log('🌐 Server-side rendering - finishing initialization');
+      this.isInitializing = false;
+      return;
+    }
+    
+    // Check if user is authenticated
+    if (!this.authService.isAuthenticated()) {
+      console.log('❌ Not authenticated, finishing initialization');
+      this.isInitializing = false;
+      return;
     }
 
-    // Mark as initialized after all checks are done
-    this.isInitialized = true;
+    // If user data is already loaded, finish initialization
+    if (this.authService.currentUserValue) {
+      console.log('✅ User already loaded, finishing initialization');
+      this.isInitializing = false;
+      return;
+    }
+
+    // Load user data before showing the app
+    console.log('📡 Loading user data...');
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        console.log('✅ User loaded:', user);
+        this.isInitializing = false;
+      },
+      error: (error) => {
+        console.error('❌ Failed to load user:', error);
+        // Clear invalid token and finish initialization
+        localStorage.removeItem('token');
+        this.isInitializing = false;
+      }
+    });
   }
 }
