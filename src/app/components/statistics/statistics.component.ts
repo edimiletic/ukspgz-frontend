@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
@@ -40,6 +40,9 @@ showAllExpenses = false;
 showAllReferees = false; // Add this
 showAllCompetitions = false; // Add this
 showAllGrades = false;
+
+
+  isMobileFiltersOpen: boolean = false;
 
 
 gradeStats: GradeStats = {
@@ -727,6 +730,11 @@ onRoleChange() {
   this.showAllReferees = false; // Add this
   this.showAllCompetitions = false; // Add this
   this.showAllGrades= false;
+
+    if (window.innerWidth <= 768) {
+      this.isMobileFiltersOpen = false;
+    }
+
   this.loadStatistics();
 }
 
@@ -737,6 +745,10 @@ onFiltersChange() {
   this.showAllReferees = false; // Add this
   this.showAllCompetitions = false; // Add this
     this.showAllGrades = false; // Add this line
+
+    if (window.innerWidth <= 768) {
+      this.isMobileFiltersOpen = false;
+    }
 
   this.loadStatistics();
 }
@@ -780,7 +792,10 @@ clearAllFilters() {
   this.showAllCompetitions = false;
     this.showAllGrades = false; // Add this line
 
-  
+      if (window.innerWidth <= 768) {
+      this.isMobileFiltersOpen = false;
+    }
+
   // Reload statistics with cleared filters
   this.loadStatistics();
 }
@@ -955,6 +970,15 @@ getRankClass(position: number): string {
   if (position === 3) return 'bronze';
   return '';
 }
+  toggleMobileFilters(): void {
+    this.isMobileFiltersOpen = !this.isMobileFiltersOpen;
+  }
 
 
+    @HostListener('window:resize', ['$event'])
+  onResize(event: any): void {
+    if (event.target.innerWidth > 768) {
+      this.isMobileFiltersOpen = false;
+    }
+  }
 }
