@@ -8,23 +8,19 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender
   },
   {
-    path: 'home',
-    renderMode: RenderMode.Prerender
-  },
-  {
     path: 'login',
     renderMode: RenderMode.Prerender
   },
   {
-    path: 'basket-rules',
+    path: 'home',
     renderMode: RenderMode.Prerender
   },
   {
-    path: 'statistics',
+    path: 'assigned',  // This matches your actual route
     renderMode: RenderMode.Prerender
   },
   {
-    path: 'games-assigned',
+    path: 'absence',   // This matches your actual route
     renderMode: RenderMode.Prerender
   },
   {
@@ -32,11 +28,15 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender
   },
   {
-    path: 'time-absent',
+    path: 'documents', // This matches your actual route (not basket-rules)
     renderMode: RenderMode.Prerender
   },
   {
     path: 'exams',
+    renderMode: RenderMode.Prerender
+  },
+  {
+    path: 'statistics',
     renderMode: RenderMode.Prerender
   },
   {
@@ -58,7 +58,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
-    path: 'exams/result/**',
+    path: 'exams/result',
     renderMode: RenderMode.Server
   },
   
