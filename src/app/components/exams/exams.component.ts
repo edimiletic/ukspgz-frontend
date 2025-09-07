@@ -211,14 +211,14 @@ attemptToDelete: ExamAttempt | null = null;
   getExamTitle(attempt: ExamAttempt): string {
     // Handle case where examId is null or invalid
     if (!attempt.examId) {
-      return 'Sudački Ispit (Obrisan)';
+      return 'Sudački ispit (Obrisan)';
     }
     
     if (typeof attempt.examId === 'object' && attempt.examId.title) {
       return attempt.examId.title;
     }
     
-    return 'Sudački Ispit';
+    return 'Sudački ispit';
   }
 
   isExamExpired(): boolean {

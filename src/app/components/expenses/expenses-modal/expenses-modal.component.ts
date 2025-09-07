@@ -27,16 +27,16 @@ export class ExpensesModalComponent implements OnInit {
 
   // All available report types
   private allReportTypes = [
-    'Troškovno izvješće Sutca',
+    'Troškovno izvješće suca',
     'Troškovno izvješće Delegata',
-    'Troškovno izvješće Pomoćnog Sutca'
+    'Troškovno izvješće pomoćnog suca'
   ];
 
   // Role-based mapping for report types
   private roleToReportTypeMap = {
-    'Sudac': ['Troškovno izvješće Sutca'],
-    'Delegat': ['Troškovno izvješće Delegata'],
-    'Pomoćni sudac': ['Troškovno izvješće Pomoćnog Sutca']
+    'Sudac': ['Troškovno izvješće suca'],
+    'Delegat': ['Troškovno izvješće delegata'],
+    'Pomoćni sudac': ['Troškovno izvješće pomoćnog suca']
   };
 
   // Available report types based on user role
