@@ -1,6 +1,8 @@
 <!-- src/app/components/statistika/statistika.component.html -->
 <app-header></app-header>
 
+<app-sidebar></app-sidebar>
+
 <div class="statistika-container">
     <div class="header">
         <h1>
@@ -108,46 +110,46 @@
         </div>
     </div>
 
-<!-- Loading Indicator -->
-<div class="loading-section" *ngIf="isLoading">
-    <div class="loading-spinner"></div>
-    <p>Učitavanje statistika...</p>
-</div>
-
-<!-- Summary Cards -->
-<div class="summary-cards" *ngIf="!isLoading">
-    <div class="summary-card">
-        <div class="card-icon">
-            <i class="fas fa-calendar-alt"></i>
-        </div>
-        <div class="card-content">
-            <h3>{{ totalGamesInPeriod }}</h3>
-            <p>Ukupno utakmica</p>
-        </div>
+    <!-- Loading Indicator -->
+    <div class="loading-section" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+        <p>Učitavanje statistika...</p>
     </div>
 
-    <div class="summary-card">
-        <div class="card-icon">
-            <i class="fas fa-users"></i>
+    <!-- Summary Cards -->
+    <div class="summary-cards" *ngIf="!isLoading">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ totalGamesInPeriod }}</h3>
+                <p>Ukupno utakmica</p>
+            </div>
         </div>
-        <div class="card-content">
-            <h3>{{ totalRefereesActive }}</h3>
-            <p>Aktivnih sudaca</p>
-        </div>
-    </div>
 
-    <div class="summary-card">
-        <div class="card-icon">
-            <i class="fas fa-trophy"></i>
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ totalRefereesActive }}</h3>
+                <p>Aktivnih sudaca</p>
+            </div>
         </div>
-        <div class="card-content">
-            <h3>{{ mostActiveReferee?.referee?.name || 'N/A' }} {{ mostActiveReferee?.referee?.surname || '' }}</h3>
-            <p>Najaktivniji {{ selectedRole.toLowerCase() }} ({{ mostActiveReferee?.gamesInPeriod || 0 }} utakmica)
-            </p>
-        </div>
-    </div>
 
-    <!-- <div class="summary-card">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ mostActiveReferee?.referee?.name || 'N/A' }} {{ mostActiveReferee?.referee?.surname || '' }}</h3>
+                <p>Najaktivniji {{ selectedRole.toLowerCase() }} ({{ mostActiveReferee?.gamesInPeriod || 0 }} utakmica)
+                </p>
+            </div>
+        </div>
+
+        <!-- <div class="summary-card">
       <div class="card-icon">
         <i class="fas fa-medal"></i>
       </div>
@@ -156,379 +158,358 @@
         <p>Najpopularnije natjecanje</p>
       </div>
     </div> -->
-</div>
+    </div>
 
-<!-- Statistics Sections -->
-<div class="statistics-sections" *ngIf="!isLoading">
+    <!-- Statistics Sections -->
+    <div class="statistics-sections" *ngIf="!isLoading">
 
-    <!-- Referee Statistics -->
-    <div class="stats-section">
-        <h2>
-            <i class="fas fa-user-tie"></i>
-            Statistike {{selectedRole}}
-        </h2>
+        <!-- Referee Statistics -->
+        <div class="stats-section">
+            <h2>
+                <i class="fas fa-user-tie"></i>
+                Statistike {{selectedRole}}
+            </h2>
 
-        <div class="table-container" *ngIf="refereeStats.length > 0; else noRefereeData">
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Sudac</th>
-                        <th>Broj utakmica</th>
-                        <th>Najčešće natjecanje</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Show first 10 referees -->
-                    <tr *ngFor="let stat of refereeStats.slice(0, 10)">
-                        <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
-                        <td>{{ stat.gamesInPeriod }}</td>
-                        <td>
-                            <span *ngIf="getObjectKeys(stat.competitions).length > 0">
-                                {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0]
-                                }})
-                            </span>
-                            <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
-                        </td>
-                    </tr>
-
-                    <!-- Show remaining referees when expanded -->
-                    <ng-container *ngIf="showAllReferees">
-                        <tr *ngFor="let stat of refereeStats.slice(10)">
+            <div class="table-container" *ngIf="refereeStats.length > 0; else noRefereeData">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Sudac</th>
+                            <th>Broj utakmica</th>
+                            <th>Najčešće natjecanje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Show first 10 referees -->
+                        <tr *ngFor="let stat of refereeStats.slice(0, 10)">
                             <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
                             <td>{{ stat.gamesInPeriod }}</td>
                             <td>
                                 <span *ngIf="getObjectKeys(stat.competitions).length > 0">
-                                    {{ getObjectKeys(stat.competitions)[0] }} ({{
-                                    getObjectValues(stat.competitions)[0] }})
+                                    {{ getObjectKeys(stat.competitions)[0] }} ({{ getObjectValues(stat.competitions)[0]
+                                    }})
                                 </span>
                                 <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
                             </td>
                         </tr>
-                    </ng-container>
-                </tbody>
-            </table>
 
-            <!-- Show/Hide all link for referees -->
-            <div class="view-all-link" *ngIf="refereeStats.length > 10">
-                <a href="javascript:void(0)" (click)="showAllReferees = !showAllReferees" class="link-text">
-                    {{ showAllReferees ? 'Prikaži manje' : 'Prikaži sve (' + refereeStats.length + ')' }}
-                </a>
+                        <!-- Show remaining referees when expanded -->
+                        <ng-container *ngIf="showAllReferees">
+                            <tr *ngFor="let stat of refereeStats.slice(10)">
+                                <td>{{ stat.referee.name }} {{ stat.referee.surname }}</td>
+                                <td>{{ stat.gamesInPeriod }}</td>
+                                <td>
+                                    <span *ngIf="getObjectKeys(stat.competitions).length > 0">
+                                        {{ getObjectKeys(stat.competitions)[0] }} ({{
+                                        getObjectValues(stat.competitions)[0] }})
+                                    </span>
+                                    <span *ngIf="getObjectKeys(stat.competitions).length === 0">N/A</span>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+
+                <!-- Show/Hide all link for referees -->
+                <div class="view-all-link" *ngIf="refereeStats.length > 10">
+                    <a href="javascript:void(0)" (click)="showAllReferees = !showAllReferees" class="link-text">
+                        {{ showAllReferees ? 'Prikaži manje' : 'Prikaži sve (' + refereeStats.length + ')' }}
+                    </a>
+                </div>
             </div>
+
+            <ng-template #noRefereeData>
+                <div class="no-data">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Nema podataka o {{ selectedRole.toLowerCase() }}e za odabrano razdoblje.</p>
+                </div>
+            </ng-template>
         </div>
 
-        <ng-template #noRefereeData>
-            <div class="no-data">
-                <i class="fas fa-info-circle"></i>
-                <p>Nema podataka o {{ selectedRole.toLowerCase() }}e za odabrano razdoblje.</p>
-            </div>
-        </ng-template>
-    </div>
+        <!-- Competition Statistics -->
+        <div class="stats-section">
+            <h2>
+                <i class="fas fa-trophy"></i>
+                Statistike natjecanja
+            </h2>
 
-    <!-- Competition Statistics -->
-    <div class="stats-section">
-        <h2>
-            <i class="fas fa-trophy"></i>
-            Statistike natjecanja
-        </h2>
-
-        <div class="table-container" *ngIf="competitionStats.length > 0; else noCompetitionData">
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Natjecanje</th>
-                        <th>Broj utakmica</th>
-                        <th>Broj {{ selectedRole === 'Sudac' ? 'sudaca' : selectedRole === 'Delegat' ? 'delegata' :
-                            selectedRole === 'Pomoćni Sudac' ? 'pomoćnih sudaca' : selectedRole === 'Admin' ?
-                            'admina' : 'korisnika' }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Show first 10 competitions -->
-                    <tr *ngFor="let stat of competitionStats.slice(0, 10)">
-                        <td>{{ stat.competition }}</td>
-                        <td>{{ stat.totalGames }}</td>
-                        <td>{{ stat.totalReferees }}</td>
-                    </tr>
-
-                    <!-- Show remaining competitions when expanded -->
-                    <ng-container *ngIf="showAllCompetitions">
-                        <tr *ngFor="let stat of competitionStats.slice(10)">
+            <div class="table-container" *ngIf="competitionStats.length > 0; else noCompetitionData">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Natjecanje</th>
+                            <th>Broj utakmica</th>
+                            <th>Broj {{ selectedRole === 'Sudac' ? 'sudaca' : selectedRole === 'Delegat' ? 'delegata' :
+                                selectedRole === 'Pomoćni Sudac' ? 'pomoćnih sudaca' : selectedRole === 'Admin' ?
+                                'admina' : 'korisnika' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Show first 10 competitions -->
+                        <tr *ngFor="let stat of competitionStats.slice(0, 10)">
                             <td>{{ stat.competition }}</td>
                             <td>{{ stat.totalGames }}</td>
                             <td>{{ stat.totalReferees }}</td>
                         </tr>
-                    </ng-container>
-                </tbody>
-            </table>
 
-            <!-- Show/Hide all link for competitions -->
-            <div class="view-all-link" *ngIf="competitionStats.length > 10">
-                <a href="javascript:void(0)" (click)="showAllCompetitions = !showAllCompetitions" class="link-text">
-                    {{ showAllCompetitions ? 'Prikaži manje' : 'Prikaži sve (' + competitionStats.length + ')' }}
-                </a>
-            </div>
-        </div>
+                        <!-- Show remaining competitions when expanded -->
+                        <ng-container *ngIf="showAllCompetitions">
+                            <tr *ngFor="let stat of competitionStats.slice(10)">
+                                <td>{{ stat.competition }}</td>
+                                <td>{{ stat.totalGames }}</td>
+                                <td>{{ stat.totalReferees }}</td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
 
-        <ng-template #noCompetitionData>
-            <div class="no-data">
-                <i class="fas fa-info-circle"></i>
-                <p>Nema podataka o natjecanjima za odabrano razdoblje.</p>
-            </div>
-        </ng-template>
-    </div>
-
-    <!-- Update the absence statistics section -->
-    <div class="stats-section">
-        <h2>
-            <i class="fas fa-calendar-times"></i>
-            Statistike odsustva - {{ selectedRole }}
-        </h2>
-
-        <div class="absence-stats">
-            <div class="stats-row">
-                <div class="stat-item">
-                    <strong>Ukupno odsustva ({{ selectedRole }}):</strong> {{ absenceStats.totalAbsences }}
-                </div>
-                <div class="stat-item">
-                    <strong>Ukupno dana:</strong> {{ absenceStats.totalDays }}
-                </div>
-            </div>
-
-            <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
-                <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s
-                    najviše dana odsustva:</h4>
-                <div class="absence-list">
-                    <div class="absence-item" *ngFor="let referee of getSortedAbsenceReferees().slice(0, 5)">
-                        <span class="referee-name">{{ referee }}</span>
-                        <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
-                    </div>
-                </div>
-
-                <!-- The link should appear now -->
-                <div class="view-all-link" *ngIf="getSortedAbsenceReferees().length > 5">
-                    <a href="javascript:void(0)" (click)="showAllAbsences = !showAllAbsences" class="link-text">
-                        {{ showAllAbsences ? 'Prikaži manje' : 'Prikaži sve (' + getSortedAbsenceReferees().length +
-                        ')' }}
+                <!-- Show/Hide all link for competitions -->
+                <div class="view-all-link" *ngIf="competitionStats.length > 10">
+                    <a href="javascript:void(0)" (click)="showAllCompetitions = !showAllCompetitions" class="link-text">
+                        {{ showAllCompetitions ? 'Prikaži manje' : 'Prikaži sve (' + competitionStats.length + ')' }}
                     </a>
                 </div>
-
-                <!-- Show remaining absences when expanded -->
-                <div class="absence-list" *ngIf="showAllAbsences">
-                    <div class="absence-item" *ngFor="let referee of getSortedAbsenceReferees().slice(5)">
-                        <span class="referee-name">{{ referee }}</span>
-                        <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
-                    </div>
-                </div>
             </div>
 
-            <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length === 0">
+            <ng-template #noCompetitionData>
                 <div class="no-data">
                     <i class="fas fa-info-circle"></i>
-                    <p>Nema podataka o odsustavu za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+                    <p>Nema podataka o natjecanjima za odabrano razdoblje.</p>
+                </div>
+            </ng-template>
+        </div>
+
+        <!-- Update the absence statistics section -->
+        <div class="stats-section">
+            <h2>
+                <i class="fas fa-calendar-times"></i>
+                Statistike odsustva - {{ selectedRole }}
+            </h2>
+
+            <div class="absence-stats">
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <strong>Ukupno odsustva ({{ selectedRole }}):</strong> {{ absenceStats.totalAbsences }}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Ukupno dana:</strong> {{ absenceStats.totalDays }}
+                    </div>
+                </div>
+
+                <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length > 0">
+                    <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s
+                        najviše dana odsustva:</h4>
+                    <div class="absence-list">
+                        <div class="absence-item" *ngFor="let referee of getSortedAbsenceReferees().slice(0, 5)">
+                            <span class="referee-name">{{ referee }}</span>
+                            <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
+                        </div>
+                    </div>
+
+                    <!-- The link should appear now -->
+                    <div class="view-all-link" *ngIf="getSortedAbsenceReferees().length > 5">
+                        <a href="javascript:void(0)" (click)="showAllAbsences = !showAllAbsences" class="link-text">
+                            {{ showAllAbsences ? 'Prikaži manje' : 'Prikaži sve (' + getSortedAbsenceReferees().length +
+                            ')' }}
+                        </a>
+                    </div>
+
+                    <!-- Show remaining absences when expanded -->
+                    <div class="absence-list" *ngIf="showAllAbsences">
+                        <div class="absence-item" *ngFor="let referee of getSortedAbsenceReferees().slice(5)">
+                            <span class="referee-name">{{ referee }}</span>
+                            <span class="absence-days">{{ absenceStats.byReferee[referee] }} dana</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-subsection" *ngIf="getObjectKeys(absenceStats.byReferee).length === 0">
+                    <div class="no-data">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Nema podataka o odsustavu za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Expense Statistics -->
-    <div class="stats-section">
-        <h2>
-            <i class="fas fa-money-bill-wave"></i>
-            Statistike troškova - {{ selectedRole }}
-        </h2>
+        <!-- Expense Statistics -->
+        <div class="stats-section">
+            <h2>
+                <i class="fas fa-money-bill-wave"></i>
+                Statistike troškova - {{ selectedRole }}
+            </h2>
 
-        <div class="expense-stats">
-            <div class="stats-row">
-                <div class="stat-item">
-                    <strong>Ukupno troškova ({{ selectedRole }}):</strong> {{ expenseStats.totalExpenses }}
-                </div>
-                <div class="stat-item">
-                    <strong>Ukupan iznos:</strong> {{ expenseStats.totalAmount | number:'1.2-2' }} €
-                </div>
-                <div class="stat-item">
-                    <strong>Prosjek po trošku:</strong> {{ expenseStats.avgAmountPerExpense | number:'1.2-2' }} €
-                </div>
-            </div>
-
-            <!-- By Status -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byStatus).length > 0">
-                <h4>Troškovi po statusu:</h4>
-                <div class="status-stats">
-                    <div class="status-item" *ngFor="let status of getObjectKeys(expenseStats.byStatus)">
-                        <span class="status-name">{{ status }}</span>
-                        <span class="status-count">{{ expenseStats.byStatus[status] }}</span>
+            <div class="expense-stats">
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <strong>Ukupno troškova ({{ selectedRole }}):</strong> {{ expenseStats.totalExpenses }}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Ukupan iznos:</strong> {{ expenseStats.totalAmount | number:'1.2-2' }} €
+                    </div>
+                    <div class="stat-item">
+                        <strong>Prosjek po trošku:</strong> {{ expenseStats.avgAmountPerExpense | number:'1.2-2' }} €
                     </div>
                 </div>
-            </div>
 
-            <!-- Top 5 Referees by Amount -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length > 0">
-                <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s
-                    najviše troškova:</h4>
-                <div class="expense-list">
-                    <div class="expense-item" *ngFor="let referee of getSortedExpenseReferees().slice(0, 5)">
-                        <span class="referee-name">{{ referee }}</span>
-                        <div class="expense-details">
-                            <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
-                            <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2'
-                                }} €</span>
+                <!-- By Status -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byStatus).length > 0">
+                    <h4>Troškovi po statusu:</h4>
+                    <div class="status-stats">
+                        <div class="status-item" *ngFor="let status of getObjectKeys(expenseStats.byStatus)">
+                            <span class="status-name">{{ status }}</span>
+                            <span class="status-count">{{ expenseStats.byStatus[status] }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="view-all-link" *ngIf="getSortedExpenseReferees().length > 5">
-                    <a href="javascript:void(0)" (click)="showAllExpenses = !showAllExpenses" class="link-text">
-                        {{ showAllExpenses ? 'Prikaži manje' : 'Prikaži sve (' + getSortedExpenseReferees().length +
-                        ')' }}
-                    </a>
-                </div>
+                <!-- Top 5 Referees by Amount -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length > 0">
+                    <h4>Top 5 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} s
+                        najviše troškova:</h4>
+                    <div class="expense-list">
+                        <div class="expense-item" *ngFor="let referee of getSortedExpenseReferees().slice(0, 5)">
+                            <span class="referee-name">{{ referee }}</span>
+                            <div class="expense-details">
+                                <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
+                                <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2'
+                                    }} €</span>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="expense-list" *ngIf="showAllExpenses">
-                    <div class="expense-item" *ngFor="let referee of getSortedExpenseReferees().slice(5)">
-                        <span class="referee-name">{{ referee }}</span>
-                        <div class="expense-details">
-                            <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
-                            <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2'
-                                }} €</span>
+                    <div class="view-all-link" *ngIf="getSortedExpenseReferees().length > 5">
+                        <a href="javascript:void(0)" (click)="showAllExpenses = !showAllExpenses" class="link-text">
+                            {{ showAllExpenses ? 'Prikaži manje' : 'Prikaži sve (' + getSortedExpenseReferees().length +
+                            ')' }}
+                        </a>
+                    </div>
+
+                    <div class="expense-list" *ngIf="showAllExpenses">
+                        <div class="expense-item" *ngFor="let referee of getSortedExpenseReferees().slice(5)">
+                            <span class="referee-name">{{ referee }}</span>
+                            <div class="expense-details">
+                                <span class="expense-count">{{ expenseStats.byReferee[referee].count }} troškova</span>
+                                <span class="expense-amount">{{ expenseStats.byReferee[referee].amount | number:'1.2-2'
+                                    }} €</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- By Type -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byType).length > 0">
-                <h4>Troškovi po tipu:</h4>
-                <div class="type-stats">
-                    <div class="type-item" *ngFor="let type of getObjectKeys(expenseStats.byType)">
-                        <span class="type-name">{{ type }}</span>
-                        <span class="type-count">{{ expenseStats.byType[type] }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Monthly breakdown -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byMonth).length > 0">
-                <h4>Mjesečni pregled (zadnjih 6 mjeseci):</h4>
-                <div class="monthly-stats">
-                    <div class="month-item" *ngFor="let month of getObjectKeys(expenseStats.byMonth).slice(-6)">
-                        <span class="month-name">{{ month }}</span>
-                        <div class="month-details">
-                            <span class="month-count">{{ expenseStats.byMonth[month].count }} troškova</span>
-                            <span class="month-amount">{{ expenseStats.byMonth[month].amount | number:'1.2-2' }}
-                                €</span>
+                <!-- By Type -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byType).length > 0">
+                    <h4>Troškovi po tipu:</h4>
+                    <div class="type-stats">
+                        <div class="type-item" *ngFor="let type of getObjectKeys(expenseStats.byType)">
+                            <span class="type-name">{{ type }}</span>
+                            <span class="type-count">{{ expenseStats.byType[type] }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- No data message -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length === 0">
-                <div class="no-data">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Nema podataka o troškovima za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+                <!-- Monthly breakdown -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byMonth).length > 0">
+                    <h4>Mjesečni pregled (zadnjih 6 mjeseci):</h4>
+                    <div class="monthly-stats">
+                        <div class="month-item" *ngFor="let month of getObjectKeys(expenseStats.byMonth).slice(-6)">
+                            <span class="month-name">{{ month }}</span>
+                            <div class="month-details">
+                                <span class="month-count">{{ expenseStats.byMonth[month].count }} troškova</span>
+                                <span class="month-amount">{{ expenseStats.byMonth[month].amount | number:'1.2-2' }}
+                                    €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No data message -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(expenseStats.byReferee).length === 0">
+                    <div class="no-data">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Nema podataka o troškovima za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+                    </div>
                 </div>
             </div>
+            <!-- Referee Grades Statistics -->
+
+
         </div>
-        <!-- Referee Grades Statistics -->
 
+        <div class="stats-section">
+            <h2>
+                <i class="fas fa-star"></i>
+                Statistike ocjena - {{ selectedRole }}
+            </h2>
 
-    </div>
-
-    <div class="stats-section">
-        <h2>
-            <i class="fas fa-star"></i>
-            Statistike ocjena - {{ selectedRole }}
-        </h2>
-
-        <div class="grades-stats">
-            <div class="stats-row">
-                <div class="stat-item">
-                    <strong>Ukupno ocjena ({{ selectedRole }}):</strong> {{ gradeStats.totalEvaluations }}
-                </div>
-                <div class="stat-item">
-                    <strong>Prosjek ocjena:</strong> {{ gradeStats.averageGrade | number:'1.2-2' }}
-                </div>
-                <div class="stat-item">
-                    <strong>Najčešća ocjena:</strong>
-                    <span *ngIf="getObjectKeys(gradeStats.gradeDistribution).length > 0">
-                        {{ getObjectKeys(gradeStats.gradeDistribution)[0] }}
-                    </span>
-                    <span *ngIf="getObjectKeys(gradeStats.gradeDistribution).length === 0">N/A</span>
-                </div>
-            </div>
-
-            <!-- Grade Distribution -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.gradeDistribution).length > 0">
-                <h4>Distribucija ocjena:</h4>
-                <div class="grade-distribution">
-                    <div class="grade-item" *ngFor="let grade of getObjectKeys(gradeStats.gradeDistribution)">
-                        <span class="grade-name">{{ grade }}</span>
-                        <span class="grade-count">{{ gradeStats.gradeDistribution[grade] }}</span>
+            <div class="grades-stats">
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <strong>Ukupno ocjena ({{ selectedRole }}):</strong> {{ gradeStats.totalEvaluations }}
                     </div>
-                </div>
-            </div>
-
-            <!-- Category Averages -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byCategory).length > 0">
-                <h4>Prosjeci po kategorijama:</h4>
-                <div class="category-grades">
-                    <div class="category-item" *ngFor="let category of getObjectKeys(gradeStats.byCategory)">
-                        <span class="category-name">
-                            {{ category === 'ocjena' ? 'Ukupna Ocjena' :
-                            category === 'pogreske' ? 'Pogreške' :
-                            category === 'prekrsaji' ? 'Prekršaji' :
-                            category === 'tehnikaMehanika' ? 'Tehnika/Mehanika' :
-                            category === 'timskiRad' ? 'Timski Rad' :
-                            category === 'kontrolaUtakmice' ? 'Kontrola Utakmice' : category }}
+                    <div class="stat-item">
+                        <strong>Prosjek ocjena:</strong> {{ gradeStats.averageGrade | number:'1.2-2' }}
+                    </div>
+                    <div class="stat-item">
+                        <strong>Najčešća ocjena:</strong>
+                        <span *ngIf="getObjectKeys(gradeStats.gradeDistribution).length > 0">
+                            {{ getObjectKeys(gradeStats.gradeDistribution)[0] }}
                         </span>
-                        <span class="category-average" [class]="getGradeClass(gradeStats.byCategory[category])">
-                            {{ gradeStats.byCategory[category] | number:'1.2-2' }}
-                        </span>
+                        <span *ngIf="getObjectKeys(gradeStats.gradeDistribution).length === 0">N/A</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Top Referees Ranking -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byReferee).length > 0">
-                <h4>Rang lista {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }}
-                    po prosjeku ocjena:</h4>
-
-                <div class="ranking-table">
-                    <!-- Header -->
-                    <div class="ranking-header">
-                        <div>Rang</div>
-                        <div>{{ selectedRole === 'Admin' ? 'Korisnik' : selectedRole }}</div>
-                        <div>Broj Ocjena</div>
-                        <div>Prosjek</div>
-                        <!-- <div>Trend</div> -->
-                    </div>
-
-                    <!-- Show first 10 referees -->
-                    <div class="ranking-item"
-                        *ngFor="let referee of getSortedGradeReferees().slice(0, 10); let i = index">
-                        <div class="rank-number">
-                            <span class="rank-position" [class]="getRankClass(i + 1)">{{ i + 1 }}</span>
+                <!-- Grade Distribution -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.gradeDistribution).length > 0">
+                    <h4>Distribucija ocjena:</h4>
+                    <div class="grade-distribution">
+                        <div class="grade-item" *ngFor="let grade of getObjectKeys(gradeStats.gradeDistribution)">
+                            <span class="grade-name">{{ grade }}</span>
+                            <span class="grade-count">{{ gradeStats.gradeDistribution[grade] }}</span>
                         </div>
-                        <div class="referee-name">{{ referee }}</div>
-                        <div class="grade-count">{{ gradeStats.byReferee[referee].totalEvaluations }}</div>
-                        <div class="average-grade" [class]="getGradeClass(gradeStats.byReferee[referee].averageGrade)">
-                            {{ gradeStats.byReferee[referee].averageGrade | number:'1.2-2' }}
-                            <small>({{ getGradeText(gradeStats.byReferee[referee].averageGrade) }})</small>
-                        </div>
-                        <!-- <div class="grade-trend">
-                                    <i class="fas" [class.fa-arrow-up]="gradeStats.byReferee[referee].trend === 'up'"
-                                        [class.fa-arrow-down]="gradeStats.byReferee[referee].trend === 'down'"
-                                        [class.fa-minus]="gradeStats.byReferee[referee].trend === 'stable'"
-                                        [class.fa-question]="gradeStats.byReferee[referee].trend === 'new'"></i>
-                                </div> -->
                     </div>
+                </div>
 
-                    <!-- Show remaining referees when expanded -->
-                    <ng-container *ngIf="showAllGrades">
+                <!-- Category Averages -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byCategory).length > 0">
+                    <h4>Prosjeci po kategorijama:</h4>
+                    <div class="category-grades">
+                        <div class="category-item" *ngFor="let category of getObjectKeys(gradeStats.byCategory)">
+                            <span class="category-name">
+                                {{ category === 'ocjena' ? 'Ukupna Ocjena' :
+                                category === 'pogreske' ? 'Pogreške' :
+                                category === 'prekrsaji' ? 'Prekršaji' :
+                                category === 'tehnikaMehanika' ? 'Tehnika/Mehanika' :
+                                category === 'timskiRad' ? 'Timski Rad' :
+                                category === 'kontrolaUtakmice' ? 'Kontrola Utakmice' : category }}
+                            </span>
+                            <span class="category-average" [class]="getGradeClass(gradeStats.byCategory[category])">
+                                {{ gradeStats.byCategory[category] | number:'1.2-2' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Referees Ranking -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byReferee).length > 0">
+                    <h4>Rang lista {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }}
+                        po prosjeku ocjena:</h4>
+
+                    <div class="ranking-table">
+                        <!-- Header -->
+                        <div class="ranking-header">
+                            <div>Rang</div>
+                            <div>{{ selectedRole === 'Admin' ? 'Korisnik' : selectedRole }}</div>
+                            <div>Broj Ocjena</div>
+                            <div>Prosjek</div>
+                            <!-- <div>Trend</div> -->
+                        </div>
+
+                        <!-- Show first 10 referees -->
                         <div class="ranking-item"
-                            *ngFor="let referee of getSortedGradeReferees().slice(10); let i = index">
+                            *ngFor="let referee of getSortedGradeReferees().slice(0, 10); let i = index">
                             <div class="rank-number">
-                                <span class="rank-position">{{ i + 11 }}</span>
+                                <span class="rank-position" [class]="getRankClass(i + 1)">{{ i + 1 }}</span>
                             </div>
                             <div class="referee-name">{{ referee }}</div>
                             <div class="grade-count">{{ gradeStats.byReferee[referee].totalEvaluations }}</div>
@@ -538,67 +519,89 @@
                                 <small>({{ getGradeText(gradeStats.byReferee[referee].averageGrade) }})</small>
                             </div>
                             <!-- <div class="grade-trend">
+                                    <i class="fas" [class.fa-arrow-up]="gradeStats.byReferee[referee].trend === 'up'"
+                                        [class.fa-arrow-down]="gradeStats.byReferee[referee].trend === 'down'"
+                                        [class.fa-minus]="gradeStats.byReferee[referee].trend === 'stable'"
+                                        [class.fa-question]="gradeStats.byReferee[referee].trend === 'new'"></i>
+                                </div> -->
+                        </div>
+
+                        <!-- Show remaining referees when expanded -->
+                        <ng-container *ngIf="showAllGrades">
+                            <div class="ranking-item"
+                                *ngFor="let referee of getSortedGradeReferees().slice(10); let i = index">
+                                <div class="rank-number">
+                                    <span class="rank-position">{{ i + 11 }}</span>
+                                </div>
+                                <div class="referee-name">{{ referee }}</div>
+                                <div class="grade-count">{{ gradeStats.byReferee[referee].totalEvaluations }}</div>
+                                <div class="average-grade"
+                                    [class]="getGradeClass(gradeStats.byReferee[referee].averageGrade)">
+                                    {{ gradeStats.byReferee[referee].averageGrade | number:'1.2-2' }}
+                                    <small>({{ getGradeText(gradeStats.byReferee[referee].averageGrade) }})</small>
+                                </div>
+                                <!-- <div class="grade-trend">
                                         <i class="fas"
                                             [class.fa-arrow-up]="gradeStats.byReferee[referee].trend === 'up'"
                                             [class.fa-arrow-down]="gradeStats.byReferee[referee].trend === 'down'"
                                             [class.fa-minus]="gradeStats.byReferee[referee].trend === 'stable'"
                                             [class.fa-question]="gradeStats.byReferee[referee].trend === 'new'"></i>
                                     </div> -->
-                        </div>
-                    </ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+
+                    <!-- Show/Hide all link for grades -->
+                    <div class="view-all-link" *ngIf="getSortedGradeReferees().length > 10">
+                        <a href="javascript:void(0)" (click)="showAllGrades = !showAllGrades" class="link-text">
+                            {{ showAllGrades ? 'Prikaži manje' : 'Prikaži sve (' + getSortedGradeReferees().length +
+                            ')' }}
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Show/Hide all link for grades -->
-                <div class="view-all-link" *ngIf="getSortedGradeReferees().length > 10">
-                    <a href="javascript:void(0)" (click)="showAllGrades = !showAllGrades" class="link-text">
-                        {{ showAllGrades ? 'Prikaži manje' : 'Prikaži sve (' + getSortedGradeReferees().length +
-                        ')' }}
-                    </a>
-                </div>
-            </div>
+                <!-- Detailed Category Breakdown -->
+                <!-- Detailed Category Breakdown -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byReferee).length > 0">
+                    <h4>Top 3 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} po
+                        kategorijama:</h4>
 
-            <!-- Detailed Category Breakdown -->
-            <!-- Detailed Category Breakdown -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byReferee).length > 0">
-                <h4>Top 3 {{ selectedRole === 'Admin' ? 'korisnika' : (selectedRole.toLowerCase() + 'a') }} po
-                    kategorijama:</h4>
+                    <div class="category-leaders">
+                        <!-- Show top performer in each category -->
+                        <div class="category-leader" *ngFor="let category of getObjectKeys(gradeStats.byCategory)">
+                            <h5>
+                                {{ category === 'ocjena' ? 'Ukupna Ocjena' :
+                                category === 'pogreske' ? 'Pogreške' :
+                                category === 'prekrsaji' ? 'Prekršaji' :
+                                category === 'tehnikaMehanika' ? 'Tehnika/Mehanika' :
+                                category === 'timskiRad' ? 'Timski Rad' :
+                                category === 'kontrolaUtakmice' ? 'Kontrola Utakmice' : category }}
+                            </h5>
 
-                <div class="category-leaders">
-                    <!-- Show top performer in each category -->
-                    <div class="category-leader" *ngFor="let category of getObjectKeys(gradeStats.byCategory)">
-                        <h5>
-                            {{ category === 'ocjena' ? 'Ukupna Ocjena' :
-                            category === 'pogreske' ? 'Pogreške' :
-                            category === 'prekrsaji' ? 'Prekršaji' :
-                            category === 'tehnikaMehanika' ? 'Tehnika/Mehanika' :
-                            category === 'timskiRad' ? 'Timski Rad' :
-                            category === 'kontrolaUtakmice' ? 'Kontrola Utakmice' : category }}
-                        </h5>
-
-                        <div class="top-performers">
-                            <div class="performer"
-                                *ngFor="let referee of getSortedRefereesByCategory(category).slice(0, 3); let i = index">
-                                <span class="performer-rank">{{ i + 1 }}.</span>
-                                <span class="performer-name">{{ referee }}</span>
-                                <span class="performer-grade"
-                                    [class]="getGradeClass(gradeStats.byReferee[referee].categoryAverages[category])">
-                                    {{ gradeStats.byReferee[referee].categoryAverages[category] | number:'1.1-1' }}
-                                </span>
+                            <div class="top-performers">
+                                <div class="performer"
+                                    *ngFor="let referee of getSortedRefereesByCategory(category).slice(0, 3); let i = index">
+                                    <span class="performer-rank">{{ i + 1 }}.</span>
+                                    <span class="performer-name">{{ referee }}</span>
+                                    <span class="performer-grade"
+                                        [class]="getGradeClass(gradeStats.byReferee[referee].categoryAverages[category])">
+                                        {{ gradeStats.byReferee[referee].categoryAverages[category] | number:'1.1-1' }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- No data message -->
-            <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byReferee).length === 0">
-                <div class="no-data">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Nema podataka o ocjenama za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+                <!-- No data message -->
+                <div class="stats-subsection" *ngIf="getObjectKeys(gradeStats.byReferee).length === 0">
+                    <div class="no-data">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Nema podataka o ocjenama za {{ selectedRole.toLowerCase() }}e u odabranom razdoblju.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 <app-footer></app-footer>

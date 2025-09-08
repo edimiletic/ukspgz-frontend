@@ -11,10 +11,11 @@ import { TravelExpenseService } from '../../services/travel-expense.service';
 import { HeaderComponent } from "../header/header.component";
 import { KontrolaService } from '../../services/kontrola.service';
 import { FooterComponent } from "../footer/footer.component";
+import { SidebarComponent } from '../sidebar/sidebar.component';
 
 @Component({
   selector: 'app-statistics',
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent, SidebarComponent],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.scss'
 })

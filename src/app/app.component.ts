@@ -24,52 +24,47 @@ export class AppComponent implements OnInit {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
-  ngOnInit() {
-    console.log('🚀 App component initializing... isBrowser:', this.isBrowser);
-    
+  ngOnInit() {    
     // Track navigation for debugging
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      console.log('🧭 Navigation to:', event.url);
+      console.log('Navigation to:', event.url);
     });
 
     this.initializeAuth();
   }
 
   private initializeAuth(): void {
-    console.log('🔐 Initializing auth...');
     
     // On server-side, finish initialization immediately
     if (!this.isBrowser) {
-      console.log('🌐 Server-side rendering - finishing initialization');
       this.isInitializing = false;
       return;
     }
     
     // Check if user is authenticated
     if (!this.authService.isAuthenticated()) {
-      console.log('❌ Not authenticated, finishing initialization');
+      console.log('Not authenticated, finishing initialization');
       this.isInitializing = false;
       return;
     }
 
     // If user data is already loaded, finish initialization
     if (this.authService.currentUserValue) {
-      console.log('✅ User already loaded, finishing initialization');
+      console.log('User already loaded, finishing initialization');
       this.isInitializing = false;
       return;
     }
 
     // Load user data before showing the app
-    console.log('📡 Loading user data...');
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
-        console.log('✅ User loaded:', user);
+        console.log('User loaded:', user);
         this.isInitializing = false;
       },
       error: (error) => {
-        console.error('❌ Failed to load user:', error);
+        console.error('Failed to load user:', error);
         // Clear invalid token and finish initialization
         localStorage.removeItem('token');
         this.isInitializing = false;

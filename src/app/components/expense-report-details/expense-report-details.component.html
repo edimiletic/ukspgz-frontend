@@ -12,11 +12,12 @@
             <div class="loading-spinner"></div>
             <p>Učitavanje izvješća...</p>
         </div>
-
+        <div *ngIf="report && !isLoading">
         <a href="/expenses" class="back-button-simple">
             <i class="fa-solid fa-arrow-left"></i>
             <span class="back-text"></span>
         </a>
+        </div>
         
         <!-- Report Content -->
         <div *ngIf="report && !isLoading" class="report-container">
@@ -126,8 +127,8 @@
                                 <tr>
                                     <th>Datum</th>
                                     <th>Vrsta</th>
-                                    <th>Kratki Opis</th>
-                                    <th>Ukupna Cijena</th>
+                                    <th>Kratki opis</th>
+                                    <th>Ukupna cijena</th>
                                     <th *ngIf="!isAdmin">Akcija</th>
                                 </tr>
                             </thead>
@@ -162,7 +163,7 @@
                         <!-- Total Amount Row -->
                         <div class="total-amount-section">
                             <div class="total-amount-row">
-                                <span class="total-label">Ukupan Iznos Svih Stavki:</span>
+                                <span class="total-label">Ukupan iznos svih stavki:</span>
                                 <span class="total-value">{{ getTotalExpensesAmount() }}</span>
                             </div>
                         </div>

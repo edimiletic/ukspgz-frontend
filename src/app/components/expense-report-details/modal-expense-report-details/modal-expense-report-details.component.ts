@@ -27,8 +27,8 @@ export class ModalExpenseReportDetailsComponent {
   };
 
   expenseTypes = [
-    'Prijevoz Automobilom',
-    'Putnička Karta'
+    'Prijevoz automobilom',
+    'Putnička karta'
   ];
 
   units = [
@@ -103,12 +103,12 @@ export class ModalExpenseReportDetailsComponent {
 
   onExpenseTypeChange() {
     // Auto-set values for "Prijevoz automobilom"
-    if (this.expenseData.type === 'Prijevoz Automobilom') {
+    if (this.expenseData.type === 'Prijevoz automobilom') {
       this.expenseData.unit = 'km';
       this.expenseData.unitPrice = 0.31;
     } 
     // Auto-set values for "Putnička Karta"
-    else if (this.expenseData.type === 'Putnička Karta') {
+    else if (this.expenseData.type === 'Putnička karta') {
       this.expenseData.unit = 'tk';
       this.expenseData.unitPrice = 0; // Reset price, user will enter it
     } 
@@ -121,12 +121,12 @@ export class ModalExpenseReportDetailsComponent {
 
   // Helper method to check if fields should be disabled for automobile transport
   isAutomobileTransport(): boolean {
-    return this.expenseData.type === 'Prijevoz Automobilom';
+    return this.expenseData.type === 'Prijevoz automobilom';
   }
 
   // Helper method to check if fields should be disabled for ticket
   isTicketTransport(): boolean {
-    return this.expenseData.type === 'Putnička Karta';
+    return this.expenseData.type === 'Putnička karta';
   }
 
   // Helper method to check if unit field should be disabled
