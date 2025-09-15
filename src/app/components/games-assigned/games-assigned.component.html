@@ -11,7 +11,7 @@
   <section class="content">
     <!-- Admin Title and Actions -->
     <div *ngIf="isAdmin() && !isLoading" class="admin-header">
-      <h1 class="admin-title">Sve Utakmice</h1>
+      <h1 class="admin-title">Sve utakmice</h1>
       <button class="btn btn-primary btn-create-game" (click)="openCreateGameModal()">
         <i class="fas fa-plus"></i>
         Kreiraj Utakmicu
@@ -19,7 +19,7 @@
     </div>
 
     <div *ngIf="!isAdmin() && !isLoading" class="header">
-      <h1 class="title">Sve Utakmice</h1>
+      <h1 class="title">Sve utakmice</h1>
     </div>
 
     <!-- Filter Section -->
