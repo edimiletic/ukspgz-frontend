@@ -4,13 +4,14 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { KontrolaData, ViewKontrolaData } from '../model/kontrola.model';
-import { environment } from '../../../enviroment.prod';
+import { environment } from '../../enviroments/enviroment';
+import { environment_prod } from '../../enviroments/enviroment.prod';
 
 @Injectable({
   providedIn: 'root'
 })
 export class KontrolaService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment_prod.apiUrl;
 
   constructor(private http: HttpClient) {
     console.log('KontrolaService constructor called');

@@ -88,21 +88,28 @@ isMobileFiltersOpen: boolean = false;
     this.checkUserRole();
   }
 
-  checkUserRole() {
-    this.authService.getCurrentUser().subscribe({
-      next: (user: User) => {
-        console.log('Current user:', user); // Debug log
+ checkUserRole() {
+  this.authService.getCurrentUser().subscribe({
+    next: (user: User | null) => {
+      if (user) {
+        console.log('Current user:', user);
         this.isAdmin = user.role === 'Admin';
-        console.log('Is admin:', this.isAdmin); // Debug log
-        this.loadAbsences();
-      },
-      error: (error) => {
-        console.error('Error getting current user:', error);
-        this.showError('Greška pri provjeri korisničke uloge.');
-        this.loadAbsences(); // Load anyway, backend will handle permissions
+        console.log('Is admin:', this.isAdmin);
+      } else {
+        console.log('No user returned from getCurrentUser');
+        this.isAdmin = false;
       }
-    });
-  }
+      this.loadAbsences();
+    },
+    error: (error) => {
+      console.error('Error getting current user:', error);
+      this.isAdmin = false;
+      this.showError('Greška pri provjeri korisničke uloge.');
+      // Still try to load absences
+      this.loadAbsences();
+    }
+  });
+}
 
   loadAbsences() {
     this.isLoading = true;

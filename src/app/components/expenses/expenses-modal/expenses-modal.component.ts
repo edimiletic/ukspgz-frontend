@@ -81,16 +81,21 @@ export class ExpensesModalComponent implements OnInit {
     this.isLoadingUser = true;
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
+      if (user) {  // Check if user is not null
         this.currentUser = user;
         this.setAvailableReportTypes(user.role);
-        this.isLoadingUser = false;
         console.log('Current user loaded:', user);
+      } else {
+        console.log('No user returned from getCurrentUser');
+        this.reportTypes = []; // Set empty array if no user
+      }
+      this.isLoadingUser = false;
       },
       error: (error) => {
         console.error('Error loading current user:', error);
         this.errorMessage = 'Greška pri učitavanju korisničkih podataka.';
         // Fallback: show all report types if user data can't be loaded
-        this.reportTypes = [...this.allReportTypes];
+        this.reportTypes = [];
         this.isLoadingUser = false;
       }
     });

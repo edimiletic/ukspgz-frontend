@@ -10,13 +10,14 @@ import {
   MarkMultipleAsReadRequest,
   MarkMultipleAsReadResponse
 } from '../model/notification.model';
-import { environment } from '../../../enviroment.prod';
+import { environment } from '../../enviroments/enviroment';
+import { environment_prod } from '../../enviroments/enviroment.prod';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = environment.apiUrl + '/notifications';
+  private apiUrl = environment_prod.apiUrl + '/notifications';
   private isBrowser: boolean;
 
   constructor(

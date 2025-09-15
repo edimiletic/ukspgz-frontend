@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame } from '../model/basketballGame.model';
-import { environment } from '../../../enviroment.prod';
+import { environment } from '../../enviroments/enviroment';
+import { environment_prod } from '../../enviroments/enviroment.prod';
 @Injectable({
   providedIn: 'root'
 })
 export class BasketballGameService {
-private apiUrl = environment.apiUrl + '/basketball-games';
+private apiUrl = environment_prod.apiUrl + '/basketball-games';
 
   constructor(private http: HttpClient) {}
 

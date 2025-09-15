@@ -49,17 +49,23 @@ attemptToDelete: ExamAttempt | null = null;
     this.loadExamStats();
   }
 
-  loadCurrentUser(): void {
-    this.authService.getCurrentUser().subscribe({
-      next: (user: User) => {
+loadCurrentUser(): void {
+  this.authService.getCurrentUser().subscribe({
+    next: (user: User | null) => {
+      if (user) {
         this.currentUser = user;
-      },
-      error: (err) => {
-        console.error('Failed to load user:', err);
-        this.showErrorToast('Greška prilikom učitavanja korisničkih podataka.');
+      } else {
+        console.log('No user returned from getCurrentUser');
+        this.currentUser = null;
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('Failed to load user:', err);
+      this.currentUser = null;
+      this.showErrorToast('Greška prilikom učitavanja korisničkih podataka.');
+    }
+  });
+}
 
   loadCurrentExam(): void {
     this.examService.getCurrentExam().subscribe({

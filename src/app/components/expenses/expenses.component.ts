@@ -105,14 +105,20 @@ isMobileFiltersOpen: boolean = false;
   private checkUserRole() {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
+if (user) {  // Check if user is not null
         this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
         console.log('User role:', user.role, 'Is Admin:', this.isAdmin);
-        // Load expenses AFTER we know the user role
+      } else {
+        console.log('No user returned from getCurrentUser');
+        this.currentUser = null;
+        this.isAdmin = false;
+      }
         this.loadTravelExpenses();
       },
       error: (error) => {
         console.error('Error getting current user:', error);
+        this.currentUser = null;
         this.isAdmin = false;
         // Still try to load expenses for regular users
         this.loadTravelExpenses();
@@ -170,26 +176,6 @@ isMobileFiltersOpen: boolean = false;
     setTimeout(() => this.clearMessages(), 4000);
   }
 
-  onDeleteConfirmed(expenseId: string) {
-    this.travelExpenseService.deleteTravelExpense(expenseId).subscribe({
-      next: () => {
-        console.log('Setting delete success message');
-        this.successMessage = 'Izvješće je uspješno obrisano!';
-        console.log('Success message set to:', this.successMessage);
-        this.closeDeleteModal();
-        this.loadTravelExpenses(); // Refresh the tables
-        setTimeout(() => this.clearMessages(), 4000);
-      },
-      error: (error) => {
-        console.error('Error deleting travel expense:', error);
-        console.log('Setting error message');
-        this.errorMessage = this.getDeleteErrorMessage(error);
-        console.log('Error message set to:', this.errorMessage);
-        this.closeDeleteModal();
-        setTimeout(() => this.clearMessages(), 6000);
-      },
-    });
-  }
 
   loadTravelExpenses() {
     if (this.isAdmin) {
@@ -635,6 +621,33 @@ if (this.filterValues.submitDate && expense.submittedAt) {
     this.errorMessage = '';
     this.successMessage = '';
   }
+
+onExpenseDeleted() {
+  // Handle successful deletion
+  console.log('Setting delete success message');
+  this.successMessage = 'Izvješće je uspješno obrisano!';
+  console.log('Success message set to:', this.successMessage);
+  this.closeDeleteModal();
+  this.loadTravelExpenses(); // Refresh the tables
+  
+  // Clear success message after 4 seconds
+  setTimeout(() => this.clearMessages(), 4000);
+}
+
+onDeleteError(errorMessage: string) {
+  // Handle deletion error
+  console.error('Error deleting travel expense:', errorMessage);
+  console.log('Setting error message');
+  this.errorMessage = errorMessage;
+  console.log('Error message set to:', this.errorMessage);
+  this.closeDeleteModal();
+  
+  // Clear error message after 6 seconds
+  setTimeout(() => this.clearMessages(), 6000);
+}
+
+
+
 
   // TrackBy function for better performance in ngFor
   trackByExpenseId(index: number, expense: TravelExpense): string {

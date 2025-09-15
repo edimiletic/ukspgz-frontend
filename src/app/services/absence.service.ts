@@ -4,7 +4,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../enviroment.prod';
+import { environment } from '../../enviroments/enviroment';
+import { environment_prod } from '../../enviroments/enviroment.prod';
+
 
 // Interface for the paginated response from backend
 interface PaginatedAbsenceResponse {
@@ -18,7 +20,7 @@ interface PaginatedAbsenceResponse {
   providedIn: 'root'
 })
 export class AbsenceService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment_prod.apiUrl;
 
   constructor(private http: HttpClient) {}
 

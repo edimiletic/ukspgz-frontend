@@ -205,11 +205,8 @@
   (save)="onExpenseSaved($event)">
 </app-modal-expense-report-details>
 
-<app-delete-expenses-modal 
-  [isOpen]="isDeleteModalOpen"
-  [expenseToDelete]="report"
-  (close)="closeDeleteModal()"
-  (deleteConfirmed)="onDeleteConfirmed($event)">
+<app-delete-expenses-modal [isOpen]="isDeleteModalOpen" [expenseToDelete]="report" (close)="closeDeleteModal()"
+    (expenseDeleted)="onExpenseDeleted()"  (error)="onDeleteError($event)">>
 </app-delete-expenses-modal>
 
 <app-submit-modal-expense

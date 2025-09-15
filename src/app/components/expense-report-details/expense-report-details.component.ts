@@ -47,41 +47,47 @@ export class ExpenseReportDetailsComponent implements OnInit {
     this.loadCurrentUser();
   }
 
-  // Add this method to load current user first
-  private loadCurrentUser() {
-    this.authService.getCurrentUser().subscribe({
-      next: (user) => {
+private loadCurrentUser() {
+  this.authService.getCurrentUser().subscribe({
+    next: (user) => {
+      if (user) {  // Check if user is not null
         this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
         console.log('Current user role:', user.role, 'Is Admin:', this.isAdmin);
-        
-        // Now load the report
-        this.route.params.subscribe(params => {
-          const reportId = params['id'];
-          if (reportId) {
-            this.loadReport(reportId);
-          } else {
-            this.showError('ID izvješća nije pronađen.');
-            this.isLoading = false;
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error loading current user:', error);
+      } else {
+        console.log('No user returned from getCurrentUser');
+        this.currentUser = null;
         this.isAdmin = false;
-        // Still try to load the report
-        this.route.params.subscribe(params => {
-          const reportId = params['id'];
-          if (reportId) {
-            this.loadReport(reportId);
-          } else {
-            this.showError('ID izvješća nije pronađen.');
-            this.isLoading = false;
-          }
-        });
       }
-    });
-  }
+      
+      // Now load the report regardless of user status
+      this.route.params.subscribe(params => {
+        const reportId = params['id'];
+        if (reportId) {
+          this.loadReport(reportId);
+        } else {
+          this.showError('ID izvješća nije pronađen.');
+          this.isLoading = false;
+        }
+      });
+    },
+    error: (error) => {
+      console.error('Error loading current user:', error);
+      this.currentUser = null;
+      this.isAdmin = false;
+      // Still try to load the report
+      this.route.params.subscribe(params => {
+        const reportId = params['id'];
+        if (reportId) {
+          this.loadReport(reportId);
+        } else {
+          this.showError('ID izvješća nije pronađen.');
+          this.isLoading = false;
+        }
+      });
+    }
+  });
+}
 
   private loadReport(reportId: string) {
     this.isLoading = true;
@@ -164,36 +170,37 @@ export class ExpenseReportDetailsComponent implements OnInit {
     this.showError(errorMessage);
   }
 
-  onDeleteReport() {
-    if (this.report && !this.isAdmin) {
-      this.isDeleteModalOpen = true;
-    } else if (this.isAdmin) {
-      console.log('Admin users cannot delete reports from detail view');
-    }
-  }
+
 
   closeDeleteModal() {
     this.isDeleteModalOpen = false;
   }
 
-  onDeleteConfirmed(expenseId: string) {
-    this.travelExpenseService.deleteTravelExpense(expenseId).subscribe({
-      next: () => {
-        console.log('Report deleted successfully');
-        this.router.navigate(['/expenses'], { 
-          queryParams: { 
-            message: 'deleted',
-            reportId: expenseId 
-          } 
-        });
-      },
-      error: (error) => {
-        console.error('Error deleting report:', error);
-        this.showError('Greška pri brisanju izvješća.');
-        this.closeDeleteModal();
-      }
-    });
+  onExpenseDeleted() {
+  // Handle successful deletion - navigate back to expenses list
+  console.log('Report deleted successfully');
+  this.router.navigate(['/expenses'], { 
+    queryParams: { 
+      message: 'deleted',
+      reportId: this.report?.id 
+    } 
+  });
+}
+
+onDeleteError(errorMessage: string) {
+  // Handle deletion error
+  console.error('Error deleting report:', errorMessage);
+  this.showError(errorMessage);
+  this.closeDeleteModal();
+}
+
+onDeleteReport() {
+  if (this.report && !this.isAdmin) {
+    this.isDeleteModalOpen = true;
+  } else if (this.isAdmin) {
+    console.log('Admin users cannot delete reports from detail view');
   }
+}
 
   // Updated onAddExpense method with role-based check
   onAddExpense() {

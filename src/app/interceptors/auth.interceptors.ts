@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { catchError, throwError } from 'rxjs';
+import { catchError, throwError, tap } from 'rxjs';
 import { Router } from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -9,7 +9,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
   const isBrowser = isPlatformBrowser(platformId);
 
-  console.log('Interceptor called for:', req.url, 'isBrowser:', isBrowser);
+  console.log('🔄 Interceptor called for:', req.url, 'isBrowser:', isBrowser);
 
   // Don't intercept login or register requests
   const isLoginRequest = req.url.includes('/login') || req.url.includes('/register');
@@ -18,22 +18,43 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (isBrowser && !isLoginRequest) {
     const token = localStorage.getItem('token');
     if (token) {
+      console.log('🔑 Adding token to request');
       req = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
     } else {
+      console.log('⚠️ No token found for request');
     }
+  } else if (!isBrowser) {
+    console.log('🌐 Server-side rendering - not adding token');
   }
 
   return next(req).pipe(
+    tap({
+      next: (response) => {
+        if (isBrowser) {
+          console.log('✅ HTTP Success Response for:', req.url);
+          console.log('📦 Response:', response);
+        }
+      },
+      error: (error) => {
+        if (isBrowser) {
+          console.error('❌ HTTP Error in tap for:', req.url, error);
+        }
+      }
+    }),
     catchError((error: HttpErrorResponse) => {
-      console.error('HTTP Error:', error.status, 'for URL:', req.url);
-      if (error.status === 401 && !isLoginRequest && isBrowser) {
-        console.log('401 error in interceptor, clearing token and redirecting');
-        localStorage.removeItem('token');
-        router.navigate(['/login']);
+      if (isBrowser) {
+        console.error('🚨 HTTP Error in catchError:', error.status, 'for URL:', req.url);
+        console.error('🔍 Full error object:', error);
+        
+        if (error.status === 401 && !isLoginRequest) {
+          console.log('🔐 401 error in interceptor, clearing token and redirecting');
+          localStorage.removeItem('token');
+          router.navigate(['/login']);
+        }
       }
       return throwError(() => error);
     })

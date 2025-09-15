@@ -7,8 +7,8 @@
     <div class="modal-header">
       <h2>
         <i class="fas fa-clipboard-check"></i>
-        <span *ngIf="!isEditMode">Nova Kontrola Utakmice</span>
-        <span *ngIf="isEditMode">Uredi Kontrolu Utakmice</span>
+        <span *ngIf="!isEditMode">Nova kontrola utakmice</span>
+        <span *ngIf="isEditMode">Uredi kontrolu utakmice</span>
       </h2>
       <button class="close-btn" (click)="closeModal()" [disabled]="isLoading || isLoadingExistingKontrola">
         <i class="fas fa-times"></i>
@@ -48,7 +48,7 @@
               [class.active]="i === currentPage"
               [class.completed]="i < currentPage"
               (click)="goToPage(i)"
-              [title]="i === 0 ? 'Težina Utakmice' : 'Sudac ' + i">
+              [title]="i === 0 ? 'Težina utakmice' : 'Sudac ' + i">
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@
           <div class="first-page-container">
             <div class="form-section">
               <div class="page-header">
-                <h3>Težina Utakmice</h3>
+                <h3>Težina utakmice</h3>
                 <p class="page-description">Molimo odaberite težinu utakmice prema vašoj procjeni.</p>
               </div>
               

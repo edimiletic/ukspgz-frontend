@@ -1,3 +1,4 @@
+import { TravelExpenseService } from './../../../services/travel-expense.service';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TravelExpense } from '../../../model/travel-expense.model';
 import { CommonModule } from '@angular/common';
@@ -12,11 +13,11 @@ export class DeleteExpensesModalComponent {
   @Input() isOpen = false;
   @Input() expenseToDelete: TravelExpense | null = null;
   @Output() close = new EventEmitter<void>();
-  @Output() deleteConfirmed = new EventEmitter<string>();
-
+  @Output() expenseDeleted = new EventEmitter<void>();
+  @Output() error = new EventEmitter<string>();
   isDeleting = false;
 
-  constructor() {}
+  constructor(private travelExpenseService: TravelExpenseService) {}
 
   onOverlayClick(event: Event) {
     // Close modal only if clicking on the overlay itself, not the content
@@ -32,18 +33,63 @@ export class DeleteExpensesModalComponent {
     }
   }
 
-  confirmDelete() {
-    if (this.expenseToDelete && !this.isDeleting) {
-      this.isDeleting = true;
-      
-      // Emit the expense ID to the parent component
-      this.deleteConfirmed.emit(this.expenseToDelete.id);
-      
-      // Reset state after a short delay to allow for the deletion process
-      setTimeout(() => {
-        this.resetState();
-      }, 500);
+confirmDelete() {
+  if (!this.expenseToDelete || this.isDeleting) return;
+
+  console.log('🚀 Starting delete process for expense:', this.expenseToDelete.id);
+  this.isDeleting = true;
+
+  console.log('📞 Calling travelExpenseService.deleteTravelExpense...');
+  console.log('🔗 Service URL should be:', 'Check your service apiUrl');
+  
+  this.travelExpenseService.deleteTravelExpense(this.expenseToDelete.id).subscribe({
+    next: (response) => {
+      console.log('✅ Delete SUCCESS:', response);
+      console.log('🔄 Emitting expenseDeleted event');
+      this.expenseDeleted.emit();
+      this.closeModal();
+    },
+    error: (error) => {
+      console.error('❌ Delete ERROR:', error);
+      console.error('🔍 Error details:', {
+        status: error.status,
+        message: error.message,
+        error: error.error,
+        url: error.url
+      });
+      this.isDeleting = false;
+      this.error.emit(this.getDeleteErrorMessage(error));
+    },
+    complete: () => {
+      console.log('🏁 Delete request completed');
     }
+  });
+}
+
+  private getDeleteErrorMessage(error: any): string {
+    if (error.error?.error) {
+      const backendError = error.error.error;
+      
+      if (backendError.includes('Cannot delete submitted')) {
+        return 'Ne možete obrisati podneseno izvješće.';
+      } else if (backendError.includes('Access denied')) {
+        return 'Nemate dozvolu za brisanje ovog izvješća.';
+      } else if (backendError.includes('not found')) {
+        return 'Izvješće nije pronađeno.';
+      } else {
+        return backendError;
+      }
+    }
+    
+    if (error.status === 400) {
+      return 'Ne možete obrisati ovo izvješće.';
+    } else if (error.status === 403) {
+      return 'Nemate dozvolu za brisanje izvješća.';
+    } else if (error.status === 404) {
+      return 'Izvješće nije pronađeno.';
+    }
+    
+    return 'Greška pri brisanju izvješća. Molimo pokušajte ponovo.';
   }
 
   private resetState() {

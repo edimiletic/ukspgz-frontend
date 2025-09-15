@@ -38,7 +38,7 @@
         <form class="game-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="homeTeam">Domaći Tim</label>
+              <label for="homeTeam">Domaći tim</label>
               <input 
                 type="text" 
                 id="homeTeam" 
@@ -49,7 +49,7 @@
                 required>
             </div>
             <div class="form-group">
-              <label for="awayTeam">Gostujući Tim</label>
+              <label for="awayTeam">Gostujući tim</label>
               <input 
                 type="text" 
                 id="awayTeam" 
@@ -140,7 +140,7 @@
             <!-- Sudci Section -->
             <div class="referee-section">
               <h3>
-                Sudci (2-3 obavezno)
+                Suci (2-3 obavezno)
     <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
       ({{ unavailableCounts.sudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
     </span>
@@ -206,14 +206,14 @@
 <!-- Pomoćni Sudci Section - FIXED -->
 <div class="referee-section">
   <h3>
-    Pomoćni Sudci (2-3 obavezno)
+    Pomoćni Suci (2-3 obavezno)
     <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
       ({{ unavailableCounts.pomocniSudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
     </span>
   </h3>
   <div class="referee-list">
     <div *ngFor="let pomocni of selectedReferees.pomocniSudci; let i = index" class="referee-assignment">
-      <label>Pomoćni Sudac {{ pomocni.position }}</label>
+      <label>Pomoćni sudac {{ pomocni.position }}</label>
       <div class="assignment-row">
 <select 
   [(ngModel)]="pomocni.userId" 

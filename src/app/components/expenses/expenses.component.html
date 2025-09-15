@@ -461,7 +461,7 @@
 </app-expenses-modal>
 
 <app-delete-expenses-modal [isOpen]="isDeleteModalOpen" [expenseToDelete]="expenseToDelete" (close)="closeDeleteModal()"
-  (deleteConfirmed)="onDeleteConfirmed($event)">
+    (expenseDeleted)="onExpenseDeleted()"  (error)="onDeleteError($event)">>
 </app-delete-expenses-modal>
 
 <div class="toast-container">

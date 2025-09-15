@@ -89,7 +89,7 @@
       <!-- Pending Nominations Section -->
       <div class="description">
         <h2 *ngIf="!isAdmin()">Nominacije koje čekaju odluku</h2>
-        <h2 *ngIf="isAdmin()">Nadolazeće Utakmice</h2>
+        <h2 *ngIf="isAdmin()">Nadolazeće utakmice</h2>
         <div *ngIf="pendingGames.length === 0" class="no-games">
           <p *ngIf="!isAdmin()">Nema nominacija na čekanju</p>
           <p *ngIf="isAdmin()">Nema nadolazećih utakmica</p>
@@ -263,7 +263,7 @@
                 <!-- Add new Kontrola column for Admins and Delegats -->
                 <th *ngIf="canAccessKontrola()">Kontrola</th>
                 <!-- Add new View Kontrola column for Referees -->
-                <th *ngIf="!canAccessKontrola()">Moja Kontrola</th>
+                <th *ngIf="!canAccessKontrola()">Moja kontrola</th>
                 <th *ngIf="isAdmin()">Akcije</th>
               </tr>
             </thead>
