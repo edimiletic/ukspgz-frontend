@@ -6,7 +6,7 @@
     <div class="modal-header">
       <h2>
         <i class="fas fa-eye"></i>
-        Moja Kontrola
+        Moja kontrola
       </h2>
       <button class="close-btn" (click)="closeModal()">
         <i class="fas fa-times"></i>
@@ -44,7 +44,7 @@
 
       <!-- Težina Utakmice -->
       <div class="section">
-        <h3><i class="fas fa-weight-hanging"></i> Težina Utakmice</h3>
+        <h3><i class="fas fa-weight-hanging"></i> Težina utakmice</h3>
         <div class="difficulty-display">
           <span [class]="'difficulty-badge ' + getTezinaDisplay(kontrolaData.tezinaUtakmice).class">
             <!-- <i [class]="getTezinaDisplay(kontrolaData.tezinaUtakmice).icon"></i> -->
@@ -55,7 +55,7 @@
 
 <!-- Moje Ocjene -->
 <div class="section">
-  <h3><i class="fas fa-star"></i> Moje Ocjene</h3>
+  <h3><i class="fas fa-star"></i> Moje ocjene</h3>
   
   <!-- Overall Grade - First and Prominent -->
   <div class="overall-grade-display">
@@ -83,20 +83,20 @@
 
       <!-- Komentari -->
       <div class="section">
-        <h3><i class="fas fa-comments"></i> Komentari i Napomene</h3>
+        <h3><i class="fas fa-comments"></i> Komentari i napomene</h3>
         
         <div class="comment-section">
-          <h4><i class="fas fa-user-check"></i> Kontrolirani Sudac</h4>
+          <h4><i class="fas fa-user-check"></i> Kontrolirani sudac</h4>
           <div class="comment-content">{{ kontrolaData.refereeGrade.kontroliraniSudac }}</div>
         </div>
 
         <div class="comment-section">
-          <h4><i class="fas fa-exclamation-triangle"></i> Komentirane Situacije</h4>
+          <h4><i class="fas fa-exclamation-triangle"></i> Komentirane situacije</h4>
           <div class="comment-content">{{ kontrolaData.refereeGrade.komentiranesituacije }}</div>
         </div>
 
         <div class="comment-section">
-          <h4><i class="fas fa-clipboard-list"></i> Komentar Utakmice i Cjelokupna Izvedba</h4>
+          <h4><i class="fas fa-clipboard-list"></i> Komentar utakmice i cjelokupna izvedba</h4>
           <div class="comment-content">{{ kontrolaData.refereeGrade.komentarUtakmice }}</div>
         </div>
       </div>

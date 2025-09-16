@@ -4,8 +4,8 @@
     <!-- Modal Header -->
     <div class="modal-header">
       <h2>
-        <span *ngIf="currentStep === 1">Kreiraj Novu Utakmicu</span>
-        <span *ngIf="currentStep === 2">Dodijeli Sudce</span>
+        <span *ngIf="currentStep === 1">Kreiraj novu utakmicu</span>
+        <span *ngIf="currentStep === 2">Dodijeli suce</span>
       </h2>
       <button class="close-btn" (click)="closeModal()" [disabled]="isLoading">
         <i class="fas fa-times"></i>
@@ -16,12 +16,12 @@
     <div class="step-indicator">
       <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
         <span class="step-number">1</span>
-        <span class="step-title">Detalji Utakmice</span>
+        <span class="step-title">Detalji utakmice</span>
       </div>
       <div class="step-divider"></div>
       <div class="step" [class.active]="currentStep === 2">
         <span class="step-number">2</span>
-        <span class="step-title">Dodijeli Sudce</span>
+        <span class="step-title">Dodijeli suce</span>
       </div>
     </div>
 
