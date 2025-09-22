@@ -110,46 +110,35 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  isAuthenticated(): boolean {
-    if (!this.isBrowser) {
-      console.log('🌐 Server-side rendering - not authenticated');
-      return false;
-    }
-    
-    const token = localStorage.getItem('token');
-    console.log('🔍 Checking authentication, token exists:', !!token);
-    
-    if (!token) {
-      console.log('❌ No token found');
-      return false;
-    }
+isAuthenticated(): boolean {
+  if (!this.isBrowser) return false;
+  
+  const token = localStorage.getItem('token');
+  if (!token) return false;
 
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const isExpired = payload.exp * 1000 < Date.now();
-      console.log('⏰ Token expiry check:', {
-        expires: new Date(payload.exp * 1000),
-        now: new Date(),
-        isExpired
-      });
-      
-      if (isExpired) {
-        console.log('⚠️ Token expired, removing...');
-        localStorage.removeItem('token');
-        this.currentUserSubject.next(null);
-        return false;
-      }
-      
-      console.log('✅ Token is valid');
-      return true;
-    } catch (error) {
-      console.error('❌ Token parsing error:', error);
-      localStorage.removeItem('token');
-      this.currentUserSubject.next(null);
+  try {
+    // Brza provjera formata prije dekodiranja
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      localStorage.removeItem('token'); // Očisti neispravan token
       return false;
     }
+    
+    const payload = JSON.parse(atob(parts[1]));
+    const isExpired = payload.exp * 1000 < Date.now();
+    
+    if (isExpired) {
+      this.logout();
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Token validation error:', error);
+    localStorage.removeItem('token');
+    return false;
   }
-
+}
   getCurrentUser(): Observable<User> {
     // Don't make HTTP calls during SSR
     if (!this.isBrowser) {

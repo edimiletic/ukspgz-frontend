@@ -28,7 +28,7 @@ export class ExpensesModalComponent implements OnInit {
   // All available report types
   private allReportTypes = [
     'Troškovno izvješće suca',
-    'Troškovno izvješće Delegata',
+    'Troškovno izvješće delegata',
     'Troškovno izvješće pomoćnog suca'
   ];
 
