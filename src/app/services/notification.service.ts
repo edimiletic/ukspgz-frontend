@@ -17,7 +17,7 @@ import { environment_prod } from '../../enviroments/enviroment.prod';
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = environment_prod.apiUrl + '/notifications';
+  private apiUrl = environment.apiUrl + '/notifications';
   private isBrowser: boolean;
 
   constructor(

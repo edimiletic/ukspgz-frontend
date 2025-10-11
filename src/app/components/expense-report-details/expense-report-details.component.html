@@ -57,12 +57,12 @@
                     <div class="detail-label">Stvoreno</div>
                     <div class="detail-value">{{ getFormattedDate() }}</div>
                 </div>
-                <div class="detail-row">
+                <!-- <div class="detail-row">
                     <div class="detail-label">Stanje</div>
                     <div class="detail-value">
                         <span [class]="getConditionClass()">{{ getConditionText() }}</span>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <!-- Action Buttons for Regular Users - Hidden only for Admin -->
@@ -81,33 +81,7 @@
                 </button>
             </div>
 
-            <!-- Admin Action Buttons -->
-            <div class="admin-action-buttons" *ngIf="isAdmin && report.state !== 'Skica'">
-                <button 
-                    class="btn btn-success" 
-                    (click)="approveExpense(report)"
-                    [disabled]="report.state === 'Potvrđeno'"
-                    title="Odobri izvješće">
-                    <i class="fas fa-check"></i>
-                    Potvrdi
-                </button>
-                <button 
-                    class="btn btn-danger" 
-                    (click)="rejectExpense(report)"
-                    [disabled]="report.state === 'Odbijeno'"
-                    title="Odbaci izvješće">
-                    <i class="fas fa-times"></i>
-                    Odbaci
-                </button>
-                <button 
-                    *ngIf="report.state !== 'Predano'"
-                    class="btn btn-warning" 
-                    (click)="resetToSubmitted(report)"
-                    title="Vrati u status 'Predano'">
-                    <i class="fas fa-undo"></i>
-                    Vrati u pregled
-                </button>
-            </div>
+         
 
             <!-- Expenses Section -->
             <div class="section">

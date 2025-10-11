@@ -52,7 +52,7 @@
           <span>Odsustvo</span>
         </a>
       </li>
-      <li>
+      <li *ngIf="isAdmin()">
         <a 
           (click)="navigateToPage('/expenses')" 
           [class.active]="isActiveRoute('/expenses')"

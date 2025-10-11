@@ -12,7 +12,7 @@ import { environment_prod } from '../../enviroments/enviroment.prod';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment_prod.apiUrl;
+  private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
   private isBrowser: boolean;
@@ -23,12 +23,12 @@ export class AuthService {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    console.log('🔧 AuthService constructor called, isBrowser:', this.isBrowser);
-    console.log('🔗 Using API URL:', this.apiUrl);
+    // console.log('🔧 AuthService constructor called, isBrowser:', this.isBrowser);
+    // console.log('🔗 Using API URL:', this.apiUrl);
     
     // Only try to restore user from token in browser
     if (this.isBrowser && this.isAuthenticated()) {
-      console.log('🔧 Token found on service init, loading user data...');
+      // console.log('🔧 Token found on service init, loading user data...');
       this.loadUserData();
     }
   }
@@ -50,8 +50,8 @@ export class AuthService {
   }
 
   login(credentials: { username: string, password: string }): Observable<any> {
-    console.log('🔑 Login attempt for:', credentials.username);
-    console.log('🔗 Login URL:', `${this.apiUrl}/login`);
+    // console.log('🔑 Login attempt for:', credentials.username);
+    // console.log('🔗 Login URL:', `${this.apiUrl}/login`);
     
     return this.http.post<any>(`${this.apiUrl}/login`, credentials, {
       headers: { 'Content-Type': 'application/json' }
@@ -75,8 +75,8 @@ export class AuthService {
   }
 
   register(userData: any): Observable<any> {
-    console.log('📝 Register attempt for:', userData.username);
-    console.log('🔗 Register URL:', `${this.apiUrl}/register`);
+    // console.log('📝 Register attempt for:', userData.username);
+    // console.log('🔗 Register URL:', `${this.apiUrl}/register`);
     
     return this.http.post<any>(`${this.apiUrl}/register`, userData, {
       headers: { 'Content-Type': 'application/json' }
@@ -148,12 +148,12 @@ isAuthenticated(): boolean {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      console.log('🚫 No token found for getCurrentUser');
+      // console.log('🚫 No token found for getCurrentUser');
       return throwError(() => new Error('No token found'));
     }
 
-    console.log('📡 Making /me request...');
-    console.log('🔗 Me URL:', `${this.apiUrl}/me`);
+    // console.log('📡 Making /me request...');
+    // console.log('🔗 Me URL:', `${this.apiUrl}/me`);
     
     return this.http.get<User>(`${this.apiUrl}/me`, {
       headers: this.getAuthHeaders()
@@ -176,14 +176,14 @@ isAuthenticated(): boolean {
 
   get currentUserValue(): User | null {
     const user = this.currentUserSubject.value;
-    console.log('👤 Current user value:', user);
+    // console.log('👤 Current user value:', user);
     return user;
   }
 
   hasRole(role: string): boolean {
     const user = this.currentUserValue;
     const hasRole = user ? user.role === role : false;
-    console.log(`🎭 Role check for ${role}:`, hasRole);
+    // console.log(`🎭 Role check for ${role}:`, hasRole);
     return hasRole;
   }
 
@@ -196,10 +196,10 @@ isAuthenticated(): boolean {
   }
 
   loadUserData(): void {
-    console.log('🔄 LoadUserData called');
+    // console.log('🔄 LoadUserData called');
     if (this.isBrowser && this.isAuthenticated() && !this.currentUserValue) {
       const token = localStorage.getItem('token');
-      console.log('📤 Loading user data with token:', token ? 'Token exists' : 'No token');
+      // console.log('📤 Loading user data with token:', token ? 'Token exists' : 'No token');
      
       this.getCurrentUser().subscribe({
         next: (user) => {

@@ -88,6 +88,7 @@ isExpensesModalOpen = false;
       next: (user) => {
         this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
+        console.log('✅ Home - User loaded:', user.role, 'isAdmin:', this.isAdmin); // Add this
         this.loadDashboardData();
       },
       error: (error) => {

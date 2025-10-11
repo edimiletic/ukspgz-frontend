@@ -13,7 +13,7 @@ export interface TravelExpenseUpdateRequest extends TravelExpense {}
   providedIn: 'root'
 })
 export class TravelExpenseService {
-  private apiUrl = environment_prod.apiUrl;
+  private apiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,

@@ -35,57 +35,6 @@
   }
 }
 
-// Admin View Styles
-.admin-view {
-  .table-section {
-    margin-bottom: 2rem;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
-
-  .section-header {
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    color: white;
-
-    h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      i {
-        font-size: 1rem;
-      }
-    }
-
-    .count-badge {
-      background-color: rgba(255, 255, 255, 0.2);
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    &.submitted-header {
-      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-    }
-
-    &.approved-header {
-      background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-    }
-
-    &.rejected-header {
-      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    }
-  }
-}
 
 // Filter Section
 .filter-section {
@@ -165,24 +114,7 @@
   }
 }
 
-.admin-filter-status {
-  margin-bottom: 1.5rem;
-  display: flex;
-  justify-content: center;
 
-  .filter-indicator {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-  }
-}
 
 .btn-outline-secondary {
     background-color: transparent;
@@ -281,7 +213,6 @@
     }
   }
 
-  // New admin action button styles
   &.btn-view {
     background-color: #6c757d;
     &:hover {
@@ -624,13 +555,7 @@
     }
   }
 
-  .admin-filter-status {
-    .filter-indicator {
-      font-size: 0.8rem;
-      padding: 0.5rem 1rem;
-      text-align: center;
-    }
-  }
+
 
   // Table responsive
   .table-container {
@@ -656,25 +581,7 @@
     }
   }
 
-  // Admin table sections responsive
-  .admin-view {
-    .table-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .section-header {
-      padding: 0.75rem 1rem;
-      
-      h3 {
-        font-size: 1rem;
-      }
-      
-      .count-badge {
-        font-size: 0.8rem;
-        padding: 0.2rem 0.6rem;
-      }
-    }
-  }
+ 
 
   // Pagination responsive
   .pagination-container {
@@ -758,20 +665,7 @@
     }
   }
 
-  .admin-view {
-    .section-header {
-      padding: 0.5rem 0.75rem;
-      
-      h3 {
-        font-size: 0.9rem;
-      }
-      
-      .count-badge {
-        font-size: 0.7rem;
-        padding: 0.15rem 0.5rem;
-      }
-    }
-  }
+  
 }
 
 // LANDSCAPE MOBILE

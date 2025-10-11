@@ -10,7 +10,7 @@ import { environment_prod } from '../../enviroments/enviroment.prod';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = environment_prod.apiUrl + '/users';
+  private apiUrl = environment.apiUrl + '/users';
 
   constructor(private http: HttpClient) {}
 

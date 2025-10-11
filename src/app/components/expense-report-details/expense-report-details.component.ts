@@ -49,44 +49,31 @@ export class ExpenseReportDetailsComponent implements OnInit {
 
 private loadCurrentUser() {
   this.authService.getCurrentUser().subscribe({
-    next: (user) => {
-      if (user) {  // Check if user is not null
-        this.currentUser = user;
-        this.isAdmin = user.role === 'Admin';
-        console.log('Current user role:', user.role, 'Is Admin:', this.isAdmin);
-      } else {
-        console.log('No user returned from getCurrentUser');
-        this.currentUser = null;
-        this.isAdmin = false;
+    next: (user) =>{
+      this.currentUser = user;
+      this.isAdmin = user.role ==="Admin";
+
+      if(!this.isAdmin){
+        this.router.navigate(['/home'],{
+          queryParams:{
+            error: 'access_denied',
+           message: 'Nemate pristup putnim troškovima'
+          }
+        });
+        return;
       }
-      
-      // Now load the report regardless of user status
-      this.route.params.subscribe(params => {
+      this.route.params.subscribe(params =>{
         const reportId = params['id'];
-        if (reportId) {
+        if(reportId){
           this.loadReport(reportId);
-        } else {
-          this.showError('ID izvješća nije pronađen.');
-          this.isLoading = false;
         }
       });
     },
-    error: (error) => {
-      console.error('Error loading current user:', error);
-      this.currentUser = null;
-      this.isAdmin = false;
-      // Still try to load the report
-      this.route.params.subscribe(params => {
-        const reportId = params['id'];
-        if (reportId) {
-          this.loadReport(reportId);
-        } else {
-          this.showError('ID izvješća nije pronađen.');
-          this.isLoading = false;
-        }
-      });
+    error:(error) =>{
+      console.error('Error loading user:', error);
+      this.router.navigate(['/login']);
     }
-  });
+  })
 }
 
   private loadReport(reportId: string) {
@@ -497,148 +484,7 @@ onDeleteReport() {
     this.errorMessage = '';
   }
 
-  // Admin action methods - Using TravelExpenseService
-  approveExpense(expense: TravelExpense) {
-    if (!this.isAdmin || !expense) {
-      console.log('Cannot approve: isAdmin =', this.isAdmin, 'expense =', expense);
-      return;
-    }
-    
-    console.log('Approving expense:', expense.id, 'Current state:', expense.state);
-    
-    // Create update data that matches TravelExpenseUpdateRequest interface
-    const updateData = {
-      id: expense.id,
-      type: expense.type,
-      season: expense.season,
-      year: expense.year,
-      month: expense.month,
-      state: 'Potvrđeno',
-      expenses: expense.expenses || [],
-      userId: expense.userId,
-      userName: expense.userName,
-      userSurname: expense.userSurname,
-      totalAmount: expense.totalAmount,
-      createdAt: expense.createdAt,
-      updatedAt: expense.updatedAt,
-      submittedAt: expense.submittedAt,
-      reviewedAt: expense.reviewedAt,
-      reviewedBy: expense.reviewedBy,
-      reviewComments: expense.reviewComments
-    };
-    
-    console.log('Sending approval via service');
-    
-    this.travelExpenseService.updateTravelExpense(updateData).subscribe({
-      next: (updated) => {
-        console.log('Expense approved successfully:', updated);
-        this.report = updated;
-        this.showSuccess('Izvješće je uspješno odobreno!');
-      },
-      error: (error) => {
-        console.error('Error approving expense:', error);
-        let errorMessage = 'Greška pri odobravanju izvješća.';
-        if (error.error?.error) {
-          errorMessage += ' ' + error.error.error;
-        }
-        this.showError(errorMessage);
-      }
-    });
-  }
+  
 
-  rejectExpense(expense: TravelExpense) {
-    if (!this.isAdmin || !expense) {
-      console.log('Cannot reject: isAdmin =', this.isAdmin, 'expense =', expense);
-      return;
-    }
-    
-    console.log('Rejecting expense:', expense.id, 'Current state:', expense.state);
-    
-    // Create update data that matches TravelExpenseUpdateRequest interface
-    const updateData = {
-      id: expense.id,
-      type: expense.type,
-      season: expense.season,
-      year: expense.year,
-      month: expense.month,
-      state: 'Odbijeno',
-      expenses: expense.expenses || [],
-      userId: expense.userId,
-      userName: expense.userName,
-      userSurname: expense.userSurname,
-      totalAmount: expense.totalAmount,
-      createdAt: expense.createdAt,
-      updatedAt: expense.updatedAt,
-      submittedAt: expense.submittedAt,
-      reviewedAt: expense.reviewedAt,
-      reviewedBy: expense.reviewedBy,
-      reviewComments: expense.reviewComments
-    };
-    
-    console.log('Sending rejection via service');
-    
-    this.travelExpenseService.updateTravelExpense(updateData).subscribe({
-      next: (updated) => {
-        console.log('Expense rejected successfully:', updated);
-        this.report = updated;
-        this.showSuccess('Izvješće je uspješno odbijeno!');
-      },
-      error: (error) => {
-        console.error('Error rejecting expense:', error);
-        let errorMessage = 'Greška pri odbijanju izvješća.';
-        if (error.error?.error) {
-          errorMessage += ' ' + error.error.error;
-        }
-        this.showError(errorMessage);
-      }
-    });
-  }
-
-  resetToSubmitted(expense: TravelExpense) {
-    if (!this.isAdmin || !expense) {
-      console.log('Cannot reset: isAdmin =', this.isAdmin, 'expense =', expense);
-      return;
-    }
-    
-    console.log('Resetting expense to submitted:', expense.id, 'Current state:', expense.state);
-    
-    // Create update data that matches TravelExpenseUpdateRequest interface
-    const updateData = {
-      id: expense.id,
-      type: expense.type,
-      season: expense.season,
-      year: expense.year,
-      month: expense.month,
-      state: 'Predano',
-      expenses: expense.expenses || [],
-      userId: expense.userId,
-      userName: expense.userName,
-      userSurname: expense.userSurname,
-      totalAmount: expense.totalAmount,
-      createdAt: expense.createdAt,
-      updatedAt: expense.updatedAt,
-      submittedAt: expense.submittedAt,
-      reviewedAt: expense.reviewedAt,
-      reviewedBy: expense.reviewedBy,
-      reviewComments: expense.reviewComments
-    };
-    
-    console.log('Sending reset via service');
-    
-    this.travelExpenseService.updateTravelExpense(updateData).subscribe({
-      next: (updated) => {
-        console.log('Expense reset successfully:', updated);
-        this.report = updated;
-        this.showSuccess('Izvješće je vraćeno u status "Predano"!');
-      },
-      error: (error) => {
-        console.error('Error resetting expense:', error);
-        let errorMessage = 'Greška pri mijenjanju statusa izvješća.';
-        if (error.error?.error) {
-          errorMessage += ' ' + error.error.error;
-        }
-        this.showError(errorMessage);
-      }
-    });
-  }
+ 
 }

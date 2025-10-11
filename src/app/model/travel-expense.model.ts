@@ -34,6 +34,7 @@ export interface ExpenseItem {
 }
 
 export interface NewTravelExpense {
+  userId: string;
   type: string;
   season: string;
   year: number;

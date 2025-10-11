@@ -20,7 +20,7 @@ interface PaginatedAbsenceResponse {
   providedIn: 'root'
 })
 export class AbsenceService {
-  private apiUrl = environment_prod.apiUrl;
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

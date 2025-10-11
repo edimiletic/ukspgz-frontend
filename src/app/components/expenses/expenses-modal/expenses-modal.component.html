@@ -1,8 +1,8 @@
-<!-- new-report-modal.component.html -->
+<!-- src/app/components/expenses/expenses-modal/expenses-modal.component.html -->
 <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
   <div class="modal-container">
     <div class="modal-header">
-      <h3>Novo izvješće</h3>
+      <h3>Novo Izvješće</h3>
       <button class="close-btn" (click)="onClose()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     
@@ -20,11 +20,35 @@
 
       <!-- Form Content -->
       <form *ngIf="!isLoadingUser">
-        <!-- User Role Display (Optional) -->
-    
+        <!-- User Selection (Admin Only) -->
+        <div class="form-group" *ngIf="isAdmin">
+          <label for="userId">Korisnik<span class="required">*</span></label>
+          <div class="select-wrapper">
+            <select 
+              id="userId" 
+              class="form-control" 
+              [(ngModel)]="reportData.userId"
+              name="userId"
+              (change)="onUserSelected()"
+              required
+              [disabled]="isLoading">
+              <option value="">Odaberite korisnika</option>
+              <option 
+                *ngFor="let user of filteredUsers" 
+                [value]="user._id">
+                {{ getUserDisplayName(user) }}
+              </option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow"></i>
+          </div>
+          <!-- <small class="form-help-text">
+            Odaberite korisnika za kojeg kreirate izvješće
+          </small> -->
+        </div>
 
+        <!-- Report Type -->
         <div class="form-group">
-          <label for="reportType">Tip izvješća<span class="required">*</span></label>
+          <label for="reportType">Tip Izvješća<span class="required">*</span></label>
           <div class="select-wrapper">
             <select 
               id="reportType" 
@@ -32,7 +56,7 @@
               [(ngModel)]="reportData.type"
               name="reportType"
               required
-              [disabled]="isLoading || reportTypes.length === 0">
+              [disabled]="isLoading || (isAdmin && !reportData.userId)">
               <option value="" *ngIf="reportTypes.length > 1">Odaberite tip izvješća</option>
               <option 
                 *ngFor="let type of reportTypes" 
@@ -45,11 +69,15 @@
             </select>
             <i class="fas fa-chevron-down select-arrow"></i>
           </div>
+          <!-- <small class="form-help-text" *ngIf="isAdmin && !reportData.userId">
+            Prvo odaberite korisnika
+          </small> -->
           <!-- <small class="form-help-text" *ngIf="reportTypes.length === 1">
-            Automatski odabran na osnovu vaše uloge
+            Automatski odabran na osnovu uloge korisnika
           </small> -->
         </div>
 
+        <!-- Season -->
         <div class="form-group">
           <label for="season">Sezona<span class="required">*</span></label>
           <div class="select-wrapper">
@@ -70,6 +98,7 @@
           </div>
         </div>
 
+        <!-- Year and Month Row -->
         <div class="form-row">
           <div class="form-group">
             <label for="year">Godina<span class="required">*</span></label>

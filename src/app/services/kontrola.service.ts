@@ -11,7 +11,7 @@ import { environment_prod } from '../../enviroments/enviroment.prod';
   providedIn: 'root'
 })
 export class KontrolaService {
-  private apiUrl = environment_prod.apiUrl;
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {
     console.log('KontrolaService constructor called');

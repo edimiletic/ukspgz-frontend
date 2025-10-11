@@ -9,7 +9,7 @@ import { environment_prod } from '../../enviroments/enviroment.prod';
   providedIn: 'root'
 })
 export class BasketballGameService {
-private apiUrl = environment_prod.apiUrl + '/basketball-games';
+private apiUrl = environment.apiUrl + '/basketball-games';
 
   constructor(private http: HttpClient) {}
 

@@ -103,6 +103,18 @@
     //     border-color: #e74c3c;
     //   }
     }
+    .form-help-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.required {
+  color: #dc3545;
+  margin-left: 2px;
+}
     
     .select-arrow {
       position: absolute;

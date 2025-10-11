@@ -62,6 +62,73 @@
   padding: 2rem;
 }
 
+// Add to modal-expense-report-details.component.scss
+
+// Input Method Tabs
+.input-method-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  
+  .tab-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    
+    i {
+      font-size: 1rem;
+    }
+    
+    &:hover {
+      color: #3498db;
+      background-color: #f8f9fa;
+    }
+    
+    &.active {
+      color: #3498db;
+      border-bottom-color: #3498db;
+      font-weight: 600;
+    }
+  }
+}
+
+// Info box for location method
+.info-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  
+  i {
+    color: #2196f3;
+    font-size: 1.2rem;
+  }
+  
+  span {
+    color: #1976d2;
+    font-size: 0.9rem;
+  }
+}
+
+.required {
+  color: #dc3545;
+  margin-left: 2px;
+}
 .form-group {
   margin-bottom: 1.5rem;
   

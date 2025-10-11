@@ -1,159 +1,270 @@
-<!-- add-expense-modal.component.html -->
+<!-- src/app/components/expense-report-details/modal-expense-report-details/modal-expense-report-details.component.html -->
+
 <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
   <div class="modal-container">
     <div class="modal-header">
-      <h3>Dodaj trošak</h3>
+      <h3>Dodaj Trošak</h3>
       <button class="close-btn" (click)="onClose()">&times;</button>
     </div>
     
     <div class="modal-body">
-      <!-- Error Message in Modal -->
+      <!-- Error Message -->
       <div *ngIf="errorMessage" class="alert alert-error">
         {{ errorMessage }}
       </div>
 
+      <!-- Input Method Tabs -->
+      <div class="input-method-tabs">
+         <button 
+          class="tab-btn" 
+          [class.active]="inputMethod === 'location'"
+          (click)="switchInputMethod('location')"
+          type="button">
+          <i class="fas fa-map-marker-alt"></i>
+          Odabir lokacija
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="inputMethod === 'manual'"
+          (click)="switchInputMethod('manual')"
+          type="button">
+          <i class="fas fa-keyboard"></i>
+          Ručni unos
+        </button>
+      </div>
+
       <form>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="expenseType">Vrsta troškova</label>
-            <div class="select-wrapper">
-              <select 
-                id="expenseType" 
-                class="form-control" 
-                [(ngModel)]="expenseData.type"
-                name="expenseType"
-                required
-                [disabled]="isLoading"
-                (ngModelChange)="onExpenseTypeChange()">
-                <option value="">Odaberite vrstu troška</option>
-                <option 
-                  *ngFor="let type of expenseTypes" 
-                  [value]="type">
-                  {{ type }}
-                </option>
-              </select>
-              <i class="fas fa-chevron-down select-arrow"></i>
+        <!-- LOCATION-BASED INPUT -->
+        <div *ngIf="inputMethod === 'location'" class="location-input-section">
+          <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Odaberite početnu i krajnju lokaciju. Trošak uključuje povratno putovanje.</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startLocation">Polazna Lokacija<span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select 
+                  id="startLocation" 
+                  class="form-control" 
+                  [(ngModel)]="startLocation"
+                  name="startLocation"
+                  (change)="onLocationChange()"
+                  required
+                  [disabled]="isLoading">
+                  <option value="">Odaberite polazište</option>
+                  <option *ngFor="let location of locations" [value]="location">
+                    {{ location }}
+                  </option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="endLocation">Odredišna Lokacija<span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select 
+                  id="endLocation" 
+                  class="form-control" 
+                  [(ngModel)]="endLocation"
+                  name="endLocation"
+                  (change)="onLocationChange()"
+                  required
+                  [disabled]="isLoading">
+                  <option value="">Odaberite odredište</option>
+                  <option *ngFor="let location of locations" [value]="location">
+                    {{ location }}
+                  </option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
+              </div>
             </div>
           </div>
 
+          <!-- Date -->
           <div class="form-group">
-            <label for="date">Datum</label>
+            <label for="dateLocation">Datum<span class="required">*</span></label>
             <input 
               type="date" 
-              id="date" 
+              id="dateLocation" 
               class="form-control" 
               [(ngModel)]="expenseData.date"
-              name="date"
+              name="dateLocation"
               required
               [disabled]="isLoading"
               [max]="getTodayDate()">
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="description">Kratki opis</label>
-          <textarea 
-            id="description" 
-            class="form-control textarea-control" 
-            [(ngModel)]="expenseData.description"
-            name="description"
-            required
-            [disabled]="isLoading"
-            placeholder="Unesite kratki opis troška..."
-            rows="3">
-          </textarea>
-        </div>
-
-        <div class="form-row">
+          <!-- Description (auto-filled but editable) -->
           <div class="form-group">
-            <label for="unit">Mjerna jedinica</label>
+            <label for="descriptionLocation">Opis<span class="required">*</span></label>
+            <textarea 
+              id="descriptionLocation" 
+              class="form-control textarea-control" 
+              [(ngModel)]="expenseData.description"
+              name="descriptionLocation"
+              required
+              [disabled]="isLoading"
+              placeholder="Automatski se popunjava na osnovu odabira lokacija"
+              rows="2">
+            </textarea>
+          </div>
+
+          <!-- Competition -->
+          <div class="form-group">
+            <label for="competitionLocation">Natjecanje<span class="required">*</span></label>
             <div class="select-wrapper">
               <select 
-                id="unit" 
+                id="competitionLocation" 
                 class="form-control" 
-                [(ngModel)]="expenseData.unit"
-                name="unit"
+                [(ngModel)]="expenseData.competition"
+                name="competitionLocation"
                 required
-                [disabled]="isLoading || isUnitFieldDisabled()">
-                <option value="">Odaberite jedinicu</option>
-                <option 
-                  *ngFor="let unit of units" 
-                  [value]="unit">
-                  {{ unit }}
+                [disabled]="isLoading">
+                <option value="">Odaberite natjecanje</option>
+                <option *ngFor="let comp of competitions" [value]="comp">
+                  {{ comp }}
                 </option>
               </select>
               <i class="fas fa-chevron-down select-arrow"></i>
             </div>
-            <small *ngIf="isAutomobileTransport()" class="auto-set-text">
-              Automatski postavljeno za prijevoz automobilom
-            </small>
-            <small *ngIf="isTicketTransport()" class="auto-set-text">
-              Automatski postavljeno za putničke karte
-            </small>
+          </div>
+
+          <!-- Amount Display (read-only) -->
+          <div class="total-section" *ngIf="expenseData.amount > 0">
+            <div class="total-label">Ukupan trošak (povratno):</div>
+            <div class="total-amount">{{ expenseData.amount.toFixed(2) }} €</div>
+          </div>
+        </div>
+
+        <!-- MANUAL INPUT -->
+        <div *ngIf="inputMethod === 'manual'" class="manual-input-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="expenseType">Vrsta troškova<span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select 
+                  id="expenseType" 
+                  class="form-control" 
+                  [(ngModel)]="expenseData.type"
+                  name="expenseType"
+                  required
+                  [disabled]="isLoading"
+                  (ngModelChange)="onExpenseTypeChange()">
+                  <option value="">Odaberite vrstu troška</option>
+                  <option *ngFor="let type of expenseTypes" [value]="type">
+                    {{ type }}
+                  </option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="date">Datum<span class="required">*</span></label>
+              <input 
+                type="date" 
+                id="date" 
+                class="form-control" 
+                [(ngModel)]="expenseData.date"
+                name="date"
+                required
+                [disabled]="isLoading"
+                [max]="getTodayDate()">
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="quantity">Količina</label>
-            <input 
-              type="number" 
-              id="quantity" 
-              class="form-control" 
-              [(ngModel)]="expenseData.quantity"
-              name="quantity"
+            <label for="description">Kratki Opis<span class="required">*</span></label>
+            <textarea 
+              id="description" 
+              class="form-control textarea-control" 
+              [(ngModel)]="expenseData.description"
+              name="description"
               required
               [disabled]="isLoading"
-              min="0"
-              step="1"
-              placeholder="0">
+              placeholder="Unesite opis troška"
+              rows="2">
+            </textarea>
           </div>
 
-          <div class="form-group">
-            <label for="unitPrice">Cijena jedinice (€)</label>
-            <input 
-              type="number" 
-              id="unitPrice" 
-              class="form-control" 
-              [(ngModel)]="expenseData.unitPrice"
-              name="unitPrice"
-              required
-              [disabled]="isLoading || isAutomobileTransport()"
-              min="0.01"
-              step="0.01"
-              placeholder="0.00">
-            <small *ngIf="isAutomobileTransport()" class="auto-set-text">
-              Fiksna cijena: 0.31 € po kilometru
-            </small>
-            <small *ngIf="isTicketTransport()" class="auto-set-text">
-              Unesite cijenu putničke karte
-            </small>
-          </div>
-        </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="unit">Mjerna Jedinica<span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select 
+                  id="unit" 
+                  class="form-control" 
+                  [(ngModel)]="expenseData.unit"
+                  name="unit"
+                  required
+                  [disabled]="isLoading">
+                  <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
 
-        <div class="form-group">
-          <label for="competition">Natjecanje</label>
-          <div class="select-wrapper">
-            <select 
-              id="competition" 
-              class="form-control" 
-              [(ngModel)]="expenseData.competition"
-              name="competition"
-              required
-              [disabled]="isLoading">
-              <option value="">Odaberite natjecanje</option>
-              <option 
-                *ngFor="let competition of competitions" 
-                [value]="competition">
-                {{ competition }}
-              </option>
-            </select>
-            <i class="fas fa-chevron-down select-arrow"></i>
+            <div class="form-group">
+              <label for="quantity">Količina<span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="quantity" 
+                class="form-control" 
+                [(ngModel)]="expenseData.quantity"
+                name="quantity"
+                (ngModelChange)="calculateAmount()"
+                required
+                min="0"
+                step="1"
+                [disabled]="isLoading"
+                placeholder="0">
+            </div>
           </div>
-        </div>
 
-        <!-- Total Amount Display -->
-        <div class="total-section" *ngIf="expenseData.quantity > 0 && expenseData.unitPrice > 0">
-          <div class="total-display">
-            <strong>Ukupan Iznos: {{ getFormattedTotal() }}</strong>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="unitPrice">Cijena Jedinice (€)<span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="unitPrice" 
+                class="form-control" 
+                [(ngModel)]="expenseData.unitPrice"
+                name="unitPrice"
+                (ngModelChange)="calculateAmount()"
+                required
+                min="0"
+                step="0.01"
+                [disabled]="isLoading"
+                placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+              <label for="competition">Natjecanje<span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select 
+                  id="competition" 
+                  class="form-control" 
+                  [(ngModel)]="expenseData.competition"
+                  name="competition"
+                  required
+                  [disabled]="isLoading">
+                  <option value="">Odaberite natjecanje</option>
+                  <option *ngFor="let comp of competitions" [value]="comp">
+                    {{ comp }}
+                  </option>
+                </select>
+                <i class="fas fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amount Display -->
+          <div class="total-section">
+            <div class="total-label">Ukupan iznos:</div>
+            <div class="total-amount">{{ expenseData.amount.toFixed(2) }} €</div>
           </div>
         </div>
       </form>
