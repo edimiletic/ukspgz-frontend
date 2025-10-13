@@ -1,4 +1,6 @@
-import { Component, Input, EventEmitter, Output } from '@angular/core';
+// src/app/components/exams/delete-exam-modal/delete-exam-modal.component.ts
+
+import { Component, Input, EventEmitter, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { ExamAttempt } from '../../../model/exam.model';
 import { CommonModule } from '@angular/common';
 
@@ -8,8 +10,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './delete-exam-modal.component.html',
   styleUrl: './delete-exam-modal.component.scss'
 })
-export class DeleteExamModalComponent {
-
+export class DeleteExamModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() attemptToDelete: ExamAttempt | null = null;
   @Output() close = new EventEmitter<void>();
@@ -17,8 +18,16 @@ export class DeleteExamModalComponent {
 
   isDeleting = false;
 
+  // ADD THIS: Reset isDeleting when modal opens
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && changes['isOpen'].currentValue === true) {
+      this.isDeleting = false; // Reset when modal opens
+    }
+  }
+
   onClose(): void {
     if (!this.isDeleting) {
+      this.isDeleting = false; // Reset on close
       this.close.emit();
     }
   }
@@ -27,6 +36,7 @@ export class DeleteExamModalComponent {
     if (this.attemptToDelete && !this.isDeleting) {
       this.isDeleting = true;
       this.deleteConfirmed.emit(this.attemptToDelete._id);
+      // Don't reset here - let parent handle it via closeDeleteAttemptModal
     }
   }
 
