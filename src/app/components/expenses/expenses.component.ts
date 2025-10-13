@@ -232,24 +232,27 @@ export class ExpensesComponent implements OnInit {
     this.expenseToDelete = null;
   }
 
-onDeleteConfirmed(expenseId: string) {
-  this.travelExpenseService.deleteTravelExpense(expenseId).subscribe({
-    next: () => {
-      this.successMessage = 'Izvješće je uspješno obrisano!';
-      this.loadTravelExpenses();
-      this.closeDeleteModal();
-      setTimeout(() => this.clearMessages(), 4000);
-    },
-    error: (error) => {
-      console.error('Error deleting travel expense:', error);
-      this.errorMessage = 'Greška pri brisanju izvješća.';
-      this.closeDeleteModal();
-      setTimeout(() => this.clearMessages(), 6000);
-    }
-  });
+onDeleteConfirmed() {
+  // Modal already deleted the expense, just handle UI updates
+  this.successMessage = 'Izvješće je uspješno obrisano!';
+  this.loadTravelExpenses();
+  this.closeDeleteModal();
+  setTimeout(() => this.clearMessages(), 4000);
 }
 
-  
+onExpenseDeleted(expenseId: string) {
+  console.log('Expense deleted:', expenseId);
+  this.successMessage = 'Izvješće je uspješno obrisano!';
+  this.loadTravelExpenses();
+  this.closeDeleteModal();
+  setTimeout(() => this.clearMessages(), 4000);
+}
+
+onDeleteError(errorMessage: string) {
+  this.errorMessage = errorMessage;
+  this.closeDeleteModal();
+  setTimeout(() => this.clearMessages(), 6000);
+}  
 
   // Helper methods
   formatDate(dateString: string): string {
@@ -263,25 +266,6 @@ onDeleteConfirmed(expenseId: string) {
     return `${amount.toFixed(2)} €`;
   }
 
-  getStateClass(state: string): string {
-    const stateMap: { [key: string]: string } = {
-      'Skica': 'state-draft',
-      'Predano': 'state-submitted',
-      'Potvrđeno': 'state-approved',
-      'Odbijeno': 'state-rejected'
-    };
-    return stateMap[state] || '';
-  }
-
-  getStateIcon(state: string): string {
-    const iconMap: { [key: string]: string } = {
-      'Skica': 'fa-file',
-      'Predano': 'fa-clock',
-      'Potvrđeno': 'fa-check-circle',
-      'Odbijeno': 'fa-times-circle'
-    };
-    return iconMap[state] || 'fa-file';
-  }
 
   trackByExpenseId(index: number, expense: TravelExpense): string {
     return expense.id;

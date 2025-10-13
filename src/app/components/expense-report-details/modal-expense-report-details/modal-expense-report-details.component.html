@@ -6,7 +6,7 @@
       <h3>Dodaj Trošak</h3>
       <button class="close-btn" (click)="onClose()">&times;</button>
     </div>
-    
+
     <div class="modal-body">
       <!-- Error Message -->
       <div *ngIf="errorMessage" class="alert alert-error">
@@ -15,18 +15,12 @@
 
       <!-- Input Method Tabs -->
       <div class="input-method-tabs">
-         <button 
-          class="tab-btn" 
-          [class.active]="inputMethod === 'location'"
-          (click)="switchInputMethod('location')"
+        <button class="tab-btn" [class.active]="inputMethod === 'location'" (click)="switchInputMethod('location')"
           type="button">
           <i class="fas fa-map-marker-alt"></i>
           Odabir lokacija
         </button>
-        <button 
-          class="tab-btn" 
-          [class.active]="inputMethod === 'manual'"
-          (click)="switchInputMethod('manual')"
+        <button class="tab-btn" [class.active]="inputMethod === 'manual'" (click)="switchInputMethod('manual')"
           type="button">
           <i class="fas fa-keyboard"></i>
           Ručni unos
@@ -45,14 +39,8 @@
             <div class="form-group">
               <label for="startLocation">Polazna Lokacija<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select 
-                  id="startLocation" 
-                  class="form-control" 
-                  [(ngModel)]="startLocation"
-                  name="startLocation"
-                  (change)="onLocationChange()"
-                  required
-                  [disabled]="isLoading">
+                <select id="startLocation" class="form-control" [(ngModel)]="startLocation" name="startLocation"
+                  (change)="onLocationChange()" required [disabled]="isLoading">
                   <option value="">Odaberite polazište</option>
                   <option *ngFor="let location of locations" [value]="location">
                     {{ location }}
@@ -65,16 +53,10 @@
             <div class="form-group">
               <label for="endLocation">Odredišna Lokacija<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select 
-                  id="endLocation" 
-                  class="form-control" 
-                  [(ngModel)]="endLocation"
-                  name="endLocation"
-                  (change)="onLocationChange()"
-                  required
-                  [disabled]="isLoading">
+                <select id="endLocation" class="form-control" [(ngModel)]="endLocation" name="endLocation"
+                  (change)="onLocationChange()" required [disabled]="isLoading">
                   <option value="">Odaberite odredište</option>
-                  <option *ngFor="let location of locations" [value]="location">
+                  <option *ngFor="let location of getAvailableEndLocations()" [value]="location">
                     {{ location }}
                   </option>
                 </select>
@@ -83,46 +65,30 @@
             </div>
           </div>
 
-          <!-- Date -->
-          <div class="form-group">
-            <label for="dateLocation">Datum<span class="required">*</span></label>
-            <input 
-              type="date" 
-              id="dateLocation" 
-              class="form-control" 
-              [(ngModel)]="expenseData.date"
-              name="dateLocation"
-              required
-              [disabled]="isLoading"
-              [max]="getTodayDate()">
+          <!-- Display calculated expense if both locations are selected -->
+          <div *ngIf="startLocation && endLocation" class="expense-preview">
+            <div class="preview-label">
+              <i class="fas fa-calculator"></i>
+              Izračunati trošak (povratno):
+            </div>
+            <div class="preview-amount">
+              {{ expenseData.amount | number:'1.2-2' }} €
+            </div>
           </div>
 
-          <!-- Description (auto-filled but editable) -->
+          <!-- Date -->
           <div class="form-group">
-            <label for="descriptionLocation">Opis<span class="required">*</span></label>
-            <textarea 
-              id="descriptionLocation" 
-              class="form-control textarea-control" 
-              [(ngModel)]="expenseData.description"
-              name="descriptionLocation"
-              required
-              [disabled]="isLoading"
-              placeholder="Automatski se popunjava na osnovu odabira lokacija"
-              rows="2">
-            </textarea>
+            <label for="date">Datum<span class="required">*</span></label>
+            <input type="date" id="date" class="form-control" [(ngModel)]="expenseData.date" name="date" required
+              [disabled]="isLoading">
           </div>
 
           <!-- Competition -->
           <div class="form-group">
-            <label for="competitionLocation">Natjecanje<span class="required">*</span></label>
+            <label for="competition">Natjecanje<span class="required">*</span></label>
             <div class="select-wrapper">
-              <select 
-                id="competitionLocation" 
-                class="form-control" 
-                [(ngModel)]="expenseData.competition"
-                name="competitionLocation"
-                required
-                [disabled]="isLoading">
+              <select id="competition" class="form-control" [(ngModel)]="expenseData.competition" name="competition"
+                required [disabled]="isLoading">
                 <option value="">Odaberite natjecanje</option>
                 <option *ngFor="let comp of competitions" [value]="comp">
                   {{ comp }}
@@ -132,28 +98,27 @@
             </div>
           </div>
 
-          <!-- Amount Display (read-only) -->
-          <div class="total-section" *ngIf="expenseData.amount > 0">
-            <div class="total-label">Ukupan trošak (povratno):</div>
-            <div class="total-amount">{{ expenseData.amount.toFixed(2) }} €</div>
+          <!-- Description -->
+          <div class="form-group">
+            <label for="description">Opis<span class="required">*</span></label>
+            <textarea id="description" class="form-control" [(ngModel)]="expenseData.description" name="description"
+              rows="3" placeholder="Opis troška..." [disabled]="isLoading"></textarea>
           </div>
         </div>
 
         <!-- MANUAL INPUT -->
         <div *ngIf="inputMethod === 'manual'" class="manual-input-section">
+          <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Ručno unesite sve podatke o trošku.</span>
+          </div>
           <div class="form-row">
+            <!-- Type -->
             <div class="form-group">
-              <label for="expenseType">Vrsta troškova<span class="required">*</span></label>
+              <label for="type">Vrsta troška<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select 
-                  id="expenseType" 
-                  class="form-control" 
-                  [(ngModel)]="expenseData.type"
-                  name="expenseType"
-                  required
-                  [disabled]="isLoading"
-                  (ngModelChange)="onExpenseTypeChange()">
-                  <option value="">Odaberite vrstu troška</option>
+                <select id="type" class="form-control" [(ngModel)]="expenseData.type" name="type" required
+                  [disabled]="isLoading"           (ngModelChange)="onExpenseTypeChange()">
                   <option *ngFor="let type of expenseTypes" [value]="type">
                     {{ type }}
                   </option>
@@ -162,106 +127,66 @@
               </div>
             </div>
 
+            <!-- Date -->
             <div class="form-group">
-              <label for="date">Datum<span class="required">*</span></label>
-              <input 
-                type="date" 
-                id="date" 
-                class="form-control" 
-                [(ngModel)]="expenseData.date"
-                name="date"
-                required
-                [disabled]="isLoading"
-                [max]="getTodayDate()">
+              <label for="manualDate">Datum<span class="required">*</span></label>
+              <input type="date" id="manualDate" class="form-control" [(ngModel)]="expenseData.date" name="manualDate"
+                required [disabled]="isLoading">
             </div>
           </div>
 
           <div class="form-group">
-            <label for="description">Kratki Opis<span class="required">*</span></label>
-            <textarea 
-              id="description" 
-              class="form-control textarea-control" 
-              [(ngModel)]="expenseData.description"
-              name="description"
-              required
-              [disabled]="isLoading"
-              placeholder="Unesite opis troška"
-              rows="2">
-            </textarea>
+            <label for="manualDescription">Opis<span class="required">*</span></label>
+            <textarea id="manualDescription" class="form-control" [(ngModel)]="expenseData.description"
+              name="manualDescription" rows="3" placeholder="Opis troška..."
+              [disabled]="isLoading"></textarea>
           </div>
 
+          <!-- Unit -->
           <div class="form-row">
+
             <div class="form-group">
-              <label for="unit">Mjerna Jedinica<span class="required">*</span></label>
+              <label for="unit">Mjerna jedinica<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select 
-                  id="unit" 
-                  class="form-control" 
-                  [(ngModel)]="expenseData.unit"
-                  name="unit"
-                  required
-                  [disabled]="isLoading">
-                  <option *ngFor="let u of units" [value]="u">{{ u }}</option>
-                </select>
-                <i class="fas fa-chevron-down select-arrow"></i>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="quantity">Količina<span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="quantity" 
-                class="form-control" 
-                [(ngModel)]="expenseData.quantity"
-                name="quantity"
-                (ngModelChange)="calculateAmount()"
-                required
-                min="0"
-                step="1"
-                [disabled]="isLoading"
-                placeholder="0">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="unitPrice">Cijena Jedinice (€)<span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="unitPrice" 
-                class="form-control" 
-                [(ngModel)]="expenseData.unitPrice"
-                name="unitPrice"
-                (ngModelChange)="calculateAmount()"
-                required
-                min="0"
-                step="0.01"
-                [disabled]="isLoading"
-                placeholder="0.00">
-            </div>
-
-            <div class="form-group">
-              <label for="competition">Natjecanje<span class="required">*</span></label>
-              <div class="select-wrapper">
-                <select 
-                  id="competition" 
-                  class="form-control" 
-                  [(ngModel)]="expenseData.competition"
-                  name="competition"
-                  required
-                  [disabled]="isLoading">
-                  <option value="">Odaberite natjecanje</option>
-                  <option *ngFor="let comp of competitions" [value]="comp">
-                    {{ comp }}
+                <select id="unit" class="form-control" [(ngModel)]="expenseData.unit" name="unit" required
+                  [disabled]="true">
+                  <option *ngFor="let unit of units" [value]="unit">
+                    {{ unit }}
                   </option>
                 </select>
                 <i class="fas fa-chevron-down select-arrow"></i>
               </div>
             </div>
+
+            <!-- Quantity and Unit Price Row -->
+            <div class="form-group">
+              <label for="quantity">Količina<span class="required">*</span></label>
+              <input type="number" id="quantity" class="form-control" [(ngModel)]="expenseData.quantity" name="quantity"      (ngModelChange)="calculateAmount()"  min="0" step="1" required [disabled]="isLoading">
+            </div>
+
+            <div class="form-group">
+              <label for="unitPrice">Cijena po jedinici<span class="required">*</span></label>
+              <input type="number" id="unitPrice" class="form-control" [(ngModel)]="expenseData.unitPrice"
+                      (ngModelChange)="calculateAmount()" name="unitPrice" min="0" step="0.1" required [disabled]="isLoading || expenseData.type=== 'Prijevoz automobilom'">
+            </div>
           </div>
 
-          <!-- Amount Display -->
+
+          <!-- Competition -->
+          <div class="form-group">
+            <label for="manualCompetition">Natjecanje<span class="required">*</span></label>
+            <div class="select-wrapper">
+              <select id="manualCompetition" class="form-control" [(ngModel)]="expenseData.competition"
+                name="manualCompetition" required [disabled]="isLoading">
+                <option value="">Odaberite natjecanje</option>
+                <option *ngFor="let comp of competitions" [value]="comp">
+                  {{ comp }}
+                </option>
+              </select>
+              <i class="fas fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
+
           <div class="total-section">
             <div class="total-label">Ukupan iznos:</div>
             <div class="total-amount">{{ expenseData.amount.toFixed(2) }} €</div>
@@ -271,18 +196,14 @@
     </div>
 
     <div class="modal-footer">
-      <button 
-        class="btn btn-secondary" 
-        (click)="onClose()"
-        [disabled]="isLoading">
+      <button class="btn btn-secondary" (click)="onClose()" [disabled]="isLoading">
         Odustani
       </button>
-      <button 
-        class="btn btn-primary" 
-        (click)="onSave()"
-        [disabled]="!isFormValid() || isLoading">
-        <span *ngIf="isLoading">Spremanje...</span>
+      <button class="btn btn-primary" (click)="onSave()" [disabled]="isLoading">
         <span *ngIf="!isLoading">Spremi</span>
+        <span *ngIf="isLoading">
+          <i class="fas fa-spinner fa-spin"></i> Spremanje...
+        </span>
       </button>
     </div>
   </div>

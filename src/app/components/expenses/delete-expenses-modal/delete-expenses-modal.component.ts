@@ -13,7 +13,7 @@ export class DeleteExpensesModalComponent {
   @Input() isOpen = false;
   @Input() expenseToDelete: TravelExpense | null = null;
   @Output() close = new EventEmitter<void>();
-  @Output() expenseDeleted = new EventEmitter<void>();
+  @Output() expenseDeleted = new EventEmitter<string>();
   @Output() error = new EventEmitter<string>();
   isDeleting = false;
 
@@ -39,29 +39,19 @@ confirmDelete() {
   console.log('🚀 Starting delete process for expense:', this.expenseToDelete.id);
   this.isDeleting = true;
 
-  console.log('📞 Calling travelExpenseService.deleteTravelExpense...');
-  console.log('🔗 Service URL should be:', 'Check your service apiUrl');
+  const expenseId = this.expenseToDelete.id; // Store the ID
   
-  this.travelExpenseService.deleteTravelExpense(this.expenseToDelete.id).subscribe({
+  this.travelExpenseService.deleteTravelExpense(expenseId).subscribe({
     next: (response) => {
       console.log('✅ Delete SUCCESS:', response);
-      console.log('🔄 Emitting expenseDeleted event');
-      this.expenseDeleted.emit();
-      this.closeModal();
+      this.expenseDeleted.emit(expenseId); // Emit the ID
+      this.resetState(); // Reset state
+      this.close.emit(); // Close the modal
     },
     error: (error) => {
       console.error('❌ Delete ERROR:', error);
-      console.error('🔍 Error details:', {
-        status: error.status,
-        message: error.message,
-        error: error.error,
-        url: error.url
-      });
       this.isDeleting = false;
       this.error.emit(this.getDeleteErrorMessage(error));
-    },
-    complete: () => {
-      console.log('🏁 Delete request completed');
     }
   });
 }

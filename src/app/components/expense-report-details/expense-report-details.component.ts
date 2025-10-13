@@ -166,6 +166,7 @@ private loadCurrentUser() {
   onExpenseDeleted() {
   // Handle successful deletion - navigate back to expenses list
   console.log('Report deleted successfully');
+  this.closeDeleteModal();
   this.router.navigate(['/expenses'], { 
     queryParams: { 
       message: 'deleted',
@@ -213,16 +214,16 @@ onDeleteReport() {
     }
     
     // Convert NewExpenseItem to the format expected by the API
-    const expenseItem = {
-      type: expenseData.type || '',
-      date: expenseData.date || '',
-      description: expenseData.description || '',
-      unit: expenseData.unit || '',
-      quantity: expenseData.quantity || 0,
-      unitPrice: expenseData.unitPrice || 0,
-      competition: expenseData.competition || '',
-      amount: expenseData.unitPrice * expenseData.quantity
-    };
+const expenseItem = {
+    type: expenseData.type || '',
+    date: expenseData.date || '',
+    description: expenseData.description || '',
+    unit: expenseData.unit || '',
+    quantity: expenseData.quantity || 1,  // ✅ Changed from 0 to 1
+    unitPrice: expenseData.unitPrice || expenseData.amount || 1,  // ✅ Use amount if unitPrice is 0
+    competition: expenseData.competition || '',
+    amount: expenseData.amount  // ✅ Use the actual amount from expenseData
+  };
 
     // Call the PATCH API to add expense item
     this.travelExpenseService.addExpenseItem(this.report.id, expenseItem).subscribe({

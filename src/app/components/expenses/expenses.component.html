@@ -36,9 +36,9 @@
         <label>Vrsta</label>
         <select class="form-control" [(ngModel)]="filterValues.type" (change)="applyFilters()">
           <option value="">Sve vrste</option>
-          <option value="Troškovno izvješće Sutca">Troškovno izvješće Sutca</option>
-          <option value="Troškovno izvješće Delegata">Troškovno izvješće Delegata</option>
-          <option value="Troškovno izvješće Pomoćnog Sutca">Troškovno izvješće Pomoćnog Sutca</option>
+          <option value="Troškovno izvješće suca">Troškovno izvješće suca</option>
+          <option value="Troškovno izvješće delegata">Troškovno izvješće delegata</option>
+          <option value="Troškovno izvješće pomoćnog suca">Troškovno izvješće pomoćnog suca</option>
         </select>
       </div>
 
@@ -83,8 +83,8 @@
           <option value="">Svi statusi</option>
           <option value="Skica">Skica</option>
           <option value="Predano">Predano</option>
-          <option value="Potvrđeno">Potvrđeno</option>
-          <option value="Odbijeno">Odbijeno</option>
+          <!-- <option value="Potvrđeno">Potvrđeno</option>
+          <option value="Odbijeno">Odbijeno</option> -->
         </select>
       </div>
 
@@ -121,12 +121,7 @@
               <td>{{ expense.userName }} {{ expense.userSurname }}</td>
               <td>{{ expense.year }}</td>
               <td>{{ expense.month }}</td>
-              <!-- <td>
-                <span class="status-badge" [ngClass]="getStateClass(expense.state)">
-                  <i class="fas" [ngClass]="getStateIcon(expense.state)"></i>
-                  {{ expense.state }}
-                </span>
-              </td> -->
+
               <td class="amount-cell">{{ formatAmount(expense.totalAmount) }}</td>
               <td>{{ formatDate(expense.createdAt!) }}</td>
               <td>
@@ -213,7 +208,8 @@
   [isOpen]="isDeleteModalOpen"
   [expenseToDelete]="expenseToDelete"
   (close)="closeDeleteModal()"
-  (deleteConfirmed)="onDeleteConfirmed($any($event))">
+  (expenseDeleted)="onExpenseDeleted($event)"
+  (error)="onDeleteError($event)">
 </app-delete-expenses-modal>
 
 <app-footer></app-footer>

@@ -319,3 +319,32 @@
 .select-wrapper:has(.form-control:disabled) .select-arrow {
   color: #adb5bd;
 }
+
+.expense-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 16px 0;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+
+  .preview-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #495057;
+    
+    i {
+      color: #6c757d;
+    }
+  }
+
+  .preview-amount {
+    font-size: 18px;
+    font-weight: 600;
+    color: #212529;
+  }
+}
