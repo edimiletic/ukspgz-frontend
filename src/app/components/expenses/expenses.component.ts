@@ -13,7 +13,8 @@ import { FormsModule } from '@angular/forms';
 import { DeleteExpensesModalComponent } from './delete-expenses-modal/delete-expenses-modal.component';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { SidebarComponent } from "../sidebar/sidebar.component";
-
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
 @Component({
   selector: 'app-expenses',
   imports: [
@@ -32,6 +33,9 @@ import { SidebarComponent } from "../sidebar/sidebar.component";
 export class ExpensesComponent implements OnInit {
   isModalOpen = false;
   isDeleteModalOpen = false;
+
+    private platformId = inject(PLATFORM_ID);
+
   
   // Single list for all expenses
   allTravelExpenses: TravelExpense[] = [];
@@ -68,14 +72,20 @@ export class ExpensesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadCurrentUser();
-    this.checkQueryParams();
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadCurrentUser();
+    }
+        this.checkQueryParams();
   }
 
   private loadCurrentUser() {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
-        this.currentUser = user;
+         if (!user) {
+        console.log('No user found (likely SSR)');
+        return; // Stop execution on server-side
+      }
+        if(user && user.role){this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
         console.log('User loaded:', user.role, 'isAdmin:', this.isAdmin);
         
@@ -90,7 +100,7 @@ export class ExpensesComponent implements OnInit {
           return;
         }
         
-        this.loadTravelExpenses();
+        this.loadTravelExpenses();}
       },
       error: (error) => {
         console.error('Error loading user:', error);

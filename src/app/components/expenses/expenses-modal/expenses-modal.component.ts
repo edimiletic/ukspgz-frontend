@@ -8,7 +8,8 @@ import { UserService } from '../../../services/user.service';
 import { User } from '../../../model/user.model';
 import { AuthService } from '../../../services/login.service';
 import { Router } from '@angular/router';
-
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
 
 
 @Component({
@@ -77,6 +78,9 @@ export class ExpensesModalComponent implements OnInit {
   isLoadingUser = false;
   isAdmin = false;
 
+  private platformId = inject(PLATFORM_ID);
+
+
   constructor(
     private travelExpenseService: TravelExpenseService,
     private authService: AuthService,
@@ -84,14 +88,20 @@ export class ExpensesModalComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit() {
-    this.loadCurrentUser();
+ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadCurrentUser();
+    }
   }
 
   private loadCurrentUser() {
     this.isLoadingUser = true;
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
+         if (!user) {
+        console.log('No user found (likely SSR)');
+        return; // Stop execution on server-side
+      }
         this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
         

@@ -13,7 +13,8 @@ import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-detai
 import { SubmitModalExpenseComponent } from "./submit-modal-expense/submit-modal-expense.component";
 import { DeleteItemModalComponent } from './delete-item-modal/delete-item-modal.component';
 import { SidebarComponent } from "../sidebar/sidebar.component";
-
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
 @Component({
   selector: 'app-expense-report-details',
   imports: [RouterModule, CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent, SidebarComponent],
@@ -31,6 +32,9 @@ export class ExpenseReportDetailsComponent implements OnInit {
   isDeleteExpenseItemModalOpen = false;
   expenseItemToDelete = '';
   
+  private platformId = inject(PLATFORM_ID);
+
+
   // Add these properties
   isAdmin = false;
   currentUser: any = null;
@@ -43,13 +47,19 @@ export class ExpenseReportDetailsComponent implements OnInit {
     private authService: AuthService // Remove HttpClient
   ) {}
 
-  ngOnInit() {
-    this.loadCurrentUser();
+ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadCurrentUser();
+    }
   }
 
 private loadCurrentUser() {
   this.authService.getCurrentUser().subscribe({
     next: (user) =>{
+       if (!user) {
+        console.log('No user found (likely SSR)');
+        return; // Stop execution on server-side
+      }
       this.currentUser = user;
       this.isAdmin = user.role ==="Admin";
 
