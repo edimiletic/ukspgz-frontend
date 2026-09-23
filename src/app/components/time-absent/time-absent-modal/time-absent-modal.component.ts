@@ -38,11 +38,6 @@ export class TimeAbsentModalComponent {
     private absenceService: AbsenceService,
     private authService: AuthService
   ) {
-
-  console.log('Browser locale:', navigator.language);
-  console.log('All locales:', navigator.languages);
-
-    // Set today's date in YYYY-MM-DD format
     const today = new Date();
     this.todayDate = today.toISOString().split('T')[0];
     
