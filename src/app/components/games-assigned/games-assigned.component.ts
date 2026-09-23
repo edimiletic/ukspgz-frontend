@@ -135,6 +135,19 @@ isMobileFiltersOpen: boolean = false;
     return this.currentUser?.role === 'Admin';
   }
 
+  private currentUserId(): string {
+    return this.currentUser?._id || this.currentUser?.id || '';
+  }
+
+  private assignmentUserId(assignment: RefereeAssignment): string {
+    const assigned: any = assignment?.userId;
+    return String(typeof assigned === 'string' ? assigned : assigned?._id || assigned?.id || '');
+  }
+
+  private isCurrentUserAssignment(assignment: RefereeAssignment): boolean {
+    return this.assignmentUserId(assignment) === this.currentUserId();
+  }
+
   isViewKontrolaModalOpen = false;
   gameForViewKontrola: BasketballGame | null = null;
 
@@ -149,7 +162,7 @@ isMobileFiltersOpen: boolean = false;
 
     // Check if the current user was assigned to this game and accepted
     const userAssignment = game.refereeAssignments.find(
-      assignment => assignment.userId._id === this.currentUser!._id && 
+      assignment => this.isCurrentUserAssignment(assignment) &&
                    assignment.assignmentStatus === 'Accepted'
     );
 
@@ -365,7 +378,7 @@ onGameCreated(result: any) {
   getMyAssignment(game: BasketballGame): RefereeAssignment | undefined {
     if (!this.currentUser) return undefined;
     return game.refereeAssignments.find(
-      assignment => assignment.userId._id === this.currentUser._id
+      assignment => this.isCurrentUserAssignment(assignment)
     );
   }
 
@@ -460,7 +473,7 @@ onGameCreated(result: any) {
     if (!this.currentUser) return '';
     
     const otherReferees = game.refereeAssignments
-      .filter(assignment => assignment.userId._id !== this.currentUser._id)
+      .filter(assignment => !this.isCurrentUserAssignment(assignment))
       .map(assignment => `${assignment.userId.name} ${assignment.userId.surname} (${assignment.role} ${assignment.position})`)
       .join(', ');
     
@@ -479,7 +492,7 @@ onGameCreated(result: any) {
       // Only show referees with Pending or Accepted status
       if (assignment.assignmentStatus === 'Pending' || assignment.assignmentStatus === 'Accepted') {
         const statusText = assignment.assignmentStatus === 'Pending' ? '(na čekanju)' : '(potvrđeno)';
-        const isCurrentUser = assignment.userId._id === this.currentUser?._id;
+        const isCurrentUser = this.isCurrentUserAssignment(assignment);
         let nameDisplay: string;
         
         if (this.isAdmin()) {

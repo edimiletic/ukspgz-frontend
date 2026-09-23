@@ -111,7 +111,6 @@ isExpensesModalOpen = false;
  private loadUserDashboard(): void {
     const loadPromises = [
       this.loadUserGames(),
-      this.loadUserExpenses(),
       this.loadUserAbsences(),
       this.loadUserExams(),
       this.loadUserKontrola()
@@ -171,7 +170,7 @@ private loadUserGames(): Promise<void> {
         // Count pending games (assignments waiting for response)
         this.dashboardStats.pendingGames = games.filter(game => {
           const assignment = game.refereeAssignments.find(
-            a => a.userId._id === this.currentUser?._id
+            a => this.isCurrentUserAssignment(a)
           );
           return assignment?.assignmentStatus === 'Pending';
         }).length;
@@ -179,7 +178,7 @@ private loadUserGames(): Promise<void> {
         // Count upcoming games (accepted and future)
         this.dashboardStats.upcomingGames = games.filter(game => {
           const assignment = game.refereeAssignments.find(
-            a => a.userId._id === this.currentUser?._id
+            a => this.isCurrentUserAssignment(a)
           );
           const gameDate = new Date(game.date);
           return assignment?.assignmentStatus === 'Accepted' && gameDate >= now;
@@ -189,7 +188,7 @@ private loadUserGames(): Promise<void> {
         this.recentGames = games
           .filter(game => {
             const assignment = game.refereeAssignments.find(
-              a => a.userId._id === this.currentUser?._id
+              a => this.isCurrentUserAssignment(a)
             );
             const gameDate = new Date(game.date);
             return assignment?.assignmentStatus === 'Accepted' && gameDate < now;
@@ -202,25 +201,6 @@ private loadUserGames(): Promise<void> {
           .slice(0, 3);
 
         this.dashboardStats.completedGames = this.recentGames.length;
-        resolve();
-      },
-      error: reject
-    });
-  });
-}
-
-private loadUserExpenses(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    this.expenseService.getCurrentUserTravelExpenses().subscribe({
-      next: (expenses) => {
-        this.dashboardStats.pendingExpenses = expenses.filter(e => e.state === 'Skica').length;
-        this.recentExpenses = expenses
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.updatedAt || a.createdAt).getTime();
-            const dateB = this.getSafeDate(b.updatedAt || b.createdAt).getTime();
-            return dateB - dateA;
-          })
-          .slice(0, 3);
         resolve();
       },
       error: reject
@@ -431,6 +411,18 @@ private getSafeDate(dateString: string | undefined, fallback: string | Date = ne
     return new Date(fallback);
   }
   return new Date(dateString);
+}
+
+private currentUserId(): string {
+  return this.currentUser?._id || (this.currentUser as { id?: string })?.id || '';
+}
+
+private isCurrentUserAssignment(assignment: { userId?: any }): boolean {
+  const assigned = assignment?.userId;
+  const assignedId = typeof assigned === 'string'
+    ? assigned
+    : assigned?._id || assigned?.id;
+  return String(assignedId) === this.currentUserId();
 }
 
 getGameStatusText(game: BasketballGame): string {

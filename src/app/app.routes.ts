@@ -7,6 +7,7 @@ import { TimeAbsentComponent } from './components/time-absent/time-absent.compon
 import { ExpensesComponent } from './components/expenses/expenses.component';
 import { BasketRulesComponent } from './components/basket-rules/basket-rules.component';
 import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { ExpenseReportDetailsComponent } from './components/expense-report-details/expense-report-details.component';
 import { ExamsComponent } from './components/exams/exams.component';
 import { TakeExamComponent } from './components/take-exam/take-exam.component';
@@ -25,18 +26,18 @@ export const routes: Routes = [
   {path: 'home', component: HomeComponent, canActivate: [AuthGuard]},
   {path: 'assigned', component: GamesAssignedComponent, canActivate: [AuthGuard]},
   {path: 'absence', component: TimeAbsentComponent, canActivate: [AuthGuard]},
-  {path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard]},
-  {path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard]},
+  {path: 'expenses', component: ExpensesComponent, canActivate: [AuthGuard, AdminGuard]},
+  {path: 'expenses/:id', component: ExpenseReportDetailsComponent, canActivate: [AuthGuard, AdminGuard]},
   {path: 'documents', component: BasketRulesComponent, canActivate: [AuthGuard]},
   {path: 'exams', component: ExamsComponent, canActivate: [AuthGuard]},
   {path: 'exams/take/:id', component: TakeExamComponent, canActivate: [AuthGuard]},
   {path: 'exams/result', component: ExamResultComponent, canActivate: [AuthGuard]},
   {path: 'exams/review/:id', component: ExamReviewComponent, canActivate: [AuthGuard]},
   {
-  path: 'statistics', 
-  component: StatisticsComponent, 
-  canActivate: [AuthGuard]
-},
+    path: 'statistics',
+    component: StatisticsComponent,
+    canActivate: [AuthGuard, AdminGuard]
+  },
 {
   path: 'notifications',
   component: NotificationsComponent,

@@ -4,13 +4,14 @@ export type UserRole = 'Admin' | 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
 
 export interface User {
   _id: string;
+  id?: string;
   username: string;
   name: string;
   surname: string;
   email: string;
-  password: string;
-  birthdate: string;       // ISO format, e.g., '1990-01-01'
-  personalCode: string;    // e.g., national ID number
+  password?: string;
+  birthdate: string;
+  personalCode: string;
   address: string;
   role: UserRole;
 }
