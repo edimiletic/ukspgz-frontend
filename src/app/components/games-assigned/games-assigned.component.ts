@@ -328,17 +328,11 @@ onGameCreated(result: any) {
     
     if (this.isAdmin()) {
       // For admin, show upcoming games and history only
-      this.allPendingGames = games.filter(game => {
-        const gameDate = new Date(game.date);
-        return gameDate >= now; // All upcoming games regardless of status
-      });
+      this.allPendingGames = games.filter(game => this.isGameUpcoming(game, now));
 
       this.allConfirmedGames = []; // Admin doesn't see confirmed games section
 
-      this.allGameHistory = games.filter(game => {
-        const gameDate = new Date(game.date);
-        return gameDate < now; // All past games
-      });
+      this.allGameHistory = games.filter(game => this.isGameInPast(game, now));
 
       console.log('Admin games categorized:', {
         pending: this.allPendingGames.length,
@@ -353,14 +347,12 @@ onGameCreated(result: any) {
 
       this.allConfirmedGames = games.filter(game => {
         const myAssignment = this.getMyAssignment(game);
-        const gameDate = new Date(game.date);
-        return myAssignment?.assignmentStatus === 'Accepted' && gameDate >= now;
+        return myAssignment?.assignmentStatus === 'Accepted' && this.isGameUpcoming(game, now);
       });
 
       this.allGameHistory = games.filter(game => {
         const myAssignment = this.getMyAssignment(game);
-        const gameDate = new Date(game.date);
-        return (myAssignment?.assignmentStatus === 'Accepted' && gameDate < now) ||
+        return (myAssignment?.assignmentStatus === 'Accepted' && this.isGameInPast(game, now)) ||
                myAssignment?.assignmentStatus === 'Rejected';
       });
 
@@ -373,6 +365,21 @@ onGameCreated(result: any) {
     
     // Apply filters after categorization (which will also update pagination)
     this.applyFilters();
+  }
+
+  private getGameDateTime(game: BasketballGame): Date {
+    const dateTime = new Date(game.date);
+    const [hours = '0', minutes = '0'] = (game.time || '00:00').split(':');
+    dateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
+    return dateTime;
+  }
+
+  private isGameInPast(game: BasketballGame, now = new Date()): boolean {
+    return this.getGameDateTime(game).getTime() < now.getTime();
+  }
+
+  private isGameUpcoming(game: BasketballGame, now = new Date()): boolean {
+    return this.getGameDateTime(game).getTime() >= now.getTime();
   }
 
   getMyAssignment(game: BasketballGame): RefereeAssignment | undefined {
@@ -566,10 +573,7 @@ onGameCreated(result: any) {
   getStatusDisplay(game: BasketballGame): string {
     if (this.isAdmin()) {
       // For admin, check if it's a past game with "Scheduled" status
-      const gameDate = new Date(game.date);
-      const now = new Date();
-      
-      if (game.status === 'Scheduled' && gameDate < now) {
+      if (game.status === 'Scheduled' && this.isGameInPast(game)) {
         return 'Odigrano'; // Past scheduled games are considered "played"
       }
       
@@ -597,10 +601,7 @@ onGameCreated(result: any) {
   getStatusClass(game: BasketballGame): string {
     if (this.isAdmin()) {
       // Check if it's a past scheduled game (should be "Odigrano")
-      const gameDate = new Date(game.date);
-      const now = new Date();
-      
-      if (game.status === 'Scheduled' && gameDate < now) {
+      if (game.status === 'Scheduled' && this.isGameInPast(game)) {
         return 'status-accepted'; // Use green styling for "Odigrano"
       }
       

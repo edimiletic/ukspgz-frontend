@@ -30,7 +30,10 @@ export interface ExpenseItem {
   quantity: number;      // Količina
   unitPrice: number;     // Cijena Jedinice
   competition: string; //natjecanje
-  amount: number;   
+  amount: number;
+  gameId?: string;
+  homeTeam?: string;
+  awayTeam?: string;
 }
 
 export interface NewTravelExpense {

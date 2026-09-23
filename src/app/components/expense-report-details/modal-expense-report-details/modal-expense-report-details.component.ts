@@ -1,9 +1,11 @@
 // src/app/components/expense-report-details/modal-expense-report-details/modal-expense-report-details.component.ts
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { ExpenseItem } from '../../../model/travel-expense.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BasketballGame } from '../../../model/basketballGame.model';
+import { BasketballGameService } from '../../../services/basketballGame.service';
 
 @Component({
   selector: 'app-modal-expense-report-details',
@@ -11,10 +13,14 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './modal-expense-report-details.component.html',
   styleUrl: './modal-expense-report-details.component.scss'
 })
-export class ModalExpenseReportDetailsComponent {
+export class ModalExpenseReportDetailsComponent implements OnChanges {
   @Input() isOpen = false;
+  @Input() reportMonth = '';
+  @Input() reportYear: number | string | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<ExpenseItem>();
+
+  private basketballGameService = inject(BasketballGameService);
 
   // Toggle between input methods
   inputMethod: 'manual' | 'location' = 'location';
@@ -28,7 +34,10 @@ export class ModalExpenseReportDetailsComponent {
     amount: 0,
     quantity: 0,
     unitPrice: 0,
-    competition: ''
+    competition: '',
+    gameId: '',
+    homeTeam: '',
+    awayTeam: ''
   };
 
   // For location-based input
@@ -84,34 +93,27 @@ export class ModalExpenseReportDetailsComponent {
 
   units = ['km', 'tk'];
 
-  competitions = [
-    'FAVBET PREMIJER LIGA',
-    'KUP «K. ĆOSIĆ»',
-    'PRVA MUŠKA LIGA',
-    'ZAVRŠNI TURNIR ZA POPUNU PRVE MUŠKE LIGE',
-    'DRUGE MUŠKE LIGE',
-    'TREĆE MUŠKE LIGE',
-    'ČETVRTE MUŠKE LIGE',
-    'PREMIJER ŽENSKA LIGA',
-    'PRVA ŽENSKA LIGA',
-    'KUP «R. MEGLAJ-RIMAC»',
-    'JUNIORI',
-    'JUNIORKE',
-    'KADETI',
-    'KADETKINJE',
-    'MLAĐI KADETI',
-    'MLAĐE KADETKINJE',
-    'DJEČACI I DJEVOJČICE',
-    'NATJECANJE SREDNJIH ŠKOLA',
-    'NATJECANJE OSNOVNIH ŠKOLA',
-    'Natjecanje MINI KOŠARKA',
-    '3X3'
+  availableGames: BasketballGame[] = [];
+  selectedGameId = '';
+  isLoadingGames = false;
+
+  private readonly monthNames = [
+    'Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj',
+    'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'
   ];
 
   isLoading = false;
   errorMessage = '';
 
-  constructor() {}
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen']?.currentValue) {
+      this.loadGames();
+    }
+  }
+
+  get selectedGame(): BasketballGame | undefined {
+    return this.availableGames.find(game => game._id === this.selectedGameId);
+  }
 
   // Method to filter out the selected start location from end location options
   getAvailableEndLocations(): string[] {
@@ -124,20 +126,95 @@ export class ModalExpenseReportDetailsComponent {
   switchInputMethod(method: 'manual' | 'location') {
     this.inputMethod = method;
     this.clearError();
-    
-    // Reset form when switching
+
+    this.expenseData.type = 'Prijevoz automobilom';
+    this.expenseData.unit = 'km';
+    this.expenseData.quantity = 0;
+    this.expenseData.amount = 0;
+
     if (method === 'location') {
-      this.expenseData.type = 'Prijevoz automobilom';
-      this.expenseData.unit = 'km';
       this.startLocation = '';
       this.endLocation = '';
-    }
-      this.expenseData.type = 'Prijevoz automobilom';
-      this.expenseData.unit = 'km';
-      this.expenseData.quantity = 0;
+      this.expenseData.unitPrice = 0;
+    } else {
       this.expenseData.unitPrice = 0.31;
-      this.expenseData.amount = 0;
     }
+  }
+
+  onGameChange() {
+    const game = this.selectedGame;
+    if (!game) {
+      this.expenseData.date = '';
+      this.expenseData.competition = '';
+      this.expenseData.gameId = '';
+      this.expenseData.homeTeam = '';
+      this.expenseData.awayTeam = '';
+      return;
+    }
+
+    this.expenseData.date = this.toDateValue(game.date);
+    this.expenseData.competition = game.competition;
+    this.expenseData.gameId = game._id;
+    this.expenseData.homeTeam = game.homeTeam;
+    this.expenseData.awayTeam = game.awayTeam;
+    this.clearError();
+  }
+
+  formatGameOption(game: BasketballGame): string {
+    return `${this.formatDisplayDate(game.date)} • ${game.homeTeam} - ${game.awayTeam} • ${game.competition}`;
+  }
+
+  formatDisplayDate(dateValue: string): string {
+    const value = this.toDateValue(dateValue);
+    if (!value) return '';
+    const [year, month, day] = value.split('-');
+    return `${day}.${month}.${year}.`;
+  }
+
+  private loadGames() {
+    this.isLoadingGames = true;
+    this.basketballGameService.getMyAssignments().subscribe({
+      next: (games) => {
+        this.availableGames = games
+          .filter(game => game.status !== 'Cancelled' && this.gameMatchesReport(game))
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        this.isLoadingGames = false;
+      },
+      error: (error) => {
+        console.error('Error loading assigned games:', error);
+        this.errorMessage = 'Greška pri učitavanju utakmica.';
+        this.availableGames = [];
+        this.isLoadingGames = false;
+      }
+    });
+  }
+
+  private gameMatchesReport(game: BasketballGame): boolean {
+    const dateValue = this.toDateValue(game.date);
+    if (!dateValue) return false;
+
+    const [year, month] = dateValue.split('-').map(Number);
+    if (this.reportYear && year !== Number(this.reportYear)) {
+      return false;
+    }
+    if (this.reportMonth) {
+      return this.monthNames[month - 1] === this.reportMonth;
+    }
+    return true;
+  }
+
+  private toDateValue(dateValue: string): string {
+    if (!dateValue) return '';
+    if (dateValue.includes('T')) {
+      return dateValue.split('T')[0];
+    }
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return '';
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
 onLocationChange() {
   // Reset end location if it matches start location
@@ -174,7 +251,7 @@ onLocationChange() {
   onExpenseTypeChange() {
     if (this.expenseData.type === 'Prijevoz automobilom') {
       this.expenseData.unit = 'km';
-      this,this.expenseData.unitPrice = 0.31;
+      this.expenseData.unitPrice = 0.31;
     } else if (this.expenseData.type === 'Putnička karta') {
       this.expenseData.unit = 'tk';
       this.expenseData.unitPrice = 0;
@@ -193,6 +270,7 @@ onLocationChange() {
 
   isFormValid(): boolean {
     const basicValidation = !!(
+      this.selectedGameId &&
       this.expenseData.type &&
       this.expenseData.date &&
       this.expenseData.description &&
@@ -249,10 +327,14 @@ onLocationChange() {
       amount: 0,
       quantity: 0,
       unitPrice: 0,
-      competition: ''
+      competition: '',
+      gameId: '',
+      homeTeam: '',
+      awayTeam: ''
     };
     this.startLocation = '';
     this.endLocation = '';
+    this.selectedGameId = '';
     this.inputMethod = 'location';
   }
 

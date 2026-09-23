@@ -28,6 +28,36 @@
       </div>
 
       <form>
+        <div class="form-group">
+          <label for="gameId">Utakmica<span class="required">*</span></label>
+          <div class="select-wrapper">
+            <select id="gameId" class="form-control" [(ngModel)]="selectedGameId" name="gameId"
+              (change)="onGameChange()" required [disabled]="isLoading || isLoadingGames">
+              <option value="">
+                {{ isLoadingGames ? 'Učitavanje utakmica...' : 'Odaberite utakmicu' }}
+              </option>
+              <option *ngFor="let game of availableGames" [value]="game._id">
+                {{ formatGameOption(game) }}
+              </option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow"></i>
+          </div>
+          <p class="helper-text" *ngIf="!isLoadingGames && availableGames.length === 0">
+            Nema dodijeljenih utakmica za ovo izvješće.
+          </p>
+        </div>
+
+        <div class="game-meta" *ngIf="selectedGame">
+          <div class="game-meta-item">
+            <span class="game-meta-label">Datum</span>
+            <span>{{ formatDisplayDate(selectedGame.date) }}</span>
+          </div>
+          <div class="game-meta-item">
+            <span class="game-meta-label">Natjecanje</span>
+            <span>{{ selectedGame.competition }}</span>
+          </div>
+        </div>
+
         <!-- LOCATION-BASED INPUT -->
         <div *ngIf="inputMethod === 'location'" class="location-input-section">
           <div class="info-box">
@@ -76,28 +106,6 @@
             </div>
           </div>
 
-          <!-- Date -->
-          <div class="form-group">
-            <label for="date">Datum<span class="required">*</span></label>
-            <input type="date" id="date" class="form-control" [(ngModel)]="expenseData.date" name="date" required
-              [disabled]="isLoading">
-          </div>
-
-          <!-- Competition -->
-          <div class="form-group">
-            <label for="competition">Natjecanje<span class="required">*</span></label>
-            <div class="select-wrapper">
-              <select id="competition" class="form-control" [(ngModel)]="expenseData.competition" name="competition"
-                required [disabled]="isLoading">
-                <option value="">Odaberite natjecanje</option>
-                <option *ngFor="let comp of competitions" [value]="comp">
-                  {{ comp }}
-                </option>
-              </select>
-              <i class="fas fa-chevron-down select-arrow"></i>
-            </div>
-          </div>
-
           <!-- Description -->
           <div class="form-group">
             <label for="description">Opis<span class="required">*</span></label>
@@ -125,13 +133,6 @@
                 </select>
                 <i class="fas fa-chevron-down select-arrow"></i>
               </div>
-            </div>
-
-            <!-- Date -->
-            <div class="form-group">
-              <label for="manualDate">Datum<span class="required">*</span></label>
-              <input type="date" id="manualDate" class="form-control" [(ngModel)]="expenseData.date" name="manualDate"
-                required [disabled]="isLoading">
             </div>
           </div>
 
@@ -171,21 +172,6 @@
             </div>
           </div>
 
-
-          <!-- Competition -->
-          <div class="form-group">
-            <label for="manualCompetition">Natjecanje<span class="required">*</span></label>
-            <div class="select-wrapper">
-              <select id="manualCompetition" class="form-control" [(ngModel)]="expenseData.competition"
-                name="manualCompetition" required [disabled]="isLoading">
-                <option value="">Odaberite natjecanje</option>
-                <option *ngFor="let comp of competitions" [value]="comp">
-                  {{ comp }}
-                </option>
-              </select>
-              <i class="fas fa-chevron-down select-arrow"></i>
-            </div>
-          </div>
 
           <div class="total-section">
             <div class="total-label">Ukupan iznos:</div>

@@ -25,8 +25,8 @@ export class ExpensesModalComponent implements OnInit {
 
   reportData: NewTravelExpense = {
     type: '',
-    season: '2024./2025.',
-    year: 2024,
+    season: '2026./2027.',
+    year: 2026,
     month: '',
     userId: '' // For admin to select user
   };
@@ -52,7 +52,7 @@ export class ExpensesModalComponent implements OnInit {
   allUsers: User[] = [];
   filteredUsers: User[] = [];
 
-  seasons = ['2024./2025.'];
+  seasons = ['2026./2027.'];
 
   months = [
     'Siječanj',
@@ -69,7 +69,7 @@ export class ExpensesModalComponent implements OnInit {
     'Prosinac'
   ];
 
-  years = [2024, 2025];
+  years = [2026, 2027];
 
   // Modal-specific states
   isLoading = false;
@@ -238,8 +238,8 @@ ngOnInit() {
   private resetForm() {
     this.reportData = {
       type: '',
-      season: '2024./2025.',
-      year: 2024,
+      season: '2026./2027.',
+      year: 2026,
       month: '',
       userId: ''
     };

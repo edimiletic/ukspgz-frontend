@@ -129,6 +129,40 @@
   color: #dc3545;
   margin-left: 2px;
 }
+
+.helper-text {
+  margin: 0.4rem 0 0;
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.game-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+
+.game-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+.game-meta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6c757d;
+}
+
 .form-group {
   margin-bottom: 1.5rem;
   

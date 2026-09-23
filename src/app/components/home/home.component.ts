@@ -181,8 +181,7 @@ private loadUserGames(): Promise<void> {
           const assignment = game.refereeAssignments.find(
             a => this.isCurrentUserAssignment(a)
           );
-          const gameDate = new Date(game.date);
-          return assignment?.assignmentStatus === 'Accepted' && gameDate >= now;
+          return assignment?.assignmentStatus === 'Accepted' && this.isGameUpcoming(game, now);
         }).length;
 
         // Get recent completed games
@@ -191,8 +190,7 @@ private loadUserGames(): Promise<void> {
             const assignment = game.refereeAssignments.find(
               a => this.isCurrentUserAssignment(a)
             );
-            const gameDate = new Date(game.date);
-            return assignment?.assignmentStatus === 'Accepted' && gameDate < now;
+            return assignment?.assignmentStatus === 'Accepted' && this.isGameInPast(game, now);
           })
           .sort((a, b) => {
             const dateA = this.getSafeDate(a.date).getTime();
@@ -288,8 +286,8 @@ private loadAdminGames(): Promise<void> {
         const now = new Date();
         
         this.adminStats.totalGames = games.length;
-        this.dashboardStats.upcomingGames = games.filter(game => new Date(game.date) >= now).length;
-        this.dashboardStats.completedGames = games.filter(game => new Date(game.date) < now).length;
+        this.dashboardStats.upcomingGames = games.filter(game => this.isGameUpcoming(game, now)).length;
+        this.dashboardStats.completedGames = games.filter(game => this.isGameInPast(game, now)).length;
         
         this.recentGames = games
           .sort((a, b) => {
@@ -385,11 +383,8 @@ formatDateTime(dateString: string | undefined): string {
 }
 
   getGameStatusClass(game: BasketballGame): string {
-    const now = new Date();
-    const gameDate = new Date(game.date);
-    
-    if (gameDate > now) return 'status-upcoming';
-    if (gameDate < now) return 'status-completed';
+    if (this.isGameUpcoming(game)) return 'status-upcoming';
+    if (this.isGameInPast(game)) return 'status-completed';
     return 'status-ongoing';
   }
 
@@ -433,6 +428,21 @@ private getSafeDate(dateString: string | undefined, fallback: string | Date = ne
   return new Date(dateString);
 }
 
+private getGameDateTime(game: BasketballGame): Date {
+  const dateTime = new Date(game.date);
+  const [hours = '0', minutes = '0'] = (game.time || '00:00').split(':');
+  dateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
+  return dateTime;
+}
+
+private isGameInPast(game: BasketballGame, now = new Date()): boolean {
+  return this.getGameDateTime(game).getTime() < now.getTime();
+}
+
+private isGameUpcoming(game: BasketballGame, now = new Date()): boolean {
+  return this.getGameDateTime(game).getTime() >= now.getTime();
+}
+
 private currentUserId(): string {
   return this.currentUser?._id || (this.currentUser as { id?: string })?.id || '';
 }
@@ -446,10 +456,6 @@ private isCurrentUserAssignment(assignment: { userId?: any }): boolean {
 }
 
 getGameStatusText(game: BasketballGame): string {
-  const gameDate = new Date(game.date);
-  const now = new Date();
-  
-  // Check if game has a specific status
   switch (game.status) {
     case 'Completed':
       return 'Završeno';
@@ -459,7 +465,7 @@ getGameStatusText(game: BasketballGame): string {
       return 'U tijeku';
     case 'Scheduled':
     default:
-      return gameDate > now ? 'Nadolazi' : 'Završeno';
+      return this.isGameUpcoming(game) ? 'Nadolazi' : 'Završeno';
   }
 }
 

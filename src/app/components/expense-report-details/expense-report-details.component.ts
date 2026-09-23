@@ -248,7 +248,10 @@ const expenseItem = {
     quantity: expenseData.quantity || 1,  // ✅ Changed from 0 to 1
     unitPrice: expenseData.unitPrice || expenseData.amount || 1,  // ✅ Use amount if unitPrice is 0
     competition: expenseData.competition || '',
-    amount: expenseData.amount  // ✅ Use the actual amount from expenseData
+    amount: expenseData.amount,  // ✅ Use the actual amount from expenseData
+    gameId: expenseData.gameId || undefined,
+    homeTeam: expenseData.homeTeam || undefined,
+    awayTeam: expenseData.awayTeam || undefined
   };
 
     // Call the PATCH API to add expense item
@@ -349,6 +352,13 @@ const expenseItem = {
       return expense.type;
     }
     return expense.type || 'Nepoznato';
+  }
+
+  getGameDisplay(expense: ExpenseItem): string {
+    if (expense.homeTeam && expense.awayTeam) {
+      return `${expense.homeTeam} vs ${expense.awayTeam}`;
+    }
+    return '—';
   }
 
   formatAmount(amount: number | undefined | null): string {

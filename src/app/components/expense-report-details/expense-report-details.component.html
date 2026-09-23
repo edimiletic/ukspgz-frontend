@@ -115,6 +115,8 @@
                             <thead>
                                 <tr>
                                     <th>Datum</th>
+                                    <th>Utakmica</th>
+                                    <th>Natjecanje</th>
                                     <th>Vrsta</th>
                                     <th>Kratki opis</th>
                                     <th>Ukupna cijena</th>
@@ -124,6 +126,8 @@
                             <tbody>
                                 <tr *ngFor="let expense of report.expenses; trackBy: trackByExpenseItemId">
                                     <td>{{ formatExpenseDate(expense.date) }}</td>
+                                    <td>{{ getGameDisplay(expense) }}</td>
+                                    <td>{{ expense.competition || '—' }}</td>
                                     <td>{{ getExpenseTypeDisplay(expense) }}</td>
                                     <td>{{ expense.description }}</td>
                                     <td class="amount-cell">{{ formatAmount(expense.amount) }}</td>
@@ -190,6 +194,8 @@
 <!-- Modals -->
 <app-modal-expense-report-details
  [isOpen]="isAddExpenseModalOpen"
+  [reportMonth]="report?.month || ''"
+  [reportYear]="report?.year || null"
   (close)="closeAddExpenseModal()"
   (save)="onExpenseSaved($event)">
 </app-modal-expense-report-details>
