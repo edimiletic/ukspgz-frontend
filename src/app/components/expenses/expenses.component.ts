@@ -15,6 +15,9 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { SidebarComponent } from "../sidebar/sidebar.component";
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
+
+type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
+
 @Component({
   selector: 'app-expenses',
   imports: [
@@ -37,15 +40,18 @@ export class ExpensesComponent implements OnInit {
     private platformId = inject(PLATFORM_ID);
 
   
-  // Single list for all expenses
   allTravelExpenses: TravelExpense[] = [];
   travelExpenses: TravelExpense[] = [];
-  
-  // Pagination
-  currentPage = 1;
-  itemsPerPage = 10;
-  totalPages = 1;
-  displayedExpenses: TravelExpense[] = [];
+  pendingExpenses: TravelExpense[] = [];
+  rejectedExpenses: TravelExpense[] = [];
+  approvedExpenses: TravelExpense[] = [];
+
+  readonly itemsPerPage = 10;
+  sectionPages: Record<ExpenseSectionKey, number> = {
+    pending: 1,
+    rejected: 1,
+    approved: 1
+  };
 
   // Filter properties
   filterValues = {
@@ -85,22 +91,9 @@ export class ExpensesComponent implements OnInit {
         console.log('No user found (likely SSR)');
         return; // Stop execution on server-side
       }
-        if(user && user.role){this.currentUser = user;
+        this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
-        console.log('User loaded:', user.role, 'isAdmin:', this.isAdmin);
-        
-        // Redirect if not admin
-        if (!this.isAdmin) {
-          this.router.navigate(['/home'], {
-            queryParams: {
-              error: 'access_denied',
-              message: 'Nemate pristup putnim troškovima. Samo administratori mogu pristupiti ovoj stranici.'
-            }
-          });
-          return;
-        }
-        
-        this.loadTravelExpenses();}
+        this.loadTravelExpenses();
       },
       error: (error) => {
         console.error('Error loading user:', error);
@@ -110,12 +103,14 @@ export class ExpensesComponent implements OnInit {
   }
 
   loadTravelExpenses() {
-    // Admin loads ALL expenses
-    this.travelExpenseService.getAllTravelExpenses().subscribe({
+    const request = this.isAdmin
+      ? this.travelExpenseService.getAllTravelExpenses()
+      : this.travelExpenseService.getCurrentUserTravelExpenses();
+
+    request.subscribe({
       next: (expenses) => {
         this.allTravelExpenses = expenses;
-        this.applyFilters();
-        console.log('Loaded all travel expenses:', expenses.length);
+        this.applyFilters(false);
       },
       error: (error) => {
         console.error('Error loading travel expenses:', error);
@@ -124,10 +119,115 @@ export class ExpensesComponent implements OnInit {
     });
   }
 
-  applyFilters() {
+  applyFilters(resetPages = true) {
     this.travelExpenses = this.filterExpenses(this.allTravelExpenses);
-    this.currentPage = 1; // Reset to first page
-    this.updatePagination();
+    this.pendingExpenses = this.sortByNewest(
+      this.travelExpenses.filter(e => e.state === 'Skica' || e.state === 'Predano')
+    );
+    this.rejectedExpenses = this.sortByNewest(
+      this.travelExpenses.filter(e => e.state === 'Odbijeno')
+    );
+    this.approvedExpenses = this.sortByNewest(
+      this.travelExpenses.filter(e => e.state === 'Potvrđeno')
+    );
+
+    if (resetPages) {
+      this.sectionPages = { pending: 1, rejected: 1, approved: 1 };
+    }
+    this.clampSectionPages();
+  }
+
+  private toSection(section: string): ExpenseSectionKey {
+    if (section === 'rejected' || section === 'approved' || section === 'pending') {
+      return section;
+    }
+    return 'pending';
+  }
+
+  getSectionList(section: string): TravelExpense[] {
+    switch (this.toSection(section)) {
+      case 'pending':
+        return this.pendingExpenses;
+      case 'rejected':
+        return this.rejectedExpenses;
+      case 'approved':
+        return this.approvedExpenses;
+    }
+  }
+
+  getSectionPage(section: string): number {
+    return this.sectionPages[this.toSection(section)];
+  }
+
+  getPagedExpenses(section: string): TravelExpense[] {
+    const key = this.toSection(section);
+    const list = this.getSectionList(key);
+    const start = (this.sectionPages[key] - 1) * this.itemsPerPage;
+    return list.slice(start, start + this.itemsPerPage);
+  }
+
+  getSectionTotalPages(section: string): number {
+    return Math.max(1, Math.ceil(this.getSectionList(section).length / this.itemsPerPage));
+  }
+
+  goToSectionPage(section: string, page: number) {
+    const key = this.toSection(section);
+    const totalPages = this.getSectionTotalPages(key);
+    if (page >= 1 && page <= totalPages && page !== this.sectionPages[key]) {
+      this.sectionPages[key] = page;
+    }
+  }
+
+  getSectionPages(section: string): number[] {
+    const totalPages = this.getSectionTotalPages(section);
+    const currentPage = this.getSectionPage(section);
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    const pages: number[] = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  private clampSectionPages() {
+    (['pending', 'rejected', 'approved'] as ExpenseSectionKey[]).forEach(section => {
+      const totalPages = this.getSectionTotalPages(section);
+      if (this.sectionPages[section] > totalPages) {
+        this.sectionPages[section] = totalPages;
+      } else if (this.sectionPages[section] < 1) {
+        this.sectionPages[section] = 1;
+      }
+    });
+  }
+
+  get hasAnySection(): boolean {
+    return this.pendingExpenses.length + this.rejectedExpenses.length + this.approvedExpenses.length > 0;
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(
+      this.filterValues.id ||
+      this.filterValues.type ||
+      this.filterValues.userName ||
+      this.filterValues.year ||
+      this.filterValues.month ||
+      this.filterValues.state
+    );
+  }
+
+  private sortByNewest(expenses: TravelExpense[]): TravelExpense[] {
+    return [...expenses].sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
   }
 
   filterExpenses(expenses: TravelExpense[]): TravelExpense[] {
@@ -154,43 +254,6 @@ export class ExpensesComponent implements OnInit {
       return matchesId && matchesType && matchesUserName && 
              matchesYear && matchesMonth && matchesState;
     });
-  }
-
-  updatePagination() {
-    this.totalPages = Math.ceil(this.travelExpenses.length / this.itemsPerPage);
-    
-    if (this.currentPage > this.totalPages && this.totalPages > 0) {
-      this.currentPage = this.totalPages;
-    } else if (this.totalPages === 0) {
-      this.currentPage = 1;
-    }
-    
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.displayedExpenses = this.travelExpenses.slice(startIndex, endIndex);
-  }
-
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-      this.currentPage = page;
-      this.updatePagination();
-    }
-  }
-
-  getPages(): number[] {
-    const pages = [];
-    const maxPagesToShow = 5;
-    let startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
-
-    if (endPage - startPage < maxPagesToShow - 1) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    return pages;
   }
 
   clearFilters() {
@@ -279,6 +342,21 @@ onDeleteError(errorMessage: string) {
 
   trackByExpenseId(index: number, expense: TravelExpense): string {
     return expense.id;
+  }
+
+  getStatusClass(state: string): string {
+    switch (state) {
+      case 'Skica':
+        return 'status-draft';
+      case 'Predano':
+        return 'status-submitted';
+      case 'Potvrđeno':
+        return 'status-approved';
+      case 'Odbijeno':
+        return 'status-rejected';
+      default:
+        return '';
+    }
   }
 
   private checkQueryParams() {

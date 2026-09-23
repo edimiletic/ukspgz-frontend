@@ -5,7 +5,8 @@ import { ExpenseItem, TravelExpense } from '../../model/travel-expense.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AuthService } from '../../services/login.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
 import { FooterComponent } from "../footer/footer.component";
 import { HeaderComponent } from "../header/header.component";
 import { DeleteExpensesModalComponent } from "../expenses/delete-expenses-modal/delete-expenses-modal.component";
@@ -13,11 +14,10 @@ import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-detai
 import { SubmitModalExpenseComponent } from "./submit-modal-expense/submit-modal-expense.component";
 import { DeleteItemModalComponent } from './delete-item-modal/delete-item-modal.component';
 import { SidebarComponent } from "../sidebar/sidebar.component";
-import { isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID, inject } from '@angular/core';
+import { RejectExpenseModalComponent } from './reject-expense-modal/reject-expense-modal.component';
 @Component({
   selector: 'app-expense-report-details',
-  imports: [RouterModule, CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent, SidebarComponent],
+  imports: [RouterModule, CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent, SidebarComponent, RejectExpenseModalComponent],
   templateUrl: './expense-report-details.component.html',
   styleUrl: './expense-report-details.component.scss'
 })
@@ -30,6 +30,7 @@ export class ExpenseReportDetailsComponent implements OnInit {
   isAddExpenseModalOpen = false;
   isSubmitModalOpen = false;
   isDeleteExpenseItemModalOpen = false;
+  isRejectModalOpen = false;
   expenseItemToDelete = '';
   
   private platformId = inject(PLATFORM_ID);
@@ -39,6 +40,7 @@ export class ExpenseReportDetailsComponent implements OnInit {
   isAdmin = false;
   currentUser: any = null;
   isOwner = false;
+  isReviewing = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -61,20 +63,10 @@ private loadCurrentUser() {
         return; // Stop execution on server-side
       }
       this.currentUser = user;
-      this.isAdmin = user.role ==="Admin";
-
-      if(!this.isAdmin){
-        this.router.navigate(['/home'],{
-          queryParams:{
-            error: 'access_denied',
-           message: 'Nemate pristup putnim troškovima'
-          }
-        });
-        return;
-      }
-      this.route.params.subscribe(params =>{
+      this.isAdmin = user.role === 'Admin';
+      this.route.params.subscribe(params => {
         const reportId = params['id'];
-        if(reportId){
+        if (reportId) {
           this.loadReport(reportId);
         }
       });
@@ -92,11 +84,7 @@ private loadCurrentUser() {
       next: (report) => {
         this.report = report;
         this.isLoading = false;
-        
-        // Check if current user is the owner of this report
-        this.isOwner = this.currentUser && this.currentUser._id === report.userId;
-        console.log('Report loaded:', report);
-        console.log('Is owner:', this.isOwner, 'Is admin:', this.isAdmin);
+        this.isOwner = this.resolveIsOwner(report);
       },
       error: (error) => {
         console.error('Error loading report:', error);
@@ -108,23 +96,55 @@ private loadCurrentUser() {
 
   // Add method to check if submit button should be shown
   shouldShowSubmitButton(): boolean {
-    if (!this.report) return false;
-    
-    // Only show submit button if:
-    // 1. User is the owner of the report, AND
-    // 2. Report is in 'Skica' state, AND  
-    // 3. User is NOT an admin (admins shouldn't submit reports)
-    return this.isOwner && this.report.state === 'Skica' && !this.isAdmin;
+    return this.canEditItems();
   }
 
-  // Add method to check if delete button should be shown
   shouldShowDeleteButton(): boolean {
-    if (!this.report) return false;
-    
-    // Only show delete button if:
-    // 1. User is the owner of the report, AND
-    // 2. User is NOT an admin (admins shouldn't delete reports from detail view)
-    return this.isOwner && !this.isAdmin;
+    return this.canEditItems();
+  }
+
+  shouldShowAdminReview(): boolean {
+    return this.isAdmin && this.report?.state === 'Predano';
+  }
+
+  canEditItems(): boolean {
+    if (!this.report) {
+      return false;
+    }
+    const editable = this.report.state === 'Skica' || this.report.state === 'Odbijeno';
+    if (!editable) {
+      return false;
+    }
+    // Officials who can open the report are the owner. Admins may also own their own reports.
+    return this.isOwner || !this.isAdmin;
+  }
+
+  private resolveIsOwner(report: TravelExpense): boolean {
+    const currentId = this.extractId(this.currentUser) || this.authService.getCurrentUserId();
+    const reportUserId = this.extractId(report.userId) || this.extractId((report as any).user);
+    if (currentId && reportUserId && currentId === reportUserId) {
+      return true;
+    }
+    return !this.isAdmin;
+  }
+
+  private extractId(value: any): string {
+    if (!value) {
+      return '';
+    }
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    const nested = value._id || value.id;
+    if (!nested) {
+      return '';
+    }
+    return typeof nested === 'object' ? String(nested._id || nested.id || nested) : String(nested);
+  }
+
+  getReportId(): string {
+    if (!this.report) return '';
+    return (this.report as any)._id || this.report.id;
   }
 
   // Helper method to get current user role from wherever you store it
@@ -144,12 +164,10 @@ private loadCurrentUser() {
   }
 
   onSubmitReport() {
-    if (this.report && this.report.state === 'Skica' && !this.isAdmin) {
+    if (this.shouldShowSubmitButton()) {
       this.isSubmitModalOpen = true;
-    } else if (this.isAdmin) {
-      console.log('Admin users cannot submit reports');
-    } else if (this.report?.state !== 'Skica') {
-      this.showError('Možete predati samo izvješća u statusu "Skica".');
+    } else {
+      this.showError('Možete predati samo skice ili odbijena izvješća.');
     }
   }
 
@@ -193,10 +211,8 @@ onDeleteError(errorMessage: string) {
 }
 
 onDeleteReport() {
-  if (this.report && !this.isAdmin) {
+  if (this.shouldShowDeleteButton()) {
     this.isDeleteModalOpen = true;
-  } else if (this.isAdmin) {
-    console.log('Admin users cannot delete reports from detail view');
   }
 }
 
@@ -236,7 +252,7 @@ const expenseItem = {
   };
 
     // Call the PATCH API to add expense item
-    this.travelExpenseService.addExpenseItem(this.report.id, expenseItem).subscribe({
+    this.travelExpenseService.addExpenseItem(this.getReportId(), expenseItem).subscribe({
       next: (updatedReport) => {
         console.log('Expense item added successfully:', updatedReport);
         this.report = updatedReport;
@@ -307,11 +323,14 @@ const expenseItem = {
     if (this.report.state === 'Skica') {
       return 'Upozorenje: Ovo izvješće nije predano. Dodajte troškove u izvješće.';
     }
+    if (this.report.state === 'Odbijeno') {
+      return 'Ovo izvješće je odbijeno. Ispravite ga prema napomeni administratora i predajte ponovo.';
+    }
     return '';
   }
 
   showWarning(): boolean {
-    return this.report?.state === 'Skica' && (!this.report.expenses || this.report.expenses.length === 0);
+    return this.report?.state === 'Skica' || this.report?.state === 'Odbijeno';
   }
 
   getConditionText(): string {
@@ -379,7 +398,7 @@ const expenseItem = {
       return;
     }
 
-    this.travelExpenseService.removeExpenseItem(this.report.id, expenseItemId).subscribe({
+    this.travelExpenseService.removeExpenseItem(this.getReportId(), expenseItemId).subscribe({
       next: (updatedReport) => {
         console.log('Expense item deleted successfully');
         this.report = updatedReport;
@@ -396,34 +415,11 @@ const expenseItem = {
 
   // Helper method to check if current user can add expense items
   canAddExpenseItem(): boolean {
-    if (!this.report) {
-      return false;
-    }
-
-    // Allow adding if:
-    // 1. Report is in 'Skica' state, OR
-    // 2. User has 'Admin' role
-    if (this.report.state === 'Skica') {
-      return true;
-    }
-
-    return this.getCurrentUserRole() === 'Admin';
+    return this.canEditItems();
   }
 
-  // Helper method to check if current user can delete expense items
   canDeleteExpenseItem(): boolean {
-    if (!this.report) {
-      return false;
-    }
-
-    // Allow deletion if:
-    // 1. Report is in 'Skica' state, OR
-    // 2. User has 'Admin' role
-    if (this.report.state === 'Skica') {
-      return true;
-    }
-
-    return this.getCurrentUserRole() === 'Admin';
+    return this.canEditItems();
   }
 
   // Helper method to check if delete button should be shown
@@ -495,7 +491,43 @@ const expenseItem = {
     this.errorMessage = '';
   }
 
-  
+  reviewReport(action: 'approve' | 'reject', notes = ''): void {
+    if (!this.report || this.isReviewing) {
+      return;
+    }
 
- 
+    this.isReviewing = true;
+    this.travelExpenseService.reviewTravelExpense(
+      this.getReportId(),
+      action,
+      notes.trim()
+    ).subscribe({
+      next: (updatedReport) => {
+        this.report = updatedReport;
+        this.isReviewing = false;
+        this.isRejectModalOpen = false;
+        this.showSuccess(action === 'approve'
+          ? 'Izvješće je odobreno.'
+          : 'Izvješće je vraćeno korisniku na ispravak.');
+      },
+      error: (error) => {
+        this.isReviewing = false;
+        this.showError(error.error?.error || 'Greška pri pregledu izvješća.');
+      }
+    });
+  }
+
+  openRejectModal(): void {
+    this.isRejectModalOpen = true;
+  }
+
+  closeRejectModal(): void {
+    if (!this.isReviewing) {
+      this.isRejectModalOpen = false;
+    }
+  }
+
+  onRejectConfirmed(notes: string): void {
+    this.reviewReport('reject', notes);
+  }
 }

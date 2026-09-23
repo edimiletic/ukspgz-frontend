@@ -111,6 +111,7 @@ isExpensesModalOpen = false;
  private loadUserDashboard(): void {
     const loadPromises = [
       this.loadUserGames(),
+      this.loadUserExpenses(),
       this.loadUserAbsences(),
       this.loadUserExams(),
       this.loadUserKontrola()
@@ -201,6 +202,25 @@ private loadUserGames(): Promise<void> {
           .slice(0, 3);
 
         this.dashboardStats.completedGames = this.recentGames.length;
+        resolve();
+      },
+      error: reject
+    });
+  });
+}
+
+private loadUserExpenses(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.expenseService.getCurrentUserTravelExpenses().subscribe({
+      next: (expenses) => {
+        this.dashboardStats.pendingExpenses = expenses.filter(e => e.state === 'Skica').length;
+        this.recentExpenses = expenses
+          .sort((a, b) => {
+            const dateA = this.getSafeDate(a.updatedAt || a.createdAt).getTime();
+            const dateB = this.getSafeDate(b.updatedAt || b.createdAt).getTime();
+            return dateB - dateA;
+          })
+          .slice(0, 3);
         resolve();
       },
       error: reject

@@ -38,8 +38,8 @@ export class SubmitModalExpenseComponent {
     }
 
     // Validate that report can be submitted
-    if (this.report.state !== 'Skica') {
-      this.error.emit('Samo skice mogu biti predane.');
+    if (this.report.state !== 'Skica' && this.report.state !== 'Odbijeno') {
+      this.error.emit('Samo skice i odbijena izvješća mogu biti predana.');
       return;
     }
 
@@ -52,7 +52,8 @@ export class SubmitModalExpenseComponent {
     this.isSubmitting = true;
 
     // Call the service to submit the report (change state from 'Skica' to 'Predano')
-    this.travelExpenseService.submitTravelExpense(this.report.id).subscribe({
+    const reportId = (this.report as any)._id || this.report.id;
+    this.travelExpenseService.submitTravelExpense(reportId).subscribe({
       next: (updatedReport) => {
         console.log('Report submitted successfully:', updatedReport);
         this.isSubmitting = false;

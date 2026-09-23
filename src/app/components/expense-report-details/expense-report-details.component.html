@@ -57,28 +57,43 @@
                     <div class="detail-label">Stvoreno</div>
                     <div class="detail-value">{{ getFormattedDate() }}</div>
                 </div>
-                <!-- <div class="detail-row">
+                <div class="detail-row">
                     <div class="detail-label">Stanje</div>
                     <div class="detail-value">
                         <span [class]="getConditionClass()">{{ getConditionText() }}</span>
                     </div>
-                </div> -->
+                </div>
             </div>
 
-            <!-- Action Buttons for Regular Users - Hidden only for Admin -->
-            <div class="action-buttons" *ngIf="!isAdmin">
+            <div *ngIf="report.reviewComments" class="review-notes" [class.rejected]="report.state === 'Odbijeno'">
+                <h3>Napomena administratora</h3>
+                <p>{{ report.reviewComments }}</p>
+            </div>
+
+            <div class="action-buttons" *ngIf="shouldShowSubmitButton() || shouldShowDeleteButton()">
                 <button 
-                    *ngIf="report.state === 'Skica'" 
+                    *ngIf="shouldShowSubmitButton()" 
                     class="btn btn-primary" 
                     (click)="onSubmitReport()">
                     Predaj
                 </button>
                 <button 
-                    *ngIf="report.state === 'Skica'"
+                    *ngIf="shouldShowDeleteButton()"
                     class="btn btn-danger" 
                     (click)="onDeleteReport()">
                     Izbriši
                 </button>
+            </div>
+
+            <div class="admin-review" *ngIf="shouldShowAdminReview()">
+                <div class="review-actions">
+                    <button class="btn btn-success" [disabled]="isReviewing" (click)="reviewReport('approve')">
+                        Odobri
+                    </button>
+                    <button class="btn btn-danger" [disabled]="isReviewing" (click)="openRejectModal()">
+                        Odbij
+                    </button>
+                </div>
             </div>
 
          
@@ -87,7 +102,7 @@
             <div class="section">
                 <div class="section-header">
                     <h2>Troškovi</h2>
-                    <button class="btn-add" title="Dodaj stavku" (click)="onAddExpense()">
+                    <button *ngIf="canAddExpenseItem()" class="btn-add" title="Dodaj stavku" (click)="onAddExpense()">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -103,7 +118,7 @@
                                     <th>Vrsta</th>
                                     <th>Kratki opis</th>
                                     <th>Ukupna cijena</th>
-                                    <th *ngIf="!isAdmin">Akcija</th>
+                                    <th *ngIf="canEditItems()">Akcija</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -112,7 +127,7 @@
                                     <td>{{ getExpenseTypeDisplay(expense) }}</td>
                                     <td>{{ expense.description }}</td>
                                     <td class="amount-cell">{{ formatAmount(expense.amount) }}</td>
-                                    <td *ngIf="!isAdmin">
+                                    <td *ngIf="canEditItems()">
                                         <div class="expense-actions">
                                             <button 
                                                 *ngIf="showDeleteButton()" 
@@ -198,5 +213,12 @@
   (close)="closeDeleteExpenseItemModal()"
   (deleteConfirmed)="onDeleteExpenseItemConfirmed($event)">
 </app-delete-item-modal>
+
+<app-reject-expense-modal
+  [isOpen]="isRejectModalOpen"
+  [isSubmitting]="isReviewing"
+  (close)="closeRejectModal()"
+  (rejectConfirmed)="onRejectConfirmed($event)">
+</app-reject-expense-modal>
 
 <app-footer></app-footer>

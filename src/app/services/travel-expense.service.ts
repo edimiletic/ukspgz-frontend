@@ -112,6 +112,19 @@ export class TravelExpenseService {
     });
   }
 
+  reviewTravelExpense(
+    reportId: string,
+    action: 'approve' | 'reject',
+    reviewComments?: string
+  ): Observable<TravelExpense> {
+    return this.http.patch<TravelExpense>(`${this.apiUrl}/travel-expense/${reportId}/review`, {
+      action,
+      reviewComments
+    }, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   // Get travel expenses with filters
   getTravelExpensesWithFilters(filters: TravelExpenseFilters): Observable<TravelExpense[]> {
     let queryParams = new URLSearchParams();

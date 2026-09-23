@@ -202,6 +202,52 @@ padding: 1rem 2rem;
   font-weight: 500;
 }
 
+.review-notes {
+  margin: 0 2rem 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  background: #fff8e6;
+  border: 1px solid #f0d78c;
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  &.rejected {
+    background: #fdecea;
+    border-color: #f5c2c7;
+  }
+}
+
+.admin-review {
+  margin: 0 2rem 1.5rem;
+  padding: 0.5rem 0 1.25rem;
+  background: transparent;
+
+  .review-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-success {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+}
+
 // Action buttons
 .action-buttons {
   padding: 1.5rem 2rem;

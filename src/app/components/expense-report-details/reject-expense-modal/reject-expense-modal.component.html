@@ -1,0 +1,28 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Odbij izvješće</h3>
+      <button class="btn-close" type="button" (click)="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="warning-text">Objasnite korisniku što treba ispraviti.</p>
+      <label for="rejectNotes">Napomena<span class="required">*</span></label>
+      <textarea
+        id="rejectNotes"
+        rows="5"
+        [(ngModel)]="notes"
+        [disabled]="isSubmitting"
+        placeholder="Opišite što korisnik treba ispraviti..."></textarea>
+      <p class="error-text" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline-secondary" type="button" [disabled]="isSubmitting" (click)="closeModal()">
+          Odustani
+        </button>
+        <button class="btn btn-danger" type="button" [disabled]="isSubmitting" (click)="confirmReject()">
+          <span *ngIf="isSubmitting">Slanje...</span>
+          <span *ngIf="!isSubmitting">Odbij i vrati</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
