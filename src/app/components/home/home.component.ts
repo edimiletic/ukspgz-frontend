@@ -19,6 +19,7 @@ import { CreateGameModalComponent } from "../games-assigned/create-game-modal/cr
 import { AddQuestionModalComponent } from "../exams/add-question-modal/add-question-modal.component";
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
+import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from '../../model/roles';
 
 @Component({
   selector: 'app-home',
@@ -30,6 +31,8 @@ import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-moda
 export class HomeComponent implements OnInit {
   currentUser: User | null = null;
   isAdmin = false;
+  canManageCalendar = false;
+  canSeeAllGames = false;
 
     successMessage: string = '';
   errorMessage: string = '';
@@ -87,8 +90,9 @@ isExpensesModalOpen = false;
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
         this.currentUser = user;
-        this.isAdmin = user.role === 'Admin';
-        console.log('✅ Home - User loaded:', user.role, 'isAdmin:', this.isAdmin); // Add this
+        this.isAdmin = isAdminUser(user);
+        this.canManageCalendar = canManageCalendar(user);
+        this.canSeeAllGames = canSeeAllGames(user);
         this.loadDashboardData();
       },
       error: (error) => {
@@ -103,9 +107,25 @@ isExpensesModalOpen = false;
   private loadDashboardData(): void {
     if (this.isAdmin) {
       this.loadAdminDashboard();
+    } else if (this.canSeeAllGames) {
+      this.loadCommissionerDashboard();
     } else {
       this.loadUserDashboard();
     }
+  }
+
+  private loadCommissionerDashboard(): void {
+    Promise.all([
+      this.loadAdminGames(),
+      this.loadUserExpenses(),
+      this.loadUserAbsences()
+    ]).then(() => {
+      this.isLoading = false;
+    }).catch((error) => {
+      console.error('Error loading commissioner dashboard:', error);
+      this.hasError = true;
+      this.isLoading = false;
+    });
   }
 
  private loadUserDashboard(): void {
@@ -405,9 +425,19 @@ formatDateTime(dateString: string | undefined): string {
     return 'Dobra večer';
   }
 
+  getRoleLabel(): string {
+    return formatRoleLabel(this.currentUser);
+  }
+
   getWelcomeMessage(): string {
     if (this.isAdmin) {
       return 'Dobrodošli u administratorski panel. Ovdje možete upravljati svim aspektima sustava.';
+    }
+    if (this.canManageCalendar) {
+      return 'Ovdje možete dogovarati kalendar natjecanja i utakmice.';
+    }
+    if (this.canSeeAllGames) {
+      return 'Ovdje možete slati nominacije službenim osobama na utakmicama.';
     }
     return 'Dobrodošli u vaš sudački portal. Ovdje možete pratiti svoje utakmice, troškove i ostale aktivnosti.';
   }

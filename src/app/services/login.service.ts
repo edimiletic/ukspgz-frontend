@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
+import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewEligibleOfficials, GAME_ASSIGNMENT_ROLES, getRoleNames, isAdminUser, normalizeRoleAssignments, pickPrimaryRole, userHasRole } from '../model/roles';
 import { User } from '../model/user.model';
 import { Router } from '@angular/router';
 import { environment } from '../../enviroments/enviroment';
@@ -32,11 +33,14 @@ export class AuthService {
     if (!user) {
       return null;
     }
+    const assignments = normalizeRoleAssignments(user);
     const id = String(user._id || user.id || '');
     return {
       ...user,
       _id: id,
-      id
+      id,
+      roles: assignments,
+      role: user.role || pickPrimaryRole(assignments)
     };
   }
 
@@ -144,17 +148,35 @@ export class AuthService {
   }
 
   hasRole(role: string): boolean {
-    const user = this.currentUserValue;
-    return user ? user.role === role : false;
+    return userHasRole(this.currentUserValue, role);
   }
 
   isAdmin(): boolean {
-    return this.hasRole('Admin');
+    return isAdminUser(this.currentUserValue);
   }
 
   isReferee(): boolean {
-    const role = this.currentUserValue?.role;
-    return role === 'Sudac' || role === 'Delegat' || role === 'Pomoćni Sudac';
+    return getRoleNames(this.currentUserValue).some(role => GAME_ASSIGNMENT_ROLES.includes(role as any));
+  }
+
+  canManageCalendar(competition?: string): boolean {
+    return canManageCalendar(this.currentUserValue, competition);
+  }
+
+  canNominateOfficials(competition?: string): boolean {
+    return canNominateOfficials(this.currentUserValue, competition);
+  }
+
+  canNominateAssistants(competition?: string): boolean {
+    return canNominateAssistants(this.currentUserValue, competition);
+  }
+
+  canSeeAllGames(): boolean {
+    return canSeeAllGames(this.currentUserValue);
+  }
+
+  canViewEligibleOfficials(): boolean {
+    return canViewEligibleOfficials(this.currentUserValue);
   }
 
   loadUserData(): void {

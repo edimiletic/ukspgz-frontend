@@ -178,18 +178,12 @@ const refereeGrades: RefereeGrade[] = existingKontrola.refereeGrades.map((grade:
   
   console.log(`✅ Mapped grade ${index}:`, mappedGrade);
   return mappedGrade;
-});
+}).filter((grade: RefereeGrade) => grade.refereeRole === 'Sudac');
 
   // Sort referees by role and position for consistent display
-  refereeGrades.sort((a, b) => {
-    const roleOrder = { 'Sudac': 1, 'Delegat': 2, 'Pomoćni Sudac': 3 };
-    if (a.refereeRole !== b.refereeRole) {
-      return roleOrder[a.refereeRole as keyof typeof roleOrder] - roleOrder[b.refereeRole as keyof typeof roleOrder];
-    }
-    return a.refereePosition - b.refereePosition;
-  });
+    refereeGrades.sort((a, b) => a.refereePosition - b.refereePosition);
 
-  this.kontrolaForm.refereeGrades = refereeGrades;
+    this.kontrolaForm.refereeGrades = refereeGrades;
 
   // Set total pages: 1 for Težina + 1 for each referee
   this.totalPages = 1 + refereeGrades.length;
@@ -235,9 +229,9 @@ setGradeValue(referee: RefereeGrade, categoryKey: string, value: string): void {
   initializeForm(): void {
     if (!this.game) return;
 
-    // Get only accepted referee assignments
+    // Get only accepted main referees
     const acceptedReferees = this.game.refereeAssignments.filter(
-      assignment => assignment.assignmentStatus === 'Accepted'
+      assignment => assignment.assignmentStatus === 'Accepted' && assignment.role === 'Sudac'
     );
 
    // Create referee grades for each accepted referee
@@ -260,13 +254,7 @@ const refereeGrades: RefereeGrade[] = acceptedReferees.map(assignment => ({
     }));
 
     // Sort referees by role and position for consistent display
-    refereeGrades.sort((a, b) => {
-      const roleOrder = { 'Sudac': 1, 'Delegat': 2, 'Pomoćni Sudac': 3 };
-      if (a.refereeRole !== b.refereeRole) {
-        return roleOrder[a.refereeRole as keyof typeof roleOrder] - roleOrder[b.refereeRole as keyof typeof roleOrder];
-      }
-      return a.refereePosition - b.refereePosition;
-    });
+    refereeGrades.sort((a, b) => a.refereePosition - b.refereePosition);
 
     this.kontrolaForm = {
       gameId: this.game._id,

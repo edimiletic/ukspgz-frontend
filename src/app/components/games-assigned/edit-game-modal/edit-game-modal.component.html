@@ -46,6 +46,7 @@
                 name="homeTeam"
                 class="form-control"
                 placeholder="Unesite naziv domaćeg tima"
+                [disabled]="!canManageCalendar()"
                 required>
             </div>
             <div class="form-group">
@@ -57,6 +58,7 @@
                 name="awayTeam"
                 class="form-control"
                 placeholder="Unesite naziv gostujućeg tima"
+                [disabled]="!canManageCalendar()"
                 required>
             </div>
           </div>
@@ -71,6 +73,7 @@
                 name="date"
                 class="form-control"
                 [min]="getMinDate()"
+                [disabled]="!canManageCalendar()"
                 (change)="onDateTimeChange()" 
                 required>
             </div>
@@ -82,6 +85,7 @@
                 [(ngModel)]="gameForm.time" 
                 name="time"
                 class="form-control"
+                [disabled]="!canManageCalendar()"
                 (change)="onDateTimeChange()"
                 required>
             </div>
@@ -96,6 +100,7 @@
               name="venue"
               class="form-control"
               placeholder="Unesite naziv dvorane ili mjesta"
+              [disabled]="!canManageCalendar()"
               required>
           </div>
 
@@ -107,6 +112,7 @@
                 [(ngModel)]="gameForm.competition" 
                 name="competition"
                 class="form-control"
+                [disabled]="!canManageCalendar()"
                 required>
                 <option value="">Odaberite natjecanje</option>
                 <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
@@ -119,6 +125,7 @@
                 [(ngModel)]="gameForm.status" 
                 name="status"
                 class="form-control"
+                [disabled]="!canManageCalendar()"
                 required>
                 <option *ngFor="let status of statusOptions" [value]="status.value">
                   {{ status.label }}
@@ -135,6 +142,7 @@
               name="notes"
               class="form-control"
               rows="3"
+              [disabled]="!canManageCalendar()"
               placeholder="Dodatne napomene o utakmici (opcionalno)"></textarea>
           </div>
         </form>
@@ -151,11 +159,8 @@
           </div>
 
           <div *ngIf="!isLoadingReferees && !isLoadingAbsences" class="referee-sections">
-            
 
-
-            <!-- Sudci Section -->
-            <div class="referee-section">
+            <div class="referee-section" *ngIf="canNominateOfficials()">
               <h3>
                 Sudci (2-3 obavezno)
                 <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
@@ -198,7 +203,7 @@
             </div>
 
             <!-- Delegat Section -->
-            <div class="referee-section">
+            <div class="referee-section" *ngIf="canNominateOfficials()">
               <h3>
                 Delegat (opcionalno)
                 <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
@@ -220,8 +225,23 @@
               </div>
             </div>
 
-            <!-- Pomoćni Sudci Section -->
-            <div class="referee-section">
+            <div class="referee-section" *ngIf="showKontrolorField()">
+              <h3>Kontrolor (opcionalno, vrhunska natjecanja)</h3>
+              <div class="referee-assignment">
+                <select
+                  [(ngModel)]="selectedReferees.kontrolor"
+                  name="kontrolor"
+                  (change)="onRefereeSelectionChange()"
+                  class="form-control">
+                  <option value="">Odaberite kontrolora</option>
+                  <option *ngFor="let ref of availableKontrolori" [value]="ref._id">
+                    {{ ref.name }} {{ ref.surname }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="referee-section" *ngIf="canNominateAssistants()">
               <h3>
                 Pomoćni Sudci (2-3 obavezno)
                 <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
@@ -277,7 +297,7 @@
             Odustani
           </button>
           <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="isLoading">
-            Dalje <i class="fas fa-arrow-right"></i>
+            {{ shouldShowNominations() ? 'Dalje' : 'Spremi' }} <i class="fas fa-arrow-right"></i>
           </button>
         </ng-container>
 

@@ -88,6 +88,18 @@
           <span>Ispiti</span>
         </a>
       </li>
+      <li *ngIf="canViewEligibleOfficials()">
+        <a
+          (click)="navigateToPage('/eligible-officials')"
+          [class.active]="isActiveRoute('/eligible-officials')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/eligible-officials')"
+          (keydown.space)="navigateToPage('/eligible-officials')">
+          <i class="fas fa-users"></i>
+          <span>Osobe za nominaciju</span>
+        </a>
+      </li>
       <li *ngIf="isAdmin()">
         <a
           (click)="navigateToPage('/statistics')"

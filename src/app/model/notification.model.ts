@@ -1,7 +1,7 @@
 export interface Notification {
   _id: string;
   userId: string;
-  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED'; // Add KONTROLA_RECEIVED
+  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED' | 'ASSIGNMENT_RELEASED';
   message: string;
   gameId?: string;
   assignmentId?: string;
@@ -13,14 +13,14 @@ export interface Notification {
 
 export interface CreateNotificationRequest {
   userId: string;
-  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED'; // Add KONTROLA_RECEIVED
+  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED' | 'ASSIGNMENT_RELEASED';
   message: string;
   gameId?: string;
   assignmentId?: string;
   kontrolaId?: string; // Add this
 }
 
-export type NotificationType = 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED'; // Add KONTROLA_RECEIVED
+export type NotificationType = 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED' | 'ASSIGNMENT_RELEASED';
 export interface NotificationResponse {
   notifications: Notification[];
   totalPages: number;

@@ -137,6 +137,8 @@ export class NotificationsComponent implements OnInit {
         return 'Odgovor na nominaciju';
       case 'KONTROLA_RECEIVED':
         return 'Kontrola dostupna';
+      case 'ASSIGNMENT_RELEASED':
+        return 'Nominacija povučena';
       default:
         return type;
     }
@@ -150,6 +152,8 @@ export class NotificationsComponent implements OnInit {
         return 'fas fa-reply';
       case 'KONTROLA_RECEIVED':
         return 'fas fa-clipboard-check';
+      case 'ASSIGNMENT_RELEASED':
+        return 'fas fa-undo';
       default:
         return 'fas fa-bell';
     }

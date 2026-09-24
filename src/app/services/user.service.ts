@@ -6,6 +6,19 @@ import { User } from '../model/user.model';
 import { environment } from '../../enviroments/enviroment';
 import { environment_prod } from '../../enviroments/enviroment.prod';
 
+export interface EligibleOfficialsGroup {
+  competition: string;
+  officials: Array<{
+    _id: string;
+    name: string;
+    surname: string;
+    email?: string;
+    roles: string[];
+    rang?: string;
+    najvisaLiga?: string;
+  }>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,6 +38,12 @@ export class UserService {
   // Get all referees (Admin only)
   getReferees(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/referees`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  getEligibleOfficials(): Observable<{ competitions: EligibleOfficialsGroup[] }> {
+    return this.http.get<{ competitions: EligibleOfficialsGroup[] }>(`${this.apiUrl}/eligible-officials`, {
       headers: this.getAuthHeaders()
     });
   }

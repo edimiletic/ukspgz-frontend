@@ -137,8 +137,7 @@
 
           <div *ngIf="!isLoadingReferees && !isLoadingAbsences" class="referee-sections">
             
-            <!-- Sudci Section -->
-            <div class="referee-section">
+            <div class="referee-section" *ngIf="canNominateOfficials()">
               <h3>
                 Suci (2-3 obavezno)
     <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
@@ -182,7 +181,7 @@
 
             <!-- Delegat Section -->
 <!-- Delegat Section - FIXED -->
-<div class="referee-section">
+<div class="referee-section" *ngIf="canNominateOfficials()">
   <h3>
     Delegat (opcionalno)
     <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
@@ -203,8 +202,24 @@
   </div>
 </div>
 
+<div class="referee-section" *ngIf="showKontrolorField()">
+  <h3>Kontrolor (opcionalno, vrhunska natjecanja)</h3>
+  <div class="referee-assignment">
+    <select
+      [(ngModel)]="selectedReferees.kontrolor"
+      name="kontrolor"
+      class="form-control"
+      (change)="onRefereeSelectionChange()">
+      <option value="">Odaberite kontrolora</option>
+      <option *ngFor="let ref of eligibleKontrolori" [value]="ref._id">
+        {{ ref.name }} {{ ref.surname }}
+      </option>
+    </select>
+  </div>
+</div>
+
 <!-- Pomoćni Sudci Section - FIXED -->
-<div class="referee-section">
+<div class="referee-section" *ngIf="canNominateAssistants()">
   <h3>
     Pomoćni Suci (2-3 obavezno)
     <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
@@ -257,8 +272,8 @@
           <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
             Odustani
           </button>
-          <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="isLoading">
-            Dalje <i class="fas fa-arrow-right"></i>
+            <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="isLoading">
+            {{ shouldShowNominations() ? 'Dalje' : 'Kreiraj utakmicu' }} <i class="fas fa-arrow-right"></i>
           </button>
         </ng-container>
 

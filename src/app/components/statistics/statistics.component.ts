@@ -12,6 +12,7 @@ import { HeaderComponent } from "../header/header.component";
 import { KontrolaService } from '../../services/kontrola.service';
 import { FooterComponent } from "../footer/footer.component";
 import { SidebarComponent } from '../sidebar/sidebar.component';
+import { userHasRole } from '../../model/roles';
 
 @Component({
   selector: 'app-statistics',
@@ -113,10 +114,12 @@ availableReferees: {
   sudci: any[];
   delegati: any[];
   pomocniSudci: any[];
+  kontrolori: any[];
 } = {
   sudci: [],
   delegati: [],
-  pomocniSudci: []
+  pomocniSudci: [],
+  kontrolori: []
 };
 
   // Statistics data
@@ -268,9 +271,10 @@ async loadGameStatistics() {
 
     // Populate availableReferees for use in other methods
     this.availableReferees = {
-      sudci: referees.filter(ref => ref.role === 'Sudac'),
-      delegati: referees.filter(ref => ref.role === 'Delegat'),
-      pomocniSudci: referees.filter(ref => ref.role === 'Pomoćni Sudac')
+      sudci: referees.filter(ref => userHasRole(ref, 'Sudac')),
+      delegati: referees.filter(ref => userHasRole(ref, 'Delegat')),
+      pomocniSudci: referees.filter(ref => userHasRole(ref, 'Pomoćni Sudac')),
+      kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
     };
 
     console.log('Loaded referees:', this.availableReferees); // Debug log
@@ -413,7 +417,7 @@ calculateRefereeStats(games: any[], referees: any[]) {
   const refereesMap = new Map();
 
   // Filter referees by selected role
-  const filteredReferees = referees.filter(referee => referee.role === this.selectedRole);
+  const filteredReferees = referees.filter(referee => userHasRole(referee, this.selectedRole));
 
   // Initialize referee stats for filtered referees only
   filteredReferees.forEach(referee => {
@@ -534,6 +538,9 @@ calculateAbsenceStats(absences: any[]) {
     case 'Pomoćni Sudac':
       selectedRoleReferees = this.availableReferees.pomocniSudci || [];
       break;
+    case 'Kontrolor':
+      selectedRoleReferees = this.availableReferees.kontrolori || [];
+      break;
     case 'Admin':
       // If Admin is selected, show all referees (or handle as needed)
       selectedRoleReferees = [
@@ -609,6 +616,9 @@ calculateExpenseStats(expenses: any[]) {
       break;
     case 'Pomoćni Sudac':
       selectedRoleReferees = this.availableReferees.pomocniSudci || [];
+      break;
+    case 'Kontrolor':
+      selectedRoleReferees = this.availableReferees.kontrolori || [];
       break;
     case 'Admin':
       // For Admin, include all referees

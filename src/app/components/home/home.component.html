@@ -13,7 +13,7 @@
       </div>
       <div class="welcome-badge" [class.admin-badge]="isAdmin">
         <i class="fas" [class.fa-user-shield]="isAdmin" [class.fa-user]="!isAdmin"></i>
-        {{ isAdmin ? 'Administrator' : 'Sudac' }}
+        {{ getRoleLabel() }}
       </div>
     </div>
 
@@ -216,12 +216,12 @@
   <span>Novo izvješće troškova</span>
 </button>
 
-            <button *ngIf="!isAdmin" class="action-btn absence-btn" (click)="openTimeAbsentModal()">
+            <button *ngIf="!isAdmin && !canSeeAllGames" class="action-btn absence-btn" (click)="openTimeAbsentModal()">
               <i class="fas fa-calendar-times"></i>
               <span>Prijavi odsustvo</span>
             </button>
 
-<button *ngIf="!isAdmin" class="action-btn exam-btn" (click)="startNewExam()">
+<button *ngIf="!isAdmin && !canSeeAllGames" class="action-btn exam-btn" (click)="startNewExam()">
   <i class="fas fa-graduation-cap"></i>
   <span>Pokreni ispit</span>
 </button>
@@ -231,7 +231,7 @@
               <span>Pregled dokumenata</span>
             </button>
 
-            <button *ngIf="isAdmin" class="action-btn admin-btn" (click)="openCreateGameModal()">
+            <button *ngIf="canManageCalendar" class="action-btn admin-btn" (click)="openCreateGameModal()">
               <i class="fas fa-plus"></i>
               <span>Kreiraj utakmicu</span>
             </button>

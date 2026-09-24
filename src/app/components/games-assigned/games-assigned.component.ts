@@ -11,6 +11,7 @@ import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.
 import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 import { SidebarComponent } from "../sidebar/sidebar.component";
+import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, isAdminUser, userHasRole } from '../../model/roles';
 import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.component";
 import { KontrolaService } from '../../services/kontrola.service';
 import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
@@ -132,7 +133,29 @@ isMobileFiltersOpen: boolean = false;
 
   // Check if current user is admin
   isAdmin(): boolean {
-    return this.currentUser?.role === 'Admin';
+    return isAdminUser(this.currentUser);
+  }
+
+  canManageCalendar(competition?: string): boolean {
+    return canManageCalendar(this.currentUser, competition);
+  }
+
+  canNominateOfficials(competition?: string): boolean {
+    return canNominateOfficials(this.currentUser, competition);
+  }
+
+  canNominateAssistants(competition?: string): boolean {
+    return canNominateAssistants(this.currentUser, competition);
+  }
+
+  canSeeAllGames(): boolean {
+    return canSeeAllGames(this.currentUser);
+  }
+
+  canEditGame(game: BasketballGame): boolean {
+    return this.canManageCalendar(game.competition) ||
+      this.canNominateOfficials(game.competition) ||
+      this.canNominateAssistants(game.competition);
   }
 
   private currentUserId(): string {
@@ -156,7 +179,7 @@ isMobileFiltersOpen: boolean = false;
     if (!this.currentUser) return false;
     
     // Only referees can view kontrola, and only for games they participated in
-    if (!['Sudac', 'Delegat', 'Pomoćni Sudac'].includes(this.currentUser.role)) {
+    if (!userHasRole(this.currentUser, 'Sudac')) {
       return false;
     }
 
@@ -281,15 +304,15 @@ onGameCreated(result: any) {
   }
 
   // Handle game update success
-  onGameUpdated(updatedGame: BasketballGame) {
-    this.showSuccess('Utakmica je uspješno ažurirana!');
-    this.loadMyGames(); // Refresh the games list
+  onGameUpdated(updatedGame: any) {
+    this.showSuccess(updatedGame?.message || 'Utakmica je uspješno ažurirana!');
+    this.loadMyGames();
   }
 
   loadMyGames() {
     this.isLoading = true;
     
-    if (this.isAdmin()) {
+    if (this.canSeeAllGames()) {
       // If admin, load all games in the system
       console.log('Admin loading all games...');
       this.basketballGameService.getAllGames().subscribe({
@@ -326,7 +349,7 @@ onGameCreated(result: any) {
     console.log('Categorizing games:', games);
     const now = new Date();
     
-    if (this.isAdmin()) {
+    if (this.canSeeAllGames()) {
       // For admin, show upcoming games and history only
       this.allPendingGames = games.filter(game => this.isGameUpcoming(game, now));
 
@@ -460,17 +483,18 @@ onGameCreated(result: any) {
   }
 
   getMyRole(game: BasketballGame): string {
-    if (this.isAdmin()) {
-      return 'Administrator';
+    if (this.canSeeAllGames()) {
+      return 'Pregled utakmica';
     }
 
     const myAssignment = this.getMyAssignment(game);
     if (!myAssignment) return '';
     
-    const roleTranslation = {
+    const roleTranslation: Record<string, string> = {
       'Sudac': 'Sudac',
-      'Delegat': 'Delegat', 
-      'Pomoćni Sudac': 'Pomoćni Sudac'
+      'Delegat': 'Delegat',
+      'Pomoćni Sudac': 'Pomoćni Sudac',
+      'Kontrolor': 'Kontrolor'
     };
     
     return `${roleTranslation[myAssignment.role]} ${myAssignment.position}`;
@@ -492,7 +516,8 @@ onGameCreated(result: any) {
     const refereeGroups: RefereeGroups = {
       'Sudac': [],
       'Delegat': [],
-      'Pomoćni Sudac': []
+      'Pomoćni Sudac': [],
+      Kontrolor: []
     };
 
     game.refereeAssignments.forEach(assignment => {
@@ -502,7 +527,7 @@ onGameCreated(result: any) {
         const isCurrentUser = this.isCurrentUserAssignment(assignment);
         let nameDisplay: string;
         
-        if (this.isAdmin()) {
+        if (this.canSeeAllGames()) {
           nameDisplay = `${assignment.userId.name} ${assignment.userId.surname}`;
         } else {
           nameDisplay = isCurrentUser ? 'Vi' : `${assignment.userId.name} ${assignment.userId.surname}`;
@@ -547,8 +572,15 @@ onGameCreated(result: any) {
       parts.push(`<strong>Delegat:</strong> ${delegati}`);
     }
 
+    if (refereeGroups['Kontrolor'].length > 0) {
+      const kontrolori = refereeGroups['Kontrolor']
+        .map(ref => `${ref.name} ${ref.statusText}`)
+        .join(', ');
+      parts.push(`<strong>Kontrolor:</strong> ${kontrolori}`);
+    }
+
     // Format Pomoćni Sudac - show for admin or if current user is NOT Sudac or Delegat
-    if (refereeGroups['Pomoćni Sudac'].length > 0 && (this.isAdmin() || (myRole !== 'Sudac' && myRole !== 'Delegat'))) {
+    if (refereeGroups['Pomoćni Sudac'].length > 0 && (this.canSeeAllGames() || (myRole !== 'Sudac' && myRole !== 'Delegat' && myRole !== 'Kontrolor'))) {
       const pomocni = refereeGroups['Pomoćni Sudac']
         .sort((a, b) => a.position - b.position)
         .map(ref => `${ref.name} ${ref.statusText}`)
@@ -571,8 +603,7 @@ onGameCreated(result: any) {
   }
 
   getStatusDisplay(game: BasketballGame): string {
-    if (this.isAdmin()) {
-      // For admin, check if it's a past game with "Scheduled" status
+    if (this.canSeeAllGames()) {
       if (game.status === 'Scheduled' && this.isGameInPast(game)) {
         return 'Odigrano'; // Past scheduled games are considered "played"
       }
@@ -599,8 +630,7 @@ onGameCreated(result: any) {
   }
 
   getStatusClass(game: BasketballGame): string {
-    if (this.isAdmin()) {
-      // Check if it's a past scheduled game (should be "Odigrano")
+    if (this.canSeeAllGames()) {
       if (game.status === 'Scheduled' && this.isGameInPast(game)) {
         return 'status-accepted'; // Use green styling for "Odigrano"
       }
@@ -789,7 +819,33 @@ if (window.innerWidth <= 693) {
 
   // Check if current user can access Kontrola column (Admin or Delegat)
   canAccessKontrola(): boolean {
-    return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'Delegat';
+    return isAdminUser(this.currentUser) ||
+      userHasRole(this.currentUser, 'Delegat') ||
+      userHasRole(this.currentUser, 'Kontrolor');
+  }
+
+  canWriteKontrola(game: BasketballGame): boolean {
+    if (!this.currentUser) return false;
+    if (isAdminUser(this.currentUser)) return true;
+
+    const hasKontrolor = game.refereeAssignments.some(
+      assignment => assignment.role === 'Kontrolor' && assignment.assignmentStatus !== 'Rejected'
+    );
+    const userId = this.currentUserId();
+
+    if (hasKontrolor) {
+      return game.refereeAssignments.some(
+        assignment => assignment.role === 'Kontrolor' &&
+          this.assignmentUserId(assignment) === userId &&
+          assignment.assignmentStatus !== 'Rejected'
+      );
+    }
+
+    return userHasRole(this.currentUser, 'Delegat') && game.refereeAssignments.some(
+      assignment => assignment.role === 'Delegat' &&
+        this.assignmentUserId(assignment) === userId &&
+        assignment.assignmentStatus !== 'Rejected'
+    );
   }
 
   isKontrolaEditMode = false;

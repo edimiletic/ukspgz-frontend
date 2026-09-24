@@ -4,12 +4,12 @@ import { CanActivate, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { AuthService } from '../services/login.service';
-import { isAdminUser } from '../model/roles';
+import { canViewEligibleOfficials } from '../model/roles';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AdminGuard implements CanActivate {
+export class EligibleOfficialsGuard implements CanActivate {
   private isBrowser: boolean;
 
   constructor(
@@ -31,11 +31,11 @@ export class AdminGuard implements CanActivate {
     }
 
     if (this.authService.currentUserValue) {
-      return of(this.allowAdminOrRedirect(this.authService.isAdmin()));
+      return of(this.allowOrRedirect(canViewEligibleOfficials(this.authService.currentUserValue)));
     }
 
     return this.authService.getCurrentUser().pipe(
-      map((user) => this.allowAdminOrRedirect(isAdminUser(user))),
+      map((user) => this.allowOrRedirect(canViewEligibleOfficials(user))),
       catchError(() => {
         this.router.navigate(['/login'], { replaceUrl: true });
         return of(false);
@@ -43,15 +43,15 @@ export class AdminGuard implements CanActivate {
     );
   }
 
-  private allowAdminOrRedirect(isAdmin: boolean): boolean {
-    if (isAdmin) {
+  private allowOrRedirect(allowed: boolean): boolean {
+    if (allowed) {
       return true;
     }
     this.router.navigate(['/home'], {
       replaceUrl: true,
       queryParams: {
         error: 'access_denied',
-        message: 'Nemate pristup ovoj stranici. Samo administratori mogu pristupiti.'
+        message: 'Nemate pristup popisu osoba za nominaciju.'
       }
     });
     return false;

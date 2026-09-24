@@ -15,6 +15,8 @@ import { ExamResultComponent } from './components/exam-result/exam-result.compon
 import { ExamReviewComponent } from './components/exam-review/exam-review.component';
 import { StatisticsComponent } from './components/statistics/statistics.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { EligibleOfficialsComponent } from './components/eligible-officials/eligible-officials.component';
+import { EligibleOfficialsGuard } from './guards/eligible-officials.guard';
 
 export const routes: Routes = [
   {path: 'login', component: AuthComponent},
@@ -37,6 +39,11 @@ export const routes: Routes = [
     path: 'statistics',
     component: StatisticsComponent,
     canActivate: [AuthGuard, AdminGuard]
+  },
+  {
+    path: 'eligible-officials',
+    component: EligibleOfficialsComponent,
+    canActivate: [AuthGuard, EligibleOfficialsGuard]
   },
 {
   path: 'notifications',

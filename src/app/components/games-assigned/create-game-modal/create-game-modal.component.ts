@@ -7,6 +7,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AbsenceService } from '../../../services/absence.service';
 import { Absence } from '../../../model/absence.model';
+import { AuthService } from '../../../services/login.service';
+import { canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
 
 
 @Component({
@@ -36,16 +38,19 @@ export class CreateGameModalComponent {
     sudci: User[];
     delegati: User[];
     pomocniSudci: User[];
+    kontrolori: User[];
   } = {
     sudci: [],
     delegati: [],
-    pomocniSudci: []
+    pomocniSudci: [],
+    kontrolori: []
   };
 
   unavailableCounts = {
   sudci: 0,
   delegati: 0,
-  pomocniSudci: 0
+  pomocniSudci: 0,
+  kontrolori: 0
 };
 
   selectedReferees: RefereeSelection = {
@@ -54,36 +59,16 @@ export class CreateGameModalComponent {
       { userId: '', position: 2 }
     ],
     delegat: '',
+    kontrolor: '',
     pomocniSudci: [
       { userId: '', position: 1 },
       { userId: '', position: 2 }
     ]
   };
 
-  // Competition options
-  competitions = [
-    'FAVBET PREMIJER LIGA',
-    'KUP «K. ĆOSIĆ»',
-    'PRVA MUŠKA LIGA',
-    'ZAVRŠNI TURNIR ZA POPUNU PRVE MUŠKE LIGE',
-    'DRUGE MUŠKE LIGE',
-    'TREĆE MUŠKE LIGE',
-    'ČETVRTE MUŠKE LIGE',
-    'PREMIJER ŽENSKA LIGA',
-    'PRVA ŽENSKA LIGA',
-    'KUP «R. MEGLAJ-RIMAC»',
-    'JUNIORI',
-    'JUNIORKE',
-    'KADETI',
-    'KADETKINJE',
-    'MLAĐI KADETI',
-    'MLAĐE KADETKINJE',
-    'DJEČACI I DJEVOJČICE',
-    'NATJECANJE SREDNJIH ŠKOLA',
-    'NATJECANJE OSNOVNIH ŠKOLA',
-    'Natjecanje MINI KOŠARKA',
-    '3X3'
-  ];
+  get competitions(): string[] {
+    return getCalendarCompetitions(this.authService.currentUserValue);
+  }
 
   // State management
   isLoading = false;
@@ -103,8 +88,33 @@ availablePomocniSudciForIndex: { [key: number]: User[] } = {}; // ← Make sure 
   constructor(
     private basketballGameService: BasketballGameService,
     private userService: UserService,
-    private absenceService: AbsenceService
+    private absenceService: AbsenceService,
+    private authService: AuthService
   ) {}
+
+  canNominateOfficials(): boolean {
+    return canNominateOfficials(this.authService.currentUserValue, this.gameForm.competition);
+  }
+
+  canNominateAssistants(): boolean {
+    return canNominateAssistants(this.authService.currentUserValue, this.gameForm.competition);
+  }
+
+  shouldShowNominations(): boolean {
+    return this.canNominateOfficials() || this.canNominateAssistants();
+  }
+
+  showKontrolorField(): boolean {
+    return this.canNominateOfficials() && isTopProfessionalCompetition(this.gameForm.competition);
+  }
+
+  eligibleOfficials(refs: User[]): User[] {
+    return refs.filter((ref) => isWithinNominationCap(ref, this.gameForm.competition));
+  }
+
+  get eligibleKontrolori(): User[] {
+    return this.eligibleOfficials(this.availableReferees.kontrolori);
+  }
 
   ngOnInit() {
     if (this.isOpen) {
@@ -129,11 +139,11 @@ availablePomocniSudciForIndex: { [key: number]: User[] } = {}; // ← Make sure 
 private async initializeAvailabilityArrays() {
   if (!this.gameForm.date || !this.gameForm.time) {
     // If no date/time, show all referees
-    this.availableDelegati = this.availableReferees.delegati;
+    this.availableDelegati = this.eligibleOfficials(this.availableReferees.delegati);
     
     // Initialize sudci arrays
     for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
-      this.availableSudciForIndex[i] = this.availableReferees.sudci;
+      this.availableSudciForIndex[i] = this.eligibleOfficials(this.availableReferees.sudci);
     }
     
     // Initialize pomoćni sudci arrays
@@ -169,9 +179,10 @@ private async initializeAvailabilityArrays() {
     this.userService.getReferees().subscribe({
       next: (referees) => {
         this.availableReferees = {
-          sudci: referees.filter(ref => ref.role === 'Sudac'),
-          delegati: referees.filter(ref => ref.role === 'Delegat'),
-          pomocniSudci: referees.filter(ref => ref.role === 'Pomoćni Sudac')
+          sudci: referees.filter(ref => userHasRole(ref, 'Sudac')),
+          delegati: referees.filter(ref => userHasRole(ref, 'Delegat')),
+          pomocniSudci: referees.filter(ref => userHasRole(ref, 'Pomoćni Sudac')),
+          kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
         };
         this.isLoadingReferees = false;
         console.log('Sample referee:', referees[0]); // Debug: check referee structure
@@ -188,6 +199,10 @@ private async initializeAvailabilityArrays() {
   // Step navigation
 async nextStep() {
   if (this.validateGameForm()) {
+    if (!this.shouldShowNominations()) {
+      await this.createGame();
+      return;
+    }
     this.currentStep = 2;
     this.errorMessage = '';
     
@@ -254,24 +269,30 @@ async nextStep() {
   }
 
   validateRefereeAssignments(): boolean {
-    // Check for at least 2 sudci
-    const validSudci = this.selectedReferees.sudci.filter(s => s.userId).length;
-    if (validSudci < 2) {
-      this.errorMessage = 'Potrebno je odabrati najmanje 2 suca.';
-      return false;
+    if (!this.shouldShowNominations()) {
+      return true;
     }
 
-    // Check for at least 2 pomoćni sudci
-    const validPomocni = this.selectedReferees.pomocniSudci.filter(s => s.userId).length;
-    if (validPomocni < 2) {
-      this.errorMessage = 'Potrebno je odabrati najmanje 2 pomoćna suca.';
-      return false;
+    if (this.canNominateOfficials()) {
+      const validSudci = this.selectedReferees.sudci.filter(s => s.userId).length;
+      if (validSudci < 2) {
+        this.errorMessage = 'Potrebno je odabrati najmanje 2 suca.';
+        return false;
+      }
     }
 
-    // Check for duplicate assignments
+    if (this.canNominateAssistants()) {
+      const validPomocni = this.selectedReferees.pomocniSudci.filter(s => s.userId).length;
+      if (validPomocni < 2) {
+        this.errorMessage = 'Potrebno je odabrati najmanje 2 pomoćna suca.';
+        return false;
+      }
+    }
+
     const allSelectedIds = [
       ...this.selectedReferees.sudci.map(s => s.userId).filter(id => id),
       this.selectedReferees.delegat,
+      this.selectedReferees.kontrolor,
       ...this.selectedReferees.pomocniSudci.map(s => s.userId).filter(id => id)
     ].filter(id => id);
 
@@ -297,7 +318,7 @@ async addSudac() {
     } else {
       // If no date/time, show all available sudci
       const newIndex = this.selectedReferees.sudci.length - 1;
-      this.availableSudciForIndex[newIndex] = this.availableReferees.sudci;
+      this.availableSudciForIndex[newIndex] = this.eligibleOfficials(this.availableReferees.sudci);
     }
   }
 }
@@ -390,47 +411,33 @@ private async isRefereeAvailable(referee: User, gameDate: string, gameTime: stri
 // Check if referee has scheduling conflicts with existing games
 private async checkSchedulingConflict(refereeId: string, gameDate: string, gameTime: string): Promise<boolean> {
   try {
-    // Get all games for the referee on the same date
     const existingGames = await this.basketballGameService.getGamesByRefereeAndDate(refereeId, gameDate).toPromise();
     
     if (!existingGames || existingGames.length === 0) {
-      return false; // No conflicts
+      return false;
     }
 
-    // Parse the new game time (hours and minutes only, since we're on the same date)
-    const [newHours, newMinutes] = gameTime.split(':').map(Number);
-    const newGameMinutes = newHours * 60 + newMinutes; // Convert to total minutes
-
-    // Check each existing game for time conflicts
     for (const game of existingGames) {
-      const [existingHours, existingMinutes] = game.time.split(':').map(Number);
-      const existingGameMinutes = existingHours * 60 + existingMinutes; // Convert to total minutes
-
-      // Calculate time difference in minutes (absolute difference on the same day)
-      const timeDifferenceMinutes = Math.abs(newGameMinutes - existingGameMinutes);
-
-      // Conflict if games are within 1 hour (60 minutes) of each other
-      if (timeDifferenceMinutes < 60) {
-        console.log(`Scheduling conflict found for referee ${refereeId}:`, {
-          newGame: `${gameDate} ${gameTime} (${newGameMinutes} minutes)`,
-          existingGame: `${game.date} ${game.time} (${existingGameMinutes} minutes)`,
-          timeDifferenceMinutes: timeDifferenceMinutes
-        });
-        return true; // Conflict found
+      if (!timesOverlap(game.time, gameTime)) {
+        continue;
+      }
+      if (isBlockingScheduleConflict(game.competition, this.gameForm.competition)) {
+        return true;
       }
     }
 
-    return false; // No conflicts
+    return false;
   } catch (error) {
     console.error('Error checking scheduling conflicts:', error);
-    return false; // If error, assume no conflict
+    return false;
   }
 }
 
   // Get available referees (excluding already selected ones, those with absences, AND those with scheduling conflicts)
 async getAvailableSudci(currentIndex: number): Promise<User[]> {
+  const sudci = this.eligibleOfficials(this.availableReferees.sudci);
   if (!this.gameForm.date || !this.gameForm.time) {
-    return this.availableReferees.sudci; // If no date/time, return all
+    return sudci;
   }
 
   const selectedIds = this.selectedReferees.sudci
@@ -446,7 +453,7 @@ async getAvailableSudci(currentIndex: number): Promise<User[]> {
   
   const availableRefs: User[] = [];
   
-  for (const ref of this.availableReferees.sudci) {
+  for (const ref of sudci) {
     const notSelected = !allExcludedIds.includes(ref._id);
     if (notSelected) {
       const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
@@ -460,8 +467,9 @@ async getAvailableSudci(currentIndex: number): Promise<User[]> {
 }
 
 async getAvailableDelegati(): Promise<User[]> {
+  const delegati = this.eligibleOfficials(this.availableReferees.delegati);
   if (!this.gameForm.date || !this.gameForm.time) {
-    return this.availableReferees.delegati;
+    return delegati;
   }
 
   const allSelectedIds = [
@@ -471,7 +479,7 @@ async getAvailableDelegati(): Promise<User[]> {
 
   const availableRefs: User[] = [];
   
-  for (const ref of this.availableReferees.delegati) {
+  for (const ref of delegati) {
     const notSelected = !allSelectedIds.includes(ref._id);
     if (notSelected) {
       const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
@@ -485,8 +493,9 @@ async getAvailableDelegati(): Promise<User[]> {
 }
 
 async getAvailablePomocniSudci(currentIndex: number): Promise<User[]> {
+  const pomocni = this.availableReferees.pomocniSudci;
   if (!this.gameForm.date || !this.gameForm.time) {
-    return this.availableReferees.pomocniSudci;
+    return pomocni;
   }
 
   const selectedIds = this.selectedReferees.pomocniSudci
@@ -502,7 +511,7 @@ async getAvailablePomocniSudci(currentIndex: number): Promise<User[]> {
   
   const availableRefs: User[] = [];
   
-  for (const ref of this.availableReferees.pomocniSudci) {
+  for (const ref of pomocni) {
     const notSelected = !allExcludedIds.includes(ref._id);
     if (notSelected) {
       const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
@@ -638,6 +647,14 @@ async createGame() {
       });
     }
 
+    if (this.selectedReferees.kontrolor && this.showKontrolorField()) {
+      assignments.push({
+        userId: this.selectedReferees.kontrolor,
+        role: 'Kontrolor',
+        position: 1
+      });
+    }
+
     // Add pomoćni sudci
     this.selectedReferees.pomocniSudci.forEach(pomocni => {
       if (pomocni.userId) {
@@ -649,21 +666,31 @@ async createGame() {
       }
     });
 
-    // 🎯 Assign all referees (each will create a notification automatically)
+    const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
     for (const assignment of assignments) {
-      await this.basketballGameService.assignReferee(createdGame._id, assignment).toPromise();
+      const result: any = await this.basketballGameService.assignReferee(createdGame._id, assignment).toPromise();
+      if (result?.releasedNominations?.length) {
+        releasedNominations.push(...result.releasedNominations);
+      }
     }
 
-    // Show success message indicating notifications were sent
+    let message = `Utakmica kreirana i ${assignments.length} nominacija poslano!`;
+    if (releasedNominations.length) {
+      const released = releasedNominations
+        .map(item => `${item.homeTeam} vs ${item.awayTeam} (${item.competition})`)
+        .join(', ');
+      message += ` Niže nominacije su puštene i trebaju novu osobu: ${released}.`;
+    }
+
     this.gameCreated.emit({
       ...createdGame,
-      message: `Utakmica kreirana i ${assignments.length} nominacija poslano!`
+      message
     });
     this.closeModal();
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating game:', error);
-    this.errorMessage = 'Greška pri kreiranju utakmice. Molimo pokušajte ponovo.';
+    this.errorMessage = error?.error?.error || 'Greška pri kreiranju utakmice. Molimo pokušajte ponovo.';
   } finally {
     this.isLoading = false;
   }
@@ -692,6 +719,7 @@ async createGame() {
         { userId: '', position: 2 }
       ],
       delegat: '',
+      kontrolor: '',
       pomocniSudci: [
         { userId: '', position: 1 },
         { userId: '', position: 2 }
@@ -745,7 +773,8 @@ private async updateAvailableReferees() {
   this.unavailableCounts = {
     sudci: await this.getUnavailableRefereesCount('Sudac'),
     delegati: await this.getUnavailableRefereesCount('Delegat'),
-    pomocniSudci: await this.getUnavailableRefereesCount('Pomoćni Sudac')
+    pomocniSudci: await this.getUnavailableRefereesCount('Pomoćni Sudac'),
+    kontrolori: 0
   };
 }
 private clearUnavailableSelections() {

@@ -7,6 +7,7 @@ import { TravelExpenseService } from '../../../services/travel-expense.service';
 import { UserService } from '../../../services/user.service';
 import { User } from '../../../model/user.model';
 import { AuthService } from '../../../services/login.service';
+import { getRoleNames, isAdminUser } from '../../../model/roles';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
@@ -35,14 +36,16 @@ export class ExpensesModalComponent implements OnInit {
   allReportTypes = [
     'Troškovno izvješće suca',
     'Troškovno izvješće delegata',
-    'Troškovno izvješće pomoćnog suca'
+    'Troškovno izvješće pomoćnog suca',
+    'Troškovno izvješće kontrolora'
   ];
 
   // Role-based mapping for report types
   private roleToReportTypeMap: { [key: string]: string[] } = {
     'Sudac': ['Troškovno izvješće suca'],
     'Delegat': ['Troškovno izvješće delegata'],
-    'Pomoćni Sudac': ['Troškovno izvješće pomoćnog suca']
+    'Pomoćni Sudac': ['Troškovno izvješće pomoćnog suca'],
+    'Kontrolor': ['Troškovno izvješće kontrolora']
   };
 
   // Available report types based on selected user's role
@@ -103,15 +106,14 @@ ngOnInit() {
         return; // Stop execution on server-side
       }
         this.currentUser = user;
-        this.isAdmin = user.role === 'Admin';
+        this.isAdmin = isAdminUser(user);
         
         if (this.isAdmin) {
           // Admin can create reports for any user
           this.loadAllUsers();
           this.reportTypes = this.allReportTypes; // Show all types initially
         } else {
-          // Regular user creates for themselves
-          this.setAvailableReportTypes(user.role);
+          this.setAvailableReportTypes(user);
         }
         
         this.isLoadingUser = false;
@@ -150,7 +152,7 @@ ngOnInit() {
     // Find selected user and set available report types
     const selectedUser = this.allUsers.find(u => u._id === this.reportData.userId);
     if (selectedUser) {
-      this.setAvailableReportTypes(selectedUser.role);
+      this.setAvailableReportTypes(selectedUser);
       // Auto-select if only one type available
       if (this.reportTypes.length === 1) {
         this.reportData.type = this.reportTypes[0];
@@ -160,16 +162,14 @@ ngOnInit() {
     }
   }
 
-  private setAvailableReportTypes(role: string) {
-    // Map user role to report types
-    this.reportTypes = this.roleToReportTypeMap[role] || this.allReportTypes;
-    
-    // Auto-select if only one option
+  private setAvailableReportTypes(userOrRole: User | string) {
+    const roles = typeof userOrRole === 'string' ? [userOrRole] : getRoleNames(userOrRole);
+    const types = [...new Set(roles.flatMap(role => this.roleToReportTypeMap[role] || []))];
+    this.reportTypes = types.length ? types : this.allReportTypes;
+
     if (this.reportTypes.length === 1) {
       this.reportData.type = this.reportTypes[0];
     }
-    
-    console.log('Available report types for role', role, ':', this.reportTypes);
   }
 
   isFormValid(): boolean {

@@ -24,14 +24,15 @@ export interface BasketballGame {
     Sudac: number;
     Delegat: number;
     'Pomoćni Sudac': number;
+    Kontrolor: number;
   };
   
   // Instance methods (these won't actually exist on frontend objects, so we make them optional)
   areAllRefereesResponded?: () => boolean;
   areAllRefereesAccepted?: () => boolean;
   isUserAssigned?: (userId: string) => boolean;
-  getAvailablePositions?: (role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac') => number[];
-  getNextAvailablePosition?: (role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac') => number | null;
+  getAvailablePositions?: (role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor') => number[];
+  getNextAvailablePosition?: (role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor') => number | null;
   getRefereeAssignmentSummary?: () => any;
 }
 
@@ -43,7 +44,7 @@ export interface RefereeAssignment {
     surname: string;
     role: string;
   };
-  role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
+  role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor';
   position: number;
   assignmentStatus: 'Pending' | 'Accepted' | 'Rejected';
   assignedAt: string;
@@ -63,7 +64,7 @@ export interface CreateGameRequest {
 
 export interface AssignRefereeRequest {
   userId: string;
-  role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
+  role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor';
   position?: number;
 }
 
@@ -94,6 +95,7 @@ export interface RefereeGroups {
   'Sudac': RefereeInfo[];
   'Delegat': RefereeInfo[];
   'Pomoćni Sudac': RefereeInfo[];
+  Kontrolor: RefereeInfo[];
 }
 export interface GameFormData {
   homeTeam: string;
@@ -110,7 +112,7 @@ export interface GameFormData {
 export interface RefereeAssignmentData {
     _id?:string;
   userId: string;
-  role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
+  role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor';
   position?: number;
 }
 
@@ -118,6 +120,7 @@ export interface RefereeAssignmentData {
 export interface RefereeSelection {
   sudci: { _id?:string;userId: string; position: number }[];
   delegat: string;
+  kontrolor: string;
   pomocniSudci: { _id?:string;userId: string; position: number }[];
 }
 
@@ -140,11 +143,12 @@ export class BasketballGameUtils {
     );
   }
 
-  static getAvailablePositions(game: BasketballGame, role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac'): number[] {
+  static getAvailablePositions(game: BasketballGame, role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor'): number[] {
     const maxPositions = {
       'Sudac': 3,
       'Delegat': 1,
-      'Pomoćni Sudac': 3
+      'Pomoćni Sudac': 3,
+      'Kontrolor': 1
     };
     
     const occupiedPositions = game.refereeAssignments
@@ -161,7 +165,7 @@ export class BasketballGameUtils {
     return availablePositions;
   }
 
-  static getNextAvailablePosition(game: BasketballGame, role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac'): number | null {
+  static getNextAvailablePosition(game: BasketballGame, role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor'): number | null {
     const availablePositions = this.getAvailablePositions(game, role);
     return availablePositions.length > 0 ? Math.min(...availablePositions) : null;
   }
@@ -170,7 +174,8 @@ export class BasketballGameUtils {
     const summary = {
       Sudac: { assigned: 0, accepted: 0, positions: [] as number[] },
       Delegat: { assigned: 0, accepted: 0, positions: [] as number[] },
-      'Pomoćni Sudac': { assigned: 0, accepted: 0, positions: [] as number[] }
+      'Pomoćni Sudac': { assigned: 0, accepted: 0, positions: [] as number[] },
+      Kontrolor: { assigned: 0, accepted: 0, positions: [] as number[] }
     };
     
     game.refereeAssignments.forEach(assignment => {

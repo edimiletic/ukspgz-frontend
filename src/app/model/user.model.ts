@@ -1,6 +1,8 @@
 // src/app/models/user.model.ts
 
-export type UserRole = 'Admin' | 'Sudac' | 'Delegat' | 'Pomoćni Sudac';
+import { RoleAssignment, UserRole } from './roles';
+
+export type { UserRole, RoleAssignment };
 
 export interface User {
   _id: string;
@@ -14,4 +16,7 @@ export interface User {
   personalCode: string;
   address: string;
   role: UserRole;
+  roles?: RoleAssignment[];
+  rang?: string;
+  najvisaLiga?: string;
 }

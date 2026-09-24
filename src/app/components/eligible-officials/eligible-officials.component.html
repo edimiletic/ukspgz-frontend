@@ -1,0 +1,90 @@
+<app-header></app-header>
+<app-sidebar></app-sidebar>
+
+<div class="eligible-container">
+  <div class="header">
+    <h1>
+      <i class="fas fa-users"></i>
+      Osobe za nominaciju
+    </h1>
+    <p class="subtitle">
+      Osobe koje mogu biti nominirane na vašim ligama. Ako je netko podoban za više liga, prikazuje se samo na višoj.
+    </p>
+  </div>
+
+  <div *ngIf="!isLoading" class="filter-section">
+    <div class="filter-group">
+      <label for="roleFilter">Uloga</label>
+      <select id="roleFilter" class="form-control" [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()">
+        <option *ngFor="let option of roleOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="status-message">Učitavanje...</div>
+  <div *ngIf="errorMessage" class="status-message error">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && !errorMessage && !groups.length" class="status-message">
+    Nema natjecanja dodijeljenih vašoj ulozi.
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && groups.length && !filteredGroups.length" class="status-message">
+    Nema osoba za odabranu ulogu.
+  </div>
+
+  <section *ngFor="let group of filteredGroups" class="league-card">
+    <div class="league-header">
+      <h2>{{ group.competition }}</h2>
+      <span class="count">{{ group.officials.length }}</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Prezime i ime</th>
+            <th>Uloga</th>
+            <th>Rang</th>
+            <th>Najviša liga</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let person of getPagedOfficials(group)">
+            <td>{{ person.surname }} {{ person.name }}</td>
+            <td>{{ roleLabel(person.roles) }}</td>
+            <td>{{ person.rang || '—' }}</td>
+            <td>{{ person.najvisaLiga || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination-container" *ngIf="getTotalPages(group) > 1">
+      <div class="pagination-info">
+        Prikazano {{ getPagedOfficials(group).length }} od {{ group.officials.length }} •
+        Stranica {{ getLeaguePage(group.competition) }} od {{ getTotalPages(group) }}
+      </div>
+      <div class="pagination">
+        <button
+          class="page-btn"
+          [disabled]="getLeaguePage(group.competition) === 1"
+          (click)="goToPage(group.competition, getLeaguePage(group.competition) - 1, group)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button
+          class="page-btn"
+          *ngFor="let page of getVisiblePages(group)"
+          [class.active]="page === getLeaguePage(group.competition)"
+          (click)="goToPage(group.competition, page, group)">
+          {{ page }}
+        </button>
+        <button
+          class="page-btn"
+          [disabled]="getLeaguePage(group.competition) === getTotalPages(group)"
+          (click)="goToPage(group.competition, getLeaguePage(group.competition) + 1, group)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

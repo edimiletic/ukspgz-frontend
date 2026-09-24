@@ -54,6 +54,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this.authService.hasRole('Admin');
   }
 
+  canViewEligibleOfficials(): boolean {
+    return this.authService.canViewEligibleOfficials();
+  }
+
   // Toggle sidebar (hamburger menu)
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
