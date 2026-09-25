@@ -88,6 +88,18 @@ private apiUrl = environment.apiUrl + '/basketball-games';
     });
   }
 
+  updateRefereeAssignment(gameId: string, assignmentId: string, data: { position?: number }): Observable<BasketballGame> {
+    return this.http.patch<BasketballGame>(`${this.apiUrl}/${gameId}/referee-assignment/${assignmentId}`, data, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  notifyColleagueReplacement(gameId: string, payload: { removedUserIds: string[]; addedUserIds: string[] }): Observable<{ notified: number }> {
+    return this.http.post<{ notified: number }>(`${this.apiUrl}/${gameId}/colleague-replacement`, payload, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   // Accept or reject assignment (Referee only)
   respondToAssignment(gameId: string, response: RespondAssignmentRequest): Observable<BasketballGame> {
     return this.http.patch<BasketballGame>(`${this.apiUrl}/${gameId}/respond-assignment`, response, {

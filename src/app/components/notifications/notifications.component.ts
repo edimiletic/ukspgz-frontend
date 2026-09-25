@@ -139,6 +139,12 @@ export class NotificationsComponent implements OnInit {
         return 'Kontrola dostupna';
       case 'ASSIGNMENT_RELEASED':
         return 'Nominacija povučena';
+      case 'GAME_SCHEDULE_CHANGED':
+        return 'Promjena termina';
+      case 'ASSIGNMENT_REMOVED':
+        return 'Skinut s utakmice';
+      case 'COLLEAGUE_REPLACED':
+        return 'Zamjena kolege';
       default:
         return type;
     }
@@ -154,6 +160,12 @@ export class NotificationsComponent implements OnInit {
         return 'fas fa-clipboard-check';
       case 'ASSIGNMENT_RELEASED':
         return 'fas fa-undo';
+      case 'GAME_SCHEDULE_CHANGED':
+        return 'fas fa-clock';
+      case 'ASSIGNMENT_REMOVED':
+        return 'fas fa-user-minus';
+      case 'COLLEAGUE_REPLACED':
+        return 'fas fa-exchange-alt';
       default:
         return 'fas fa-bell';
     }

@@ -635,6 +635,10 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     try {
       let updatedGame = this.game;
 
+      const assignmentResult = this.shouldShowNominations()
+        ? await this.updateRefereeAssignments()
+        : { newAssignments: 0, releasedNominations: [] as Array<{ homeTeam: string; awayTeam: string; competition: string }> };
+
       if (this.canManageCalendar()) {
         const gameData = {
           homeTeam: this.gameForm.homeTeam.trim(),
@@ -649,10 +653,6 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
         updatedGame = await this.basketballGameService.updateGame(this.game._id, gameData).toPromise() || this.game;
       }
-
-      const assignmentResult = this.shouldShowNominations()
-        ? await this.updateRefereeAssignments()
-        : { newAssignments: 0, releasedNominations: [] as Array<{ homeTeam: string; awayTeam: string; competition: string }> };
 
       let successMessage = 'Utakmica je uspješno ažurirana!';
       
@@ -748,23 +748,49 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     const currentUserIds = new Set(currentAssignments.map(a => a.userId._id));
     const newUserIds = newAssignments.map(a => a.userId);
     const newlyAssignedUsers = newUserIds.filter(userId => !currentUserIds.has(userId));
+    const assignmentUserId = (assignment: { userId: any }) =>
+      typeof assignment.userId === 'object' ? assignment.userId._id : assignment.userId;
+    const assignmentKey = (userId: string, role: string) => `${userId}:${role}`;
 
-    for (const currentAssignment of currentAssignments) {
-      if (!managedRoles.includes(currentAssignment.role)) {
+    const currentManaged = currentAssignments.filter(assignment => managedRoles.includes(assignment.role));
+    const removedUserIds: string[] = [];
+
+    for (const currentAssignment of currentManaged) {
+      const key = assignmentKey(assignmentUserId(currentAssignment), currentAssignment.role);
+      const desired = newAssignments.find(assignment => assignmentKey(assignment.userId, assignment.role) === key);
+
+      if (!desired) {
+        removedUserIds.push(assignmentUserId(currentAssignment));
+        try {
+          await this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id).toPromise();
+        } catch (error) {
+          console.warn('Error removing assignment:', error);
+        }
         continue;
       }
-      try {
-        await this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id).toPromise();
-      } catch (error) {
-        console.warn('Error removing assignment:', error);
+
+      if (desired.position && desired.position !== currentAssignment.position) {
+        try {
+          await this.basketballGameService.updateRefereeAssignment(this.game._id, currentAssignment._id, {
+            position: desired.position
+          }).toPromise();
+        } catch (error) {
+          console.warn('Error updating assignment position:', error);
+        }
       }
     }
 
-    // Step 2: Add all new assignments and track newly assigned users
     const actuallyNewUsers: string[] = [];
     const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
     
     for (const newAssignment of newAssignments) {
+      const alreadyAssigned = currentManaged.some(assignment =>
+        assignmentKey(assignmentUserId(assignment), assignment.role) === assignmentKey(newAssignment.userId, newAssignment.role)
+      );
+      if (alreadyAssigned) {
+        continue;
+      }
+
       try {
         const result: any = await this.basketballGameService.assignReferee(this.game._id, {
           userId: newAssignment.userId,
@@ -782,6 +808,17 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       } catch (error) {
         console.error('Error adding assignment:', error);
         throw error;
+      }
+    }
+
+    if (removedUserIds.length && actuallyNewUsers.length) {
+      try {
+        await this.basketballGameService.notifyColleagueReplacement(this.game._id, {
+          removedUserIds,
+          addedUserIds: actuallyNewUsers
+        }).toPromise();
+      } catch (error) {
+        console.warn('Error notifying remaining officials about replacement:', error);
       }
     }
 
