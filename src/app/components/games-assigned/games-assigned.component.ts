@@ -444,9 +444,9 @@ onGameCreated(result: any) {
     this.basketballGameService.respondToAssignment(gameId, requestBody).subscribe({
       next: (updatedGame) => {
         if (response === 'Accepted') {
-          this.showSuccess('Nominacija je uspješno prihvaćena! Administrator je obavješten.');
+          this.showSuccess('Nominacija je uspješno prihvaćena! Povjerenik je obaviješten.');
         } else {
-          this.showSuccess('Nominacija je uspješno odbijena! Administrator je obavješten.');
+          this.showSuccess('Nominacija je uspješno odbijena! Povjerenik je obaviješten.');
         }
         
         // Reload all games to ensure accurate data and smart pagination

@@ -8,6 +8,7 @@ import { HeaderComponent } from "../header/header.component";
 import { FooterComponent } from "../footer/footer.component";
 import { SidebarComponent } from "../sidebar/sidebar.component";
 import { AuthService } from '../../services/login.service';
+import { isAdminUser, userHasRole } from '../../model/roles';
 
 @Component({
   selector: 'app-notifications',
@@ -23,6 +24,7 @@ export class NotificationsComponent implements OnInit {
   
   currentUser: any = null;
   isAdmin = false;
+  seesAssignmentResponses = false;
 
   // Pagination
   currentPage = 1;
@@ -73,11 +75,16 @@ export class NotificationsComponent implements OnInit {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
         this.currentUser = user;
-        this.isAdmin = user.role === 'Admin';
+        this.isAdmin = isAdminUser(user);
+        this.seesAssignmentResponses =
+          this.isAdmin ||
+          userHasRole(user, 'Povjerenik za službene osobe') ||
+          userHasRole(user, 'Povjerenik za pomoćne suce');
       },
       error: (error) => {
         console.error('Error getting current user:', error);
         this.isAdmin = false;
+        this.seesAssignmentResponses = false;
       }
     });
   }
