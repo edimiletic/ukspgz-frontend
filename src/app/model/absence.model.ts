@@ -2,6 +2,7 @@
 
 export interface Absence {
   _id: string;                 // MongoDB ObjectId
+  displayId?: number;          // Sequential number shown in UI
   startDate: string;           // ISO format, e.g., '2024-07-01'
   endDate: string;             // ISO format, e.g., '2024-07-03'
   userPersonalCode: string;    // References User.personalCode
@@ -9,7 +10,8 @@ export interface Absence {
   createdAt?: string;          // ISO format timestamp when record was created
   updatedAt?: string;          // ISO format timestamp when record was last updated
   durationDays?: number; 
-    userName?: string;  // Add this line for admin responses
+    userName?: string;
+    userRole?: string;
 }
 
 export interface AbsenceCreateRequest {

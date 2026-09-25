@@ -515,7 +515,7 @@ getGameStatusText(game: BasketballGame): string {
     if (result.message) {
       this.showSuccess(result.message);
     } else {
-      this.showSuccess('Utakmica je uspješno kreirana i nominacije su poslane!');
+      this.showSuccess('Utakmica je uspješno kreirana');
     }
     
     // Optionally refresh dashboard data

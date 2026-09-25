@@ -38,8 +38,51 @@
         <form class="game-form">
           <div class="form-row">
             <div class="form-group">
+              <label for="competition">Natjecanje</label>
+              <select 
+                id="competition" 
+                [(ngModel)]="gameForm.competition" 
+                name="competition"
+                class="form-control"
+                [disabled]="!canManageCalendar()"
+                (ngModelChange)="onCompetitionChange()"
+                required>
+                <option value="">Odaberite natjecanje</option>
+                <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select 
+                id="status" 
+                [(ngModel)]="gameForm.status" 
+                name="status"
+                class="form-control"
+                [disabled]="!canManageCalendar()"
+                required>
+                <option *ngFor="let status of statusOptions" [value]="status.value">
+                  {{ status.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
               <label for="homeTeam">Domaći Tim</label>
+              <select
+                *ngIf="hasTeamCatalog"
+                id="homeTeam"
+                [(ngModel)]="gameForm.homeTeam"
+                name="homeTeam"
+                class="form-control"
+                [disabled]="!canManageCalendar()"
+                required>
+                <option value="">Odaberite domaći tim</option>
+                <option *ngFor="let team of teamOptions" [value]="team">{{ team }}</option>
+              </select>
               <input 
+                *ngIf="!hasTeamCatalog"
                 type="text" 
                 id="homeTeam" 
                 [(ngModel)]="gameForm.homeTeam" 
@@ -51,7 +94,19 @@
             </div>
             <div class="form-group">
               <label for="awayTeam">Gostujući Tim</label>
+              <select
+                *ngIf="hasTeamCatalog"
+                id="awayTeam"
+                [(ngModel)]="gameForm.awayTeam"
+                name="awayTeam"
+                class="form-control"
+                [disabled]="!canManageCalendar()"
+                required>
+                <option value="">Odaberite gostujući tim</option>
+                <option *ngFor="let team of awayTeamOptions" [value]="team">{{ team }}</option>
+              </select>
               <input 
+                *ngIf="!hasTeamCatalog"
                 type="text" 
                 id="awayTeam" 
                 [(ngModel)]="gameForm.awayTeam" 
@@ -78,60 +133,25 @@
                 required>
             </div>
             <div class="form-group">
-              <label for="time">Vrijeme</label>
-              <input 
-                type="time" 
-                id="time" 
-                [(ngModel)]="gameForm.time" 
+              <label>Vrijeme</label>
+              <app-time-select
                 name="time"
-                class="form-control"
+                [(ngModel)]="gameForm.time"
                 [disabled]="!canManageCalendar()"
-                (change)="onDateTimeChange()"
-                required>
+                (ngModelChange)="onDateTimeChange()">
+              </app-time-select>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="venue">Mjesto</label>
-            <input 
-              type="text" 
-              id="venue" 
-              [(ngModel)]="gameForm.venue" 
+            <label for="venue">Dvorana</label>
+            <app-venue-search
+              id="venue"
               name="venue"
-              class="form-control"
-              placeholder="Unesite naziv dvorane ili mjesta"
-              [disabled]="!canManageCalendar()"
-              required>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="competition">Natjecanje</label>
-              <select 
-                id="competition" 
-                [(ngModel)]="gameForm.competition" 
-                name="competition"
-                class="form-control"
-                [disabled]="!canManageCalendar()"
-                required>
-                <option value="">Odaberite natjecanje</option>
-                <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="status">Status</label>
-              <select 
-                id="status" 
-                [(ngModel)]="gameForm.status" 
-                name="status"
-                class="form-control"
-                [disabled]="!canManageCalendar()"
-                required>
-                <option *ngFor="let status of statusOptions" [value]="status.value">
-                  {{ status.label }}
-                </option>
-              </select>
-            </div>
+              [options]="venueOptions"
+              [(ngModel)]="gameForm.venue"
+              [disabled]="!canManageCalendar()">
+            </app-venue-search>
           </div>
 
           <div class="form-group">
@@ -163,8 +183,8 @@
             <div class="referee-section" *ngIf="canNominateOfficials()">
               <h3>
                 Sudci (2-3 obavezno)
-                <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
-                  ({{ unavailableCounts.sudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+                <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.sudci" class="unavailable-count">
+                  ({{ unavailableCounts.sudci }} nedostupno zbog odsustva ili drugih utakmica)
                 </span>
               </h3>
               <div class="referee-list">
@@ -174,7 +194,7 @@
                     <select 
                       [(ngModel)]="sudac.userId" 
                       name="sudac_{{i}}"
-                        (change)="onRefereeSelectionChange()"
+                        (ngModelChange)="onRefereeSelectionChange()"
 
                       class="form-control">
                       <option value="">Odaberite suca</option>
@@ -206,15 +226,15 @@
             <div class="referee-section" *ngIf="canNominateOfficials()">
               <h3>
                 Delegat (opcionalno)
-                <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
-                  ({{ unavailableCounts.delegati || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+                <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.delegati" class="unavailable-count">
+                  ({{ unavailableCounts.delegati }} nedostupno zbog odsustva ili drugih utakmica)
                 </span>
               </h3>
               <div class="referee-assignment">
                 <select 
                   [(ngModel)]="selectedReferees.delegat" 
                   name="delegat"
-                    (change)="onRefereeSelectionChange()"
+                    (ngModelChange)="onRefereeSelectionChange()"
 
                   class="form-control">
                   <option value="">Odaberite delegata</option>
@@ -231,7 +251,7 @@
                 <select
                   [(ngModel)]="selectedReferees.kontrolor"
                   name="kontrolor"
-                  (change)="onRefereeSelectionChange()"
+                  (ngModelChange)="onRefereeSelectionChange()"
                   class="form-control">
                   <option value="">Odaberite kontrolora</option>
                   <option *ngFor="let ref of availableKontrolori" [value]="ref._id">
@@ -244,8 +264,8 @@
             <div class="referee-section" *ngIf="canNominateAssistants()">
               <h3>
                 Pomoćni Sudci (2-3 obavezno)
-                <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
-                  ({{ unavailableCounts.pomocniSudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+                <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.pomocniSudci" class="unavailable-count">
+                  ({{ unavailableCounts.pomocniSudci }} nedostupno zbog odsustva ili drugih utakmica)
                 </span>
               </h3>
               <div class="referee-list">
@@ -255,7 +275,7 @@
                     <select 
                       [(ngModel)]="pomocni.userId" 
                       name="pomocni_{{i}}"
-                        (change)="onRefereeSelectionChange()"
+                        (ngModelChange)="onRefereeSelectionChange()"
 
                       class="form-control">
                       <option value="">Odaberite pomoćnog suca</option>

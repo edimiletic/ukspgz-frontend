@@ -112,7 +112,13 @@ private apiUrl = environment.apiUrl + '/basketball-games';
 // In basketball-game.service.ts - FIXED
 getGamesByRefereeAndDate(refereeId: string, date: string): Observable<any[]> {
   return this.http.get<any[]>(`${this.apiUrl}/referee/${refereeId}/date/${date}`, {
-    headers: this.getAuthHeaders() // ← Add this line
+    headers: this.getAuthHeaders()
+  });
+}
+
+getGamesOnDate(date: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/schedule/${date}`, {
+    headers: this.getAuthHeaders()
   });
 }
 }

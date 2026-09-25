@@ -1,0 +1,62 @@
+.venue-search {
+  position: relative;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+
+  &:disabled {
+    background: #f8f9fa;
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: #adb5bd;
+  }
+}
+
+.venue-results {
+  z-index: 20;
+  margin: 0.35rem 0 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.venue-results li {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #2c3e50;
+
+  &:hover,
+  &.active {
+    background: #eaf4fb;
+  }
+}
+
+.venue-hint {
+  cursor: default !important;
+  color: #6c757d !important;
+  font-style: italic;
+
+  &:hover {
+    background: transparent !important;
+  }
+}

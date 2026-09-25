@@ -1,0 +1,25 @@
+<div class="time-select">
+  <select
+    class="form-control"
+    name="timeHour"
+    [ngModel]="hour"
+    (ngModelChange)="onHourChange($event)"
+    [ngModelOptions]="{standalone: true}"
+    [disabled]="disabled"
+    aria-label="Sat">
+    <option value="">Sat</option>
+    <option *ngFor="let h of hours" [value]="h">{{ h }}</option>
+  </select>
+  <span class="time-sep">:</span>
+  <select
+    class="form-control"
+    name="timeMinute"
+    [ngModel]="minute"
+    (ngModelChange)="onMinuteChange($event)"
+    [ngModelOptions]="{standalone: true}"
+    [disabled]="disabled"
+    aria-label="Minuta">
+    <option value="">Min</option>
+    <option *ngFor="let m of minutes" [value]="m">{{ m }}</option>
+  </select>
+</div>

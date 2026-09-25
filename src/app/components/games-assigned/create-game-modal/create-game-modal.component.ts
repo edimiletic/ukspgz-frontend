@@ -5,15 +5,20 @@ import { BasketballGameService } from '../../../services/basketballGame.service'
 import { UserService } from '../../../services/user.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TimeSelectComponent } from '../time-select/time-select.component';
+import { VenueSearchComponent } from '../venue-search/venue-search.component';
 import { AbsenceService } from '../../../services/absence.service';
 import { Absence } from '../../../model/absence.model';
 import { AuthService } from '../../../services/login.service';
+import { CatalogService } from '../../../services/catalog.service';
+import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
+import { firstValueFrom } from 'rxjs';
 import { canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
 
 
 @Component({
   selector: 'app-create-game-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TimeSelectComponent, VenueSearchComponent],
   templateUrl: './create-game-modal.component.html',
   styleUrl: './create-game-modal.component.scss'
 })
@@ -32,6 +37,9 @@ export class CreateGameModalComponent {
     competition: '',
     notes: ''
   };
+
+  teams: CatalogTeam[] = [];
+  venues: CatalogVenue[] = [];
 
   // Referee data
   availableReferees: {
@@ -84,12 +92,20 @@ availablePomocniSudciForIndex: { [key: number]: User[] } = {}; // ← Make sure 
 
   // Absence data for availability checking
   allAbsences: Absence[] = [];
+  private gamesOnSelectedDate: Array<{
+    _id: string;
+    time: string;
+    competition: string;
+    refereeAssignments?: Array<{ userId: any; assignmentStatus: string }>;
+  }> = [];
+  private loadedScheduleDate = '';
 
   constructor(
     private basketballGameService: BasketballGameService,
     private userService: UserService,
     private absenceService: AbsenceService,
-    private authService: AuthService
+    private authService: AuthService,
+    private catalogService: CatalogService
   ) {}
 
   canNominateOfficials(): boolean {
@@ -117,13 +133,57 @@ availablePomocniSudciForIndex: { [key: number]: User[] } = {}; // ← Make sure 
   }
 
   ngOnInit() {
+    this.loadCatalog();
     if (this.isOpen) {
       this.loadReferees();
     }
   }
 
+  loadCatalog() {
+    this.catalogService.getTeams().subscribe({
+      next: (teams) => { this.teams = teams || []; },
+      error: () => { this.teams = []; }
+    });
+    this.catalogService.getVenues().subscribe({
+      next: (venues) => { this.venues = venues || []; },
+      error: () => { this.venues = []; }
+    });
+  }
+
+  get teamOptions(): string[] {
+    if (!this.gameForm.competition) return [];
+    return this.teams
+      .filter((team) => team.competitions.includes(this.gameForm.competition))
+      .map((team) => team.name)
+      .sort((a, b) => a.localeCompare(b, 'hr'));
+  }
+
+  get hasTeamCatalog(): boolean {
+    return this.teamOptions.length > 0;
+  }
+
+  get awayTeamOptions(): string[] {
+    return this.teamOptions.filter((name) => name !== this.gameForm.homeTeam);
+  }
+
+  get venueOptions(): string[] {
+    return this.venues.map((venue) => venue.name).sort((a, b) => a.localeCompare(b, 'hr'));
+  }
+
+  onCompetitionChange() {
+    if (this.gameForm.homeTeam && !this.teamOptions.includes(this.gameForm.homeTeam)) {
+      this.gameForm.homeTeam = '';
+    }
+    if (this.gameForm.awayTeam && !this.teamOptions.includes(this.gameForm.awayTeam)) {
+      this.gameForm.awayTeam = '';
+    }
+    this.updateAvailableReferees();
+    this.clearUnavailableSelections();
+  }
+
  async ngOnChanges() {
   if (this.isOpen && this.currentStep === 1) {
+    this.loadCatalog();
     this.loadReferees();
     this.loadAbsences();
     this.resetForm();
@@ -137,38 +197,39 @@ availablePomocniSudciForIndex: { [key: number]: User[] } = {}; // ← Make sure 
 
 // Add this method to initialize all availability arrays
 private async initializeAvailabilityArrays() {
+  await this.refreshAvailability();
+}
+
+private async refreshAvailability() {
   if (!this.gameForm.date || !this.gameForm.time) {
-    // If no date/time, show all referees
     this.availableDelegati = this.eligibleOfficials(this.availableReferees.delegati);
-    
-    // Initialize sudci arrays
     for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
       this.availableSudciForIndex[i] = this.eligibleOfficials(this.availableReferees.sudci);
     }
-    
-    // Initialize pomoćni sudci arrays
     for (let i = 0; i < this.selectedReferees.pomocniSudci.length; i++) {
       this.availablePomocniSudciForIndex[i] = this.availableReferees.pomocniSudci;
     }
+    this.unavailableCounts = { sudci: 0, delegati: 0, pomocniSudci: 0, kontrolori: 0 };
     return;
   }
 
-  // Update with actual availability checking
-  await this.updateAvailableReferees();
+  await this.loadScheduleForDate();
+  this.updateAvailableReferees();
 }
 
   loadAbsences() {
     this.isLoadingAbsences = true;
     this.absenceService.getAllAbsences().subscribe({
       next: (absences) => {
-        this.allAbsences = absences;
+        this.allAbsences = absences || [];
         this.isLoadingAbsences = false;
-        console.log('Loaded absences:', absences.length);
-        console.log('Sample absence:', absences[0]); // Debug: check absence structure
+        if (this.isOpen && this.gameForm.date && this.gameForm.time) {
+          this.refreshAvailability();
+        }
       },
       error: (error) => {
         console.error('Error loading absences:', error);
-        this.allAbsences = []; // Continue without absence checking
+        this.allAbsences = [];
         this.isLoadingAbsences = false;
       }
     });
@@ -306,77 +367,73 @@ async nextStep() {
   }
 
   // Referee management
-async addSudac() {
+  addSudac() {
   if (this.selectedReferees.sudci.length < 3) {
     const nextPosition = this.selectedReferees.sudci.length + 1;
     this.selectedReferees.sudci.push({ userId: '', position: nextPosition });
-    
-    // Update availability for the new position
-    if (this.gameForm.date && this.gameForm.time) {
-      const newIndex = this.selectedReferees.sudci.length - 1;
-      this.availableSudciForIndex[newIndex] = await this.getAvailableSudci(newIndex);
-    } else {
-      // If no date/time, show all available sudci
-      const newIndex = this.selectedReferees.sudci.length - 1;
-      this.availableSudciForIndex[newIndex] = this.eligibleOfficials(this.availableReferees.sudci);
-    }
+    this.updateAvailableReferees();
   }
 }
 
-async removeSudac(index: number) {
+  removeSudac(index: number) {
   if (this.selectedReferees.sudci.length > 2) {
-    // Remove the referee at the specified index
     this.selectedReferees.sudci.splice(index, 1);
-    
-    // Reorder positions
     this.selectedReferees.sudci.forEach((sudac, i) => {
       sudac.position = i + 1;
     });
-
-    // Clear and rebuild all availability arrays
-    this.availableSudciForIndex = {};
-    await this.updateAvailableReferees();
+    this.updateAvailableReferees();
   }
 }
 
-async addPomocniSudac() {
+  addPomocniSudac() {
   if (this.selectedReferees.pomocniSudci.length < 3) {
     const nextPosition = this.selectedReferees.pomocniSudci.length + 1;
     this.selectedReferees.pomocniSudci.push({ userId: '', position: nextPosition });
-    
-    // Update availability for the new position
-    if (this.gameForm.date && this.gameForm.time) {
-      const newIndex = this.selectedReferees.pomocniSudci.length - 1;
-      this.availablePomocniSudciForIndex[newIndex] = await this.getAvailablePomocniSudci(newIndex);
-    }
+    this.updateAvailableReferees();
   }
 }
 
-async removePomocniSudac(index: number) {
+  removePomocniSudac(index: number) {
   if (this.selectedReferees.pomocniSudci.length > 2) {
-    // Remove the referee at the specified index
     this.selectedReferees.pomocniSudci.splice(index, 1);
-    
-    // Reorder positions
     this.selectedReferees.pomocniSudci.forEach((sudac, i) => {
       sudac.position = i + 1;
     });
-
-    // Clear and rebuild all availability arrays
-    this.availablePomocniSudciForIndex = {};
-    await this.updateAvailableReferees();
+    this.updateAvailableReferees();
   }
 }
 
-  // Check if a referee is available on the game date
- // Check if a referee is available on the game date (considering both absences and scheduling conflicts)
-private async isRefereeAvailable(referee: User, gameDate: string, gameTime: string): Promise<boolean> {
-  if (!gameDate || !gameTime) {
-    return true; // If no date/time selected, assume available
+private assignmentUserId(assignment: { userId: any }): string {
+  if (!assignment?.userId) return '';
+  return typeof assignment.userId === 'object' ? assignment.userId._id : String(assignment.userId);
+}
+
+private async loadScheduleForDate(): Promise<void> {
+  if (!this.gameForm.date) {
+    this.gamesOnSelectedDate = [];
+    this.loadedScheduleDate = '';
+    return;
+  }
+  if (this.loadedScheduleDate === this.gameForm.date) {
+    return;
+  }
+  try {
+    this.gamesOnSelectedDate = await firstValueFrom(
+      this.basketballGameService.getGamesOnDate(this.gameForm.date)
+    ) || [];
+  } catch (error) {
+    console.error('Error loading games for date:', error);
+    this.gamesOnSelectedDate = [];
+  }
+  this.loadedScheduleDate = this.gameForm.date;
+}
+
+private isRefereeAvailable(referee: User): boolean {
+  if (!this.gameForm.date || !this.gameForm.time) {
+    return true;
   }
 
-  // Check absence conflicts (existing logic)
-  const selectedGameDate = new Date(gameDate);
+  const selectedGameDate = new Date(this.gameForm.date);
   selectedGameDate.setHours(0, 0, 0, 0);
 
   const hasAbsenceConflict = this.allAbsences.some(absence => {
@@ -386,7 +443,6 @@ private async isRefereeAvailable(referee: User, gameDate: string, gameTime: stri
 
     const startDate = new Date(absence.startDate);
     const endDate = new Date(absence.endDate);
-    
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(23, 59, 59, 999);
 
@@ -397,205 +453,77 @@ private async isRefereeAvailable(referee: User, gameDate: string, gameTime: stri
     return false;
   }
 
-  // Check scheduling conflicts with other games
- try {
-    const hasSchedulingConflict = await this.checkSchedulingConflict(referee._id, gameDate, gameTime);
-    return !hasSchedulingConflict;
-  } catch (error) {
-    console.error('Error checking scheduling conflicts:', error);
-    return true;
-  }
-}
-
-// Check if referee has scheduling conflicts with existing games
-// Check if referee has scheduling conflicts with existing games
-private async checkSchedulingConflict(refereeId: string, gameDate: string, gameTime: string): Promise<boolean> {
-  try {
-    const existingGames = await this.basketballGameService.getGamesByRefereeAndDate(refereeId, gameDate).toPromise();
-    
-    if (!existingGames || existingGames.length === 0) {
+  return !this.gamesOnSelectedDate.some(game => {
+    if (!timesOverlap(game.time, this.gameForm.time)) {
       return false;
     }
-
-    for (const game of existingGames) {
-      if (!timesOverlap(game.time, gameTime)) {
-        continue;
-      }
-      if (isBlockingScheduleConflict(game.competition, this.gameForm.competition)) {
-        return true;
-      }
+    if (!isBlockingScheduleConflict(game.competition, this.gameForm.competition)) {
+      return false;
     }
-
-    return false;
-  } catch (error) {
-    console.error('Error checking scheduling conflicts:', error);
-    return false;
-  }
+    return (game.refereeAssignments || []).some(assignment => {
+      if (!['Accepted', 'Pending'].includes(assignment.assignmentStatus)) {
+        return false;
+      }
+      return this.assignmentUserId(assignment) === referee._id;
+    });
+  });
 }
 
-  // Get available referees (excluding already selected ones, those with absences, AND those with scheduling conflicts)
-async getAvailableSudci(currentIndex: number): Promise<User[]> {
-  const sudci = this.eligibleOfficials(this.availableReferees.sudci);
-  if (!this.gameForm.date || !this.gameForm.time) {
-    return sudci;
-  }
-
-  const selectedIds = this.selectedReferees.sudci
-    .map((s, index) => index !== currentIndex ? s.userId : null)
-    .filter(id => id);
-  
-  const otherSelectedIds = [
+getAvailableSudci(currentIndex: number): User[] {
+  const excludedIds = [
+    ...this.selectedReferees.sudci.map((s, index) => index !== currentIndex ? s.userId : null),
     this.selectedReferees.delegat,
+    this.selectedReferees.kontrolor,
     ...this.selectedReferees.pomocniSudci.map(s => s.userId)
-  ].filter(id => id);
+  ].filter((id): id is string => !!id);
 
-  const allExcludedIds = [...selectedIds, ...otherSelectedIds];
-  
-  const availableRefs: User[] = [];
-  
-  for (const ref of sudci) {
-    const notSelected = !allExcludedIds.includes(ref._id);
-    if (notSelected) {
-      const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
-      if (isAvailable) {
-        availableRefs.push(ref);
-      }
-    }
-  }
-  
-  return availableRefs;
+  return this.eligibleOfficials(this.availableReferees.sudci).filter(ref =>
+    !excludedIds.includes(ref._id) && this.isRefereeAvailable(ref)
+  );
 }
 
-async getAvailableDelegati(): Promise<User[]> {
-  const delegati = this.eligibleOfficials(this.availableReferees.delegati);
-  if (!this.gameForm.date || !this.gameForm.time) {
-    return delegati;
-  }
-
-  const allSelectedIds = [
+getAvailableDelegati(): User[] {
+  const excludedIds = [
     ...this.selectedReferees.sudci.map(s => s.userId),
+    this.selectedReferees.kontrolor,
     ...this.selectedReferees.pomocniSudci.map(s => s.userId)
-  ].filter(id => id);
+  ].filter((id): id is string => !!id);
 
-  const availableRefs: User[] = [];
-  
-  for (const ref of delegati) {
-    const notSelected = !allSelectedIds.includes(ref._id);
-    if (notSelected) {
-      const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
-      if (isAvailable) {
-        availableRefs.push(ref);
-      }
-    }
-  }
-  
-  return availableRefs;
+  return this.eligibleOfficials(this.availableReferees.delegati).filter(ref =>
+    !excludedIds.includes(ref._id) && this.isRefereeAvailable(ref)
+  );
 }
 
-async getAvailablePomocniSudci(currentIndex: number): Promise<User[]> {
-  const pomocni = this.availableReferees.pomocniSudci;
-  if (!this.gameForm.date || !this.gameForm.time) {
-    return pomocni;
-  }
-
-  const selectedIds = this.selectedReferees.pomocniSudci
-    .map((s, index) => index !== currentIndex ? s.userId : null)
-    .filter(id => id);
-  
-  const otherSelectedIds = [
+getAvailablePomocniSudci(currentIndex: number): User[] {
+  const excludedIds = [
+    ...this.selectedReferees.pomocniSudci.map((s, index) => index !== currentIndex ? s.userId : null),
     ...this.selectedReferees.sudci.map(s => s.userId),
-    this.selectedReferees.delegat
-  ].filter(id => id);
+    this.selectedReferees.delegat,
+    this.selectedReferees.kontrolor
+  ].filter((id): id is string => !!id);
 
-  const allExcludedIds = [...selectedIds, ...otherSelectedIds];
-  
-  const availableRefs: User[] = [];
-  
-  for (const ref of pomocni) {
-    const notSelected = !allExcludedIds.includes(ref._id);
-    if (notSelected) {
-      const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
-      if (isAvailable) {
-        availableRefs.push(ref);
-      }
-    }
-  }
-  
-  return availableRefs;
+  return this.availableReferees.pomocniSudci.filter(ref =>
+    !excludedIds.includes(ref._id) && this.isRefereeAvailable(ref)
+  );
 }
 
-  // Get count of unavailable referees for display (updated to include scheduling conflicts)
-async getUnavailableRefereesCount(role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac'): Promise<number> {
+getUnavailableRefereesCount(role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac'): number {
   if (!this.gameForm.date || !this.gameForm.time) return 0;
 
-  let totalReferees = 0;
-  let availableReferees = 0;
+  const pool =
+    role === 'Sudac'
+      ? this.eligibleOfficials(this.availableReferees.sudci)
+      : role === 'Delegat'
+        ? this.eligibleOfficials(this.availableReferees.delegati)
+        : this.availableReferees.pomocniSudci;
 
-  switch (role) {
-    case 'Sudac':
-      totalReferees = this.availableReferees.sudci.length;
-      // Count available referees considering both absences and scheduling conflicts
-      for (const ref of this.availableReferees.sudci) {
-        const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
-        if (isAvailable) {
-          availableReferees++;
-        }
-      }
-      break;
-      
-    case 'Delegat':
-      totalReferees = this.availableReferees.delegati.length;
-      for (const ref of this.availableReferees.delegati) {
-        const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
-        if (isAvailable) {
-          availableReferees++;
-        }
-      }
-      break;
-      
-    case 'Pomoćni Sudac':
-      totalReferees = this.availableReferees.pomocniSudci.length;
-      for (const ref of this.availableReferees.pomocniSudci) {
-        const isAvailable = await this.isRefereeAvailable(ref, this.gameForm.date, this.gameForm.time);
-        if (isAvailable) {
-          availableReferees++;
-        }
-      }
-      break;
-  }
-
-  return totalReferees - availableReferees;
+  return pool.filter(ref => !this.isRefereeAvailable(ref)).length;
 }
 
   // Check if date change should clear selected referees who are now unavailable
   onDateChange() {
     if (!this.gameForm.date) return;
-
-    // Check if any selected referees are now unavailable and clear them
-    this.selectedReferees.sudci.forEach((sudac, index) => {
-      if (sudac.userId) {
-        const referee = this.availableReferees.sudci.find(ref => ref._id === sudac.userId);
-        if (referee && !this.isRefereeAvailable(referee, this.gameForm.date, this.gameForm.time)) {
-          this.selectedReferees.sudci[index].userId = '';
-        }
-      }
-    });
-
-    if (this.selectedReferees.delegat) {
-      const delegat = this.availableReferees.delegati.find(ref => ref._id === this.selectedReferees.delegat);
-      if (delegat && !this.isRefereeAvailable(delegat, this.gameForm.date, this.gameForm.time)) {
-        this.selectedReferees.delegat = '';
-      }
-    }
-
-    this.selectedReferees.pomocniSudci.forEach((pomocni, index) => {
-      if (pomocni.userId) {
-        const referee = this.availableReferees.pomocniSudci.find(ref => ref._id === pomocni.userId);
-        if (referee && !this.isRefereeAvailable(referee, this.gameForm.date, this.gameForm.time)) {
-          this.selectedReferees.pomocniSudci[index].userId = '';
-        }
-      }
-    });
+    this.clearUnavailableSelections();
   }
 // In create-game-modal.component.ts
 async createGame() {
@@ -674,7 +602,9 @@ async createGame() {
       }
     }
 
-    let message = `Utakmica kreirana i ${assignments.length} nominacija poslano!`;
+    let message = assignments.length
+      ? `Utakmica kreirana i ${assignments.length} nominacija poslano!`
+      : 'Utakmica je uspješno kreirana';
     if (releasedNominations.length) {
       const released = releasedNominations
         .map(item => `${item.homeTeam} vs ${item.awayTeam} (${item.competition})`)
@@ -728,6 +658,8 @@ async createGame() {
 
     this.currentStep = 1;
     this.errorMessage = '';
+    this.gamesOnSelectedDate = [];
+    this.loadedScheduleDate = '';
   }
 
   // Get minimum date (today)
@@ -738,42 +670,35 @@ async createGame() {
 
 async onDateTimeChange() {
   if (!this.gameForm.date || !this.gameForm.time) return;
-
-  // Update available referees for all positions
-  await this.updateAvailableReferees();
-  
-  // Clear selections for referees who are no longer available
+  await this.refreshAvailability();
   this.clearUnavailableSelections();
 }
 
-private async updateAvailableReferees() {
+private updateAvailableReferees() {
   if (!this.gameForm.date || !this.gameForm.time) {
-    await this.initializeAvailabilityArrays();
+    this.availableDelegati = this.eligibleOfficials(this.availableReferees.delegati);
+    for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
+      this.availableSudciForIndex[i] = this.eligibleOfficials(this.availableReferees.sudci);
+    }
+    for (let i = 0; i < this.selectedReferees.pomocniSudci.length; i++) {
+      this.availablePomocniSudciForIndex[i] = this.availableReferees.pomocniSudci;
+    }
+    this.unavailableCounts = { sudci: 0, delegati: 0, pomocniSudci: 0, kontrolori: 0 };
     return;
   }
 
-  // Clear existing arrays to avoid stale data
-  this.availableSudciForIndex = {};
-  this.availablePomocniSudciForIndex = {};
-
-  // Update sudci availability for ALL current positions
   for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
-    this.availableSudciForIndex[i] = await this.getAvailableSudci(i);
+    this.availableSudciForIndex[i] = this.getAvailableSudci(i);
   }
-  
-  // Update delegati availability
-  this.availableDelegati = await this.getAvailableDelegati();
-  
-  // Update pomoćni sudci availability for ALL current positions
+  this.availableDelegati = this.getAvailableDelegati();
   for (let i = 0; i < this.selectedReferees.pomocniSudci.length; i++) {
-    this.availablePomocniSudciForIndex[i] = await this.getAvailablePomocniSudci(i);
+    this.availablePomocniSudciForIndex[i] = this.getAvailablePomocniSudci(i);
   }
 
-  // Update unavailable counts
   this.unavailableCounts = {
-    sudci: await this.getUnavailableRefereesCount('Sudac'),
-    delegati: await this.getUnavailableRefereesCount('Delegat'),
-    pomocniSudci: await this.getUnavailableRefereesCount('Pomoćni Sudac'),
+    sudci: this.getUnavailableRefereesCount('Sudac'),
+    delegati: this.getUnavailableRefereesCount('Delegat'),
+    pomocniSudci: this.getUnavailableRefereesCount('Pomoćni Sudac'),
     kontrolori: 0
   };
 }
@@ -808,11 +733,8 @@ private clearUnavailableSelections() {
 }
 
 // Method to handle referee selection changes
-async onRefereeSelectionChange() {
-  // Small delay to ensure ngModel has updated
-  setTimeout(async () => {
-    await this.updateAvailableReferees();
-  }, 0);
+onRefereeSelectionChange() {
+  this.updateAvailableReferees();
 }
 
 }

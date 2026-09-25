@@ -7,16 +7,20 @@
     <!-- Content -->
     <section class="content">
         <div class="page-header">
-            <h1>{{ isAdmin ? 'Odsustvo - Svi korisnici' : 'Odsustvo' }}</h1>
+            <h1>{{ showNamedOverview ? (isAdmin ? 'Odsustvo - Svi korisnici' : 'Odsustvo - Nadzirane osobe') : 'Odsustvo' }}</h1>
             <div class="page-actions">
-                <button class="btn-create" (click)="openModal()" *ngIf="!isAdmin"> <i
+                <button class="btn-create" (click)="openModal()" *ngIf="canCreateOwnAbsence"> <i
                         class="fas fa-plus"></i>Kreiraj</button>
             </div>
         </div>
         <div class="alert alert-success">
             <i class="icon-message"></i>
-            <strong>{{ isAdmin ? 'Admin View:' : 'Message:' }}</strong>
-            {{ isAdmin ?            'Pregled odsustva svih sudaca. Možete vidjeti kada sudci neće biti dostupni za utakmice.' :            'Možete odrediti s izuzetkom radnog vremena kada ne možete biti sudac. Neće vam biti dodijeljene utakmice za            ta razdoblja.'
+            <strong>{{ isAdmin ? 'Admin:' : (seesSupervisedAbsences ? 'Nadzor:' : 'Napomena:') }}</strong>
+            {{ isAdmin
+              ? 'Pregled odsustva svih službenih osoba.'
+              : (seesSupervisedAbsences
+                ? 'Pregled odsustva osoba na vašim ligama. Vlastito odsustvo i dalje možete kreirati, urediti i obrisati.'
+                : 'Možete odrediti kada ne možete biti na utakmici. Za ta razdoblja nećete biti nominirani.')
             }}
         </div>
         <!-- Updated Filter Section HTML - Replace your existing filter section with this -->
@@ -36,7 +40,7 @@
                         <input type="text" class="form-control" placeholder="Pretraži po ID"
                             [(ngModel)]="filterValues.id" (input)="onFilterChange()">
                     </div>
-                    <div class="filter-group" *ngIf="isAdmin">
+                    <div class="filter-group" *ngIf="showNamedOverview">
                         <label>Korisnik</label>
                         <input type="text" class="form-control" placeholder="Pretraži po imenu"
                             [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
@@ -59,7 +63,7 @@
                 </div>
             </div>
         </div>
-        <div class="table-info" *ngIf="!isAdmin">
+        <div class="table-info" *ngIf="!showNamedOverview">
             <span>Ukupno unosa: {{ absences.length }}</span>
             <span *ngIf="hasActiveFilters" class="filter-status">
                 <i class="fas fa-filter"></i> Filteri aktivni
@@ -67,7 +71,7 @@
         </div>
 
         <!-- Admin View: Three separate tables -->
-        <div *ngIf="isAdmin && !isLoading">
+        <div *ngIf="showNamedOverview && !isLoading">
             <!-- Filter status for admin -->
             <div class="admin-filter-status" *ngIf="hasActiveFilters">
                 <span class="filter-indicator">
@@ -87,21 +91,34 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Korisnik</th>
+                                <th>Uloga</th>
                                 <th>Početak odsudstva</th>
                                 <th>Kraj odsutstva</th>
                                 <th>Razlog</th>
+                                <th *ngIf="canCreateOwnAbsence">Opcije</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let absence of futureDisplayedAbsences">
-                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.displayId }}</td>
                                 <td>{{ absence.userName }}</td>
+                                <td>{{ absence.userRole || '-' }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
+                                <td *ngIf="canCreateOwnAbsence">
+                                    <div class="action-buttons" *ngIf="isOwnAbsence(absence)">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </div>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                             <tr *ngIf="futureAbsences.length === 0">
-                                <td colspan="5" class="no-data">Nema budućih odsustva</td>
+                                <td [attr.colspan]="canCreateOwnAbsence ? 7 : 6" class="no-data">Nema budućih odsustva</td>
                             </tr>
                         </tbody>
                     </table>
@@ -141,21 +158,34 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Korisnik</th>
+                                <th>Uloga</th>
                                 <th>Početak odsudstva</th>
                                 <th>Kraj odsutstva</th>
                                 <th>Razlog</th>
+                                <th *ngIf="canCreateOwnAbsence">Opcije</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let absence of ongoingDisplayedAbsences" class="ongoing-row">
-                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.displayId }}</td>
                                 <td>{{ absence.userName }}</td>
+                                <td>{{ absence.userRole || '-' }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
+                                <td *ngIf="canCreateOwnAbsence">
+                                    <div class="action-buttons" *ngIf="isOwnAbsence(absence)">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </div>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                             <tr *ngIf="ongoingAbsences.length === 0">
-                                <td colspan="5" class="no-data">Nema trenutnih odsustva</td>
+                                <td [attr.colspan]="canCreateOwnAbsence ? 7 : 6" class="no-data">Nema trenutnih odsustva</td>
                             </tr>
                         </tbody>
                     </table>
@@ -196,21 +226,34 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Korisnik</th>
+                                <th>Uloga</th>
                                 <th>Početak odsudstva</th>
                                 <th>Kraj odsutstva</th>
                                 <th>Razlog</th>
+                                <th *ngIf="canCreateOwnAbsence">Opcije</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let absence of pastDisplayedAbsences" class="past-row">
-                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.displayId }}</td>
                                 <td>{{ absence.userName }}</td>
+                                <td>{{ absence.userRole || '-' }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
+                                <td *ngIf="canCreateOwnAbsence">
+                                    <div class="action-buttons" *ngIf="isOwnAbsence(absence)">
+                                        <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </div>
+                                        <div class="btn-icon btn-info" (click)="openDeleteModal(absence)">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                             <tr *ngIf="pastAbsences.length === 0">
-                                <td colspan="5" class="no-data">Nema prošlih odsustva</td>
+                                <td [attr.colspan]="canCreateOwnAbsence ? 7 : 6" class="no-data">Nema prošlih odsustva</td>
                             </tr>
                         </tbody>
                     </table>
@@ -240,7 +283,7 @@
         </div>
 
         <!-- User View: Three separate tables -->
-        <div *ngIf="!isAdmin && !isLoading">
+        <div *ngIf="!showNamedOverview && !isLoading">
             <!-- Filter status for users -->
             <div class="admin-filter-status" *ngIf="hasActiveFilters">
                 <span class="filter-indicator">
@@ -268,7 +311,7 @@
                         </thead>
                         <tbody>
                             <tr *ngFor="let absence of futureDisplayedAbsences">
-                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.displayId }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
@@ -331,7 +374,7 @@
                         </thead>
                         <tbody>
                             <tr *ngFor="let absence of ongoingDisplayedAbsences" class="ongoing-row">
-                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.displayId }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
@@ -396,7 +439,7 @@
                         </thead>
                         <tbody>
                             <tr *ngFor="let absence of pastDisplayedAbsences" class="past-row">
-                                <td>{{ absence._id }}</td>
+                                <td>{{ absence.displayId }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
@@ -466,15 +509,15 @@
 
 <!-- Modals - Only show for non-admin users -->
 <app-time-absent-modal [isOpen]="isModalOpen" (closeModalEvent)="closeModal()" (absenceSaved)="onAbsenceSaved()"
-    (error)="onModalError($event)" *ngIf="!isAdmin">
+    (error)="onModalError($event)" *ngIf="canCreateOwnAbsence">
 </app-time-absent-modal>
 
 <app-delete-time-absent-modal [isOpen]="isDeleteModalOpen" [absenceToDelete]="absenceToDelete"
     (closeModalEvent)="closeDeleteModal()" (absenceDeleted)="onAbsenceDeleted()" (error)="onModalError($event)"
-    *ngIf="!isAdmin">
+    *ngIf="canCreateOwnAbsence">
 </app-delete-time-absent-modal>
 
 <app-edit-time-absent-modal [isOpen]="isEditModalOpen" [absenceToEdit]="absenceToEdit"
     (closeModalEvent)="closeEditModal()" (absenceUpdated)="onAbsenceUpdated()" (error)="onModalError($event)"
-    *ngIf="!isAdmin">
+    *ngIf="canCreateOwnAbsence">
 </app-edit-time-absent-modal>

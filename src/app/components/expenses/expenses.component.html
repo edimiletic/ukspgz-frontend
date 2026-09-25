@@ -148,7 +148,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let expense of getPagedExpenses(section); trackBy: trackByExpenseId">
-                <td>{{ expense.id }}</td>
+                <td>{{ expense.displayId }}</td>
                 <td>{{ expense.type }}</td>
                 <td>{{ expense.userName }} {{ expense.userSurname }}</td>
                 <td>{{ expense.year }}</td>

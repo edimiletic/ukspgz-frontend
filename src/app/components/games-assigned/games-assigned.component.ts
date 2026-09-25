@@ -284,7 +284,7 @@ onGameCreated(result: any) {
   if (result.message) {
     this.showSuccess(result.message);
   } else {
-    this.showSuccess('Utakmica je uspješno kreirana i nominacije su poslane!');
+    this.showSuccess('Utakmica je uspješno kreirana');
   }
   this.loadMyGames(); // Refresh the games list
 }
@@ -688,7 +688,8 @@ onGameCreated(result: any) {
   private filterGames(games: BasketballGame[]): BasketballGame[] {
     return games.filter(game => {
       // ID filter - starts with
-      if (this.filterValues.id && !game._id.toLowerCase().startsWith(this.filterValues.id.toLowerCase())) {
+      const displayId = game.displayId != null ? String(game.displayId) : '';
+      if (this.filterValues.id && !displayId.startsWith(this.filterValues.id.trim())) {
         return false;
       }
 

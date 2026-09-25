@@ -13,6 +13,7 @@ import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from "../sidebar/sidebar.component";
+import { canSeeAllGames, isAdminUser } from '../../model/roles';
 
 
 interface AbsenceWithUser extends Absence {
@@ -62,6 +63,8 @@ isModalOpen = false;
   absenceToEdit: Absence | null = null;
   absenceToDelete: Absence | null = null;
   isAdmin = false;
+  seesSupervisedAbsences = false;
+  currentUser: User | null = null;
   users: User[] = []; // Store users for name lookup
 
 isMobileFiltersOpen: boolean = false;
@@ -91,30 +94,38 @@ isMobileFiltersOpen: boolean = false;
  checkUserRole() {
   this.authService.getCurrentUser().subscribe({
     next: (user: User | null) => {
-      if (user) {
-        console.log('Current user:', user);
-        this.isAdmin = user.role === 'Admin';
-        console.log('Is admin:', this.isAdmin);
-      } else {
-        console.log('No user returned from getCurrentUser');
-        this.isAdmin = false;
-      }
+      this.currentUser = user;
+      this.isAdmin = isAdminUser(user);
+      this.seesSupervisedAbsences = !this.isAdmin && canSeeAllGames(user);
       this.loadAbsences();
     },
     error: (error) => {
       console.error('Error getting current user:', error);
+      this.currentUser = null;
       this.isAdmin = false;
+      this.seesSupervisedAbsences = false;
       this.showError('Greška pri provjeri korisničke uloge.');
-      // Still try to load absences
       this.loadAbsences();
     }
   });
 }
 
+  get showNamedOverview(): boolean {
+    return this.isAdmin || this.seesSupervisedAbsences;
+  }
+
+  get canCreateOwnAbsence(): boolean {
+    return !this.isAdmin;
+  }
+
+  isOwnAbsence(absence: AbsenceWithUser): boolean {
+    return !!this.currentUser?.personalCode && absence.userPersonalCode === this.currentUser.personalCode;
+  }
+
   loadAbsences() {
     this.isLoading = true;
 
-    if (this.isAdmin) {
+    if (this.isAdmin || this.seesSupervisedAbsences) {
       // Admin: Load all absences (backend now includes user names)
       this.absenceService.getAllAbsences().subscribe({
         next: (absences: AbsenceWithUser[]) => {
@@ -310,12 +321,13 @@ isMobileFiltersOpen: boolean = false;
   private filterAbsences(absences: AbsenceWithUser[]): AbsenceWithUser[] {
     return absences.filter(absence => {
       // ID filter
-      if (this.filterValues.id && !absence._id.toLowerCase().includes(this.filterValues.id.toLowerCase())) {
+      const displayId = absence.displayId != null ? String(absence.displayId) : '';
+      if (this.filterValues.id && !displayId.includes(this.filterValues.id.trim())) {
         return false;
       }
 
       // User name filter (admin only)
-      if (this.isAdmin && this.filterValues.userName && absence.userName && 
+      if (this.showNamedOverview && this.filterValues.userName && absence.userName && 
           !absence.userName.toLowerCase().includes(this.filterValues.userName.toLowerCase())) {
         return false;
       }
@@ -409,18 +421,20 @@ if (window.innerWidth <= 693) {
   }
 
   openEditModal(absence: Absence) {
+    if (!this.isOwnAbsence(absence)) return;
     this.absenceToEdit = absence;
     this.isEditModalOpen = true;
+  }
+
+  openDeleteModal(absence: Absence) {
+    if (!this.isOwnAbsence(absence)) return;
+    this.absenceToDelete = absence;
+    this.isDeleteModalOpen = true;
   }
 
   closeEditModal() {
     this.isEditModalOpen = false;
     this.absenceToEdit = null;
-  }
-
-  openDeleteModal(absence: Absence) {
-    this.absenceToDelete = absence;
-    this.isDeleteModalOpen = true;
   }
 
   closeDeleteModal() {

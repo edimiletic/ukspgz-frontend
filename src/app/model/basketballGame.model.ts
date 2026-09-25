@@ -1,5 +1,6 @@
 export interface BasketballGame {
   _id: string;
+  displayId?: number;
   homeTeam: string;
   awayTeam: string;
   date: string;

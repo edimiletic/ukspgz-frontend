@@ -36,27 +36,65 @@
       <!-- Step 1: Game Details -->
       <div *ngIf="currentStep === 1" class="step-content">
         <form class="game-form">
+          <div class="form-group">
+            <label for="competition">Natjecanje</label>
+            <select 
+              id="competition" 
+              [(ngModel)]="gameForm.competition" 
+              name="competition"
+              class="form-control"
+              (ngModelChange)="onCompetitionChange()"
+              required>
+              <option value="">Odaberite natjecanje</option>
+              <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
+            </select>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="homeTeam">Domaći tim</label>
+              <select
+                *ngIf="hasTeamCatalog"
+                id="homeTeam"
+                [(ngModel)]="gameForm.homeTeam"
+                name="homeTeam"
+                class="form-control"
+                required>
+                <option value="">Odaberite domaći tim</option>
+                <option *ngFor="let team of teamOptions" [value]="team">{{ team }}</option>
+              </select>
               <input 
+                *ngIf="!hasTeamCatalog"
                 type="text" 
                 id="homeTeam" 
                 [(ngModel)]="gameForm.homeTeam" 
                 name="homeTeam"
                 class="form-control"
-                placeholder="Unesite naziv domaćeg tima"
+                placeholder="Prvo odaberite natjecanje"
+                [disabled]="!gameForm.competition"
                 required>
             </div>
             <div class="form-group">
               <label for="awayTeam">Gostujući tim</label>
+              <select
+                *ngIf="hasTeamCatalog"
+                id="awayTeam"
+                [(ngModel)]="gameForm.awayTeam"
+                name="awayTeam"
+                class="form-control"
+                required>
+                <option value="">Odaberite gostujući tim</option>
+                <option *ngFor="let team of awayTeamOptions" [value]="team">{{ team }}</option>
+              </select>
               <input 
+                *ngIf="!hasTeamCatalog"
                 type="text" 
                 id="awayTeam" 
                 [(ngModel)]="gameForm.awayTeam" 
                 name="awayTeam"
                 class="form-control"
-                placeholder="Unesite naziv gostujućeg tima"
+                placeholder="Prvo odaberite natjecanje"
+                [disabled]="!gameForm.competition"
                 required>
             </div>
           </div>
@@ -75,41 +113,23 @@
   required>
             </div>
             <div class="form-group">
-              <label for="time">Vrijeme</label>
-              <input 
-  type="time" 
-  id="time" 
-  [(ngModel)]="gameForm.time" 
-  name="time"
-  class="form-control"
-  (change)="onDateTimeChange()"
-  required>
+              <label>Vrijeme</label>
+              <app-time-select
+                name="time"
+                [(ngModel)]="gameForm.time"
+                (ngModelChange)="onDateTimeChange()">
+              </app-time-select>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="venue">Mjesto</label>
-            <input 
-              type="text" 
-              id="venue" 
-              [(ngModel)]="gameForm.venue" 
+            <label for="venue">Dvorana</label>
+            <app-venue-search
+              id="venue"
               name="venue"
-              class="form-control"
-              placeholder="Unesite naziv dvorane ili mjesta"
-              required>
-          </div>
-
-          <div class="form-group">
-            <label for="competition">Natjecanje</label>
-            <select 
-              id="competition" 
-              [(ngModel)]="gameForm.competition" 
-              name="competition"
-              class="form-control"
-              required>
-              <option value="">Odaberite natjecanje</option>
-              <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
-            </select>
+              [options]="venueOptions"
+              [(ngModel)]="gameForm.venue">
+            </app-venue-search>
           </div>
 <!-- 
           <div class="form-group">
@@ -140,8 +160,8 @@
             <div class="referee-section" *ngIf="canNominateOfficials()">
               <h3>
                 Suci (2-3 obavezno)
-    <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
-      ({{ unavailableCounts.sudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+    <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.sudci" class="unavailable-count">
+      ({{ unavailableCounts.sudci }} nedostupno zbog odsustva ili drugih utakmica)
     </span>
               </h3>
               <div class="referee-list">
@@ -153,7 +173,7 @@
   [(ngModel)]="sudac.userId" 
   name="sudac_{{i}}"
   class="form-control"
-  (change)="onRefereeSelectionChange()">
+  (ngModelChange)="onRefereeSelectionChange()">
   <option value="">Odaberite suca</option>
   <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
     {{ ref.name }} {{ ref.surname }}
@@ -184,8 +204,8 @@
 <div class="referee-section" *ngIf="canNominateOfficials()">
   <h3>
     Delegat (opcionalno)
-    <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
-      ({{ unavailableCounts.delegati || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+    <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.delegati" class="unavailable-count">
+      ({{ unavailableCounts.delegati }} nedostupno zbog odsustva ili drugih utakmica)
     </span>
   </h3>
   <div class="referee-assignment">
@@ -193,7 +213,7 @@
   [(ngModel)]="selectedReferees.delegat" 
   name="delegat"
   class="form-control"
-  (change)="onRefereeSelectionChange()">
+  (ngModelChange)="onRefereeSelectionChange()">
   <option value="">Odaberite delegata</option>
   <option *ngFor="let ref of availableDelegati" [value]="ref._id">
     {{ ref.name }} {{ ref.surname }}
@@ -209,7 +229,7 @@
       [(ngModel)]="selectedReferees.kontrolor"
       name="kontrolor"
       class="form-control"
-      (change)="onRefereeSelectionChange()">
+      (ngModelChange)="onRefereeSelectionChange()">
       <option value="">Odaberite kontrolora</option>
       <option *ngFor="let ref of eligibleKontrolori" [value]="ref._id">
         {{ ref.name }} {{ ref.surname }}
@@ -222,8 +242,8 @@
 <div class="referee-section" *ngIf="canNominateAssistants()">
   <h3>
     Pomoćni Suci (2-3 obavezno)
-    <span *ngIf="gameForm.date && gameForm.time" class="unavailable-count">
-      ({{ unavailableCounts.pomocniSudci || 0 }} nedostupno zbog odsustva ili drugih utakmica)
+    <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.pomocniSudci" class="unavailable-count">
+      ({{ unavailableCounts.pomocniSudci }} nedostupno zbog odsustva ili drugih utakmica)
     </span>
   </h3>
   <div class="referee-list">
@@ -234,7 +254,7 @@
   [(ngModel)]="pomocni.userId" 
   name="pomocni_{{i}}"
   class="form-control"
-  (change)="onRefereeSelectionChange()">
+  (ngModelChange)="onRefereeSelectionChange()">
   <option value="">Odaberite pomoćnog suca</option>
   <option *ngFor="let ref of availablePomocniSudciForIndex[i] || []" [value]="ref._id">
     {{ ref.name }} {{ ref.surname }}

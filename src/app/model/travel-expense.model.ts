@@ -1,6 +1,7 @@
 // src/app/models/expense.model.ts
 export interface TravelExpense {
-  id: string;                 // Changed from number to string for MongoDB ObjectId
+  id: string;                 // MongoDB ObjectId (API / routing)
+  displayId?: number;         // Sequential number shown in UI
   type: string;
   season: string;
   year: number;

@@ -232,8 +232,9 @@ export class ExpensesComponent implements OnInit {
 
   filterExpenses(expenses: TravelExpense[]): TravelExpense[] {
     return expenses.filter(expense => {
-      const matchesId = !this.filterValues.id || 
-        expense.id.toLowerCase().includes(this.filterValues.id.toLowerCase());
+      const displayId = expense.displayId != null ? String(expense.displayId) : '';
+      const matchesId = !this.filterValues.id ||
+        displayId.includes(this.filterValues.id.trim());
       
       const matchesType = !this.filterValues.type || 
         expense.type.toLowerCase().includes(this.filterValues.type.toLowerCase());

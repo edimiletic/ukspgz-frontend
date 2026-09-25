@@ -1,0 +1,23 @@
+<div class="venue-search">
+  <input
+    type="text"
+    class="form-control"
+    [ngModel]="query"
+    (ngModelChange)="onQueryChange($event)"
+    [ngModelOptions]="{standalone: true}"
+    (focus)="onFocus()"
+    [disabled]="disabled"
+    [placeholder]="placeholder"
+    autocomplete="off"
+    aria-label="Dvorana">
+
+  <ul class="venue-results" *ngIf="open && !disabled">
+    <li *ngIf="matches.length === 0" class="venue-hint">Nema dvorane s tim nazivom</li>
+    <li
+      *ngFor="let venue of matches"
+      (mousedown)="choose(venue)"
+      [class.active]="venue === selected">
+      {{ venue }}
+    </li>
+  </ul>
+</div>
