@@ -89,8 +89,7 @@ onStartDateChange() {
 
     this.absenceService.createAbsence(absenceData).subscribe({
       next: (response) => {
-        console.log('Absence created successfully:', response);
-        this.absenceSaved.emit(); // Emit event to notify parent component
+                this.absenceSaved.emit(); // Emit event to notify parent component
         this.closeModal();
       },
       error: (error) => {

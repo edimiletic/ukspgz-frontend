@@ -232,17 +232,13 @@ onLocationChange() {
   // Look up the expense amount from the table
   const expense = this.travelExpenses[this.startLocation]?.[this.endLocation];
   
-  console.log('Start:', this.startLocation);
-  console.log('End:', this.endLocation);
-  console.log('Found expense:', expense);
-  
+        
   if (expense) {
     this.expenseData.amount = expense;
     this.expenseData.quantity = 0;
     this.expenseData.unitPrice = 0;
     this.expenseData.description = `${this.startLocation} - ${this.endLocation} (povratno)`;
-    console.log('Amount set to:', this.expenseData.amount);
-  } else {
+      } else {
     this.errorMessage = 'Nema podataka o trošku između odabranih lokacija.';
     this.expenseData.amount = 0;
   }

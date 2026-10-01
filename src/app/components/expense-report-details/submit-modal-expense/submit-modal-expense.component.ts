@@ -55,8 +55,7 @@ export class SubmitModalExpenseComponent {
     const reportId = (this.report as any)._id || this.report.id;
     this.travelExpenseService.submitTravelExpense(reportId).subscribe({
       next: (updatedReport) => {
-        console.log('Report submitted successfully:', updatedReport);
-        this.isSubmitting = false;
+                this.isSubmitting = false;
         this.submitConfirmed.emit(updatedReport);
         this.closeModal();
       },

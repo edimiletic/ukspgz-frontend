@@ -246,8 +246,8 @@ private async refreshAvailability() {
           kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
         };
         this.isLoadingReferees = false;
-        console.log('Sample referee:', referees[0]); // Debug: check referee structure
-        console.log('Referee fields:', Object.keys(referees[0] || {})); // Debug: check available fields
+         // Debug: check referee structure
+         // Debug: check available fields
       },
       error: (error) => {
         console.error('Error loading referees:', error);
@@ -546,7 +546,7 @@ async createGame() {
       notes: this.gameForm.notes.trim()
     };
 
-    const createdGame = await this.basketballGameService.createGame(gameData).toPromise();
+    const createdGame = await firstValueFrom(this.basketballGameService.createGame(gameData));
     
     if (!createdGame) {
       throw new Error('Failed to create game');
@@ -596,7 +596,7 @@ async createGame() {
 
     const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
     for (const assignment of assignments) {
-      const result: any = await this.basketballGameService.assignReferee(createdGame._id, assignment).toPromise();
+      const result: any = await firstValueFrom(this.basketballGameService.assignReferee(createdGame._id, assignment));
       if (result?.releasedNominations?.length) {
         releasedNominations.push(...result.releasedNominations);
       }

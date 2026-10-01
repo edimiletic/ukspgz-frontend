@@ -102,8 +102,7 @@ ngOnInit() {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
          if (!user) {
-        console.log('No user found (likely SSR)');
-        return; // Stop execution on server-side
+                return; // Stop execution on server-side
       }
         this.currentUser = user;
         this.isAdmin = isAdminUser(user);
@@ -117,8 +116,7 @@ ngOnInit() {
         }
         
         this.isLoadingUser = false;
-        console.log('Current user loaded:', user, 'isAdmin:', this.isAdmin);
-      },
+              },
       error: (error) => {
         console.error('Error loading current user:', error);
         this.errorMessage = 'Greška pri učitavanju korisničkih podataka.';
@@ -133,8 +131,7 @@ ngOnInit() {
         // Get only referees (Sudac, Delegat, Pomoćni Sudac)
         this.allUsers = users;
         this.filteredUsers = users;
-        console.log('Loaded users:', users.length);
-      },
+              },
       error: (error) => {
         console.error('Error loading users:', error);
         this.errorMessage = 'Greška pri učitavanju korisnika.';
@@ -197,8 +194,7 @@ ngOnInit() {
 
     this.travelExpenseService.createTravelExpense(this.reportData).subscribe({
       next: (createdExpense) => {
-        console.log('Travel expense created:', createdExpense);
-        this.isLoading = false;
+                this.isLoading = false;
         this.success.emit({
           reportData: this.reportData,
           reportId: createdExpense.id

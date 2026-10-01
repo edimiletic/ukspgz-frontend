@@ -36,8 +36,7 @@ export class DeleteTimeAbsentModalComponent {
 
     this.absenceService.deleteAbsence(this.absenceToDelete._id).subscribe({
       next: () => {
-        console.log('Absence deleted successfully');
-        this.absenceDeleted.emit();
+                this.absenceDeleted.emit();
         this.closeModal();
       },
       error: (error) => {

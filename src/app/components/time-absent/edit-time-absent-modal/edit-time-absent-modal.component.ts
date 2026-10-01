@@ -120,8 +120,7 @@ export class EditTimeAbsentModalComponent implements OnChanges {
 
     this.absenceService.updateAbsence(updateData).subscribe({
       next: (response) => {
-        console.log('Absence updated successfully:', response);
-        this.absenceUpdated.emit();
+                this.absenceUpdated.emit();
         this.closeModal();
       },
       error: (error) => {

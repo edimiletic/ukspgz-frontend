@@ -36,15 +36,13 @@ export class DeleteExpensesModalComponent {
 confirmDelete() {
   if (!this.expenseToDelete || this.isDeleting) return;
 
-  console.log('🚀 Starting delete process for expense:', this.expenseToDelete.id);
-  this.isDeleting = true;
+    this.isDeleting = true;
 
   const expenseId = this.expenseToDelete.id; // Store the ID
   
   this.travelExpenseService.deleteTravelExpense(expenseId).subscribe({
     next: (response) => {
-      console.log('✅ Delete SUCCESS:', response);
-      this.expenseDeleted.emit(expenseId); // Emit the ID
+            this.expenseDeleted.emit(expenseId); // Emit the ID
       this.resetState(); // Reset state
       this.close.emit(); // Close the modal
     },
