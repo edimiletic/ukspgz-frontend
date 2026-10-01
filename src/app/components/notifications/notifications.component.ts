@@ -152,6 +152,8 @@ export class NotificationsComponent implements OnInit {
         return 'Skinut s utakmice';
       case 'COLLEAGUE_REPLACED':
         return 'Zamjena kolege';
+      case 'NOMINATION_EXPIRED':
+        return 'Nominacija istekla';
       default:
         return type;
     }
@@ -173,6 +175,8 @@ export class NotificationsComponent implements OnInit {
         return 'fas fa-user-minus';
       case 'COLLEAGUE_REPLACED':
         return 'fas fa-exchange-alt';
+      case 'NOMINATION_EXPIRED':
+        return 'fas fa-hourglass-end';
       default:
         return 'fas fa-bell';
     }
