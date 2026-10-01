@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User } from '../model/user.model';
-import { environment } from '../../enviroments/enviroment';
+import { environment } from '../../environments/environment';
 
 export interface EligibleOfficialsGroup {
   competition: string;

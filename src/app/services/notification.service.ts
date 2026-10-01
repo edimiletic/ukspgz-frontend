@@ -10,7 +10,7 @@ import {
   MarkMultipleAsReadRequest,
   MarkMultipleAsReadResponse
 } from '../model/notification.model';
-import { environment } from '../../enviroments/enviroment';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

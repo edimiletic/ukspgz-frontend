@@ -3,7 +3,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../enviroments/enviroment';
+import { environment } from '../../environments/environment';
 
 export interface TravelExpenseCreateRequest extends NewTravelExpense {}
 export interface TravelExpenseUpdateRequest extends TravelExpense {}
