@@ -1,18 +1,5 @@
 <!-- src/app/components/sidebar/sidebar.component.html -->
 <nav class="sidebar" [class.sidebar-open]="isSidebarOpen">
-  <!-- Hamburger Menu Button (only visible on tablet/mobile) -->
-  <button 
-    class="hamburger-btn" 
-    (click)="toggleSidebar()"
-    [class.active]="isSidebarOpen"
-    aria-label="Toggle menu">
-    <div class="hamburger-container">
-    <span class="hamburger-line"></span>
-    <span class="hamburger-line"></span>
-    <span class="hamburger-line"></span>
-  </div>
-  </button>
-
   <!-- Sidebar Content -->
   <div class="sidebar-content" [class.open]="isSidebarOpen">
     <ul>

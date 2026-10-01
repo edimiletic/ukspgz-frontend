@@ -20,17 +20,11 @@ export class AuthComponent implements OnInit {
     private router: Router,
     private authService: AuthService
   ) {
-    console.log('🔐 AuthComponent constructor');
-  }
+      }
 
   ngOnInit() {
-    console.log('🔐 AuthComponent ngOnInit');
-    // If already authenticated, redirect to home
     if (this.authService.isAuthenticated()) {
-      console.log('✅ Already authenticated, redirecting to home');
       this.router.navigate(['/home']);
-    } else {
-      console.log('❌ Not authenticated, staying on login page');
     }
   }
 
@@ -52,8 +46,7 @@ export class AuthComponent implements OnInit {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        console.log('🔑 Login response in component:', response);
-        // Always redirect to home after login
+                // Always redirect to home after login
         this.router.navigate(['/home']);
       },
       error: (error) => {

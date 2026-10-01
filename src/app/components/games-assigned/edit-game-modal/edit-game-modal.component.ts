@@ -651,7 +651,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
           notes: this.gameForm.notes.trim()
         };
 
-        updatedGame = await this.basketballGameService.updateGame(this.game._id, gameData).toPromise() || this.game;
+        updatedGame = await firstValueFrom(this.basketballGameService.updateGame(this.game._id, gameData)) || this.game;
       }
 
       let successMessage = 'Utakmica je uspješno ažurirana!';
@@ -762,7 +762,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       if (!desired) {
         removedUserIds.push(assignmentUserId(currentAssignment));
         try {
-          await this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id).toPromise();
+          await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
         } catch (error) {
           console.warn('Error removing assignment:', error);
         }
@@ -771,9 +771,9 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
       if (desired.position && desired.position !== currentAssignment.position) {
         try {
-          await this.basketballGameService.updateRefereeAssignment(this.game._id, currentAssignment._id, {
+          await firstValueFrom(this.basketballGameService.updateRefereeAssignment(this.game._id, currentAssignment._id, {
             position: desired.position
-          }).toPromise();
+          }));
         } catch (error) {
           console.warn('Error updating assignment position:', error);
         }
@@ -792,11 +792,11 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       }
 
       try {
-        const result: any = await this.basketballGameService.assignReferee(this.game._id, {
+        const result: any = await firstValueFrom(this.basketballGameService.assignReferee(this.game._id, {
           userId: newAssignment.userId,
           role: newAssignment.role,
           position: newAssignment.position
-        }).toPromise();
+        }));
 
         if (result?.releasedNominations?.length) {
           releasedNominations.push(...result.releasedNominations);
@@ -813,10 +813,10 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     if (removedUserIds.length && actuallyNewUsers.length) {
       try {
-        await this.basketballGameService.notifyColleagueReplacement(this.game._id, {
+        await firstValueFrom(this.basketballGameService.notifyColleagueReplacement(this.game._id, {
           removedUserIds,
           addedUserIds: actuallyNewUsers
-        }).toPromise();
+        }));
       } catch (error) {
         console.warn('Error notifying remaining officials about replacement:', error);
       }

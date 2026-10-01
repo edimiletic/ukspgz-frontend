@@ -1,9 +1,4 @@
 <!-- Updated src/app/components/games-assigned/games-assigned.component.html -->
-<app-header></app-header>
-
-<!-- Sidebar -->
-<app-sidebar></app-sidebar>
-
 <div class="main-layout">
 
 
@@ -119,7 +114,13 @@
                 <td>{{ getTeamsDisplay(game) }}</td>
                 <!-- <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td> -->
                 <td>
-                  <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
+                  <div class="referees-summary">
+                    <ng-container *ngIf="getAllRefereesFormatted(game) as parts">
+                      <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
+                      <span *ngFor="let part of parts; let last = last">
+                        <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
+                      </span>
+                    </ng-container>
                   </div>
                 </td>
                 <td *ngIf="!canSeeAllGames()">
@@ -203,7 +204,13 @@
                 <td>{{ getTeamsDisplay(game) }}</td>
                 <!-- <td>{{ getMyRole(game) }}</td> -->
                 <td>
-                  <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
+                  <div class="referees-summary">
+                    <ng-container *ngIf="getAllRefereesFormatted(game) as parts">
+                      <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
+                      <span *ngFor="let part of parts; let last = last">
+                        <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
+                      </span>
+                    </ng-container>
                   </div>
                 </td>
                 <td>
@@ -275,7 +282,13 @@
                 <td>{{ game.competition }}</td>
                 <td>{{ getTeamsDisplay(game) }}</td>
                 <td>
-                  <div class="referees-summary" [innerHTML]="getAllRefereesFormatted(game)">
+                  <div class="referees-summary">
+                    <ng-container *ngIf="getAllRefereesFormatted(game) as parts">
+                      <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
+                      <span *ngFor="let part of parts; let last = last">
+                        <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
+                      </span>
+                    </ng-container>
                   </div>
                 </td>
                 <td>
@@ -423,5 +436,3 @@
 <app-view-kontrola-modal [isOpen]="isViewKontrolaModalOpen" [game]="gameForViewKontrola"
   [currentUserId]="currentUser?._id || ''" [viewAllReferees]="viewAllKontrola" (close)="closeViewKontrolaModal()">
 </app-view-kontrola-modal>
-
-<app-footer></app-footer>

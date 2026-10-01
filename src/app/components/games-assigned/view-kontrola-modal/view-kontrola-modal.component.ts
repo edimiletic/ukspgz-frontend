@@ -3,6 +3,7 @@ import { Component, OnChanges,Input, Output, EventEmitter, SimpleChanges } from 
 import { BasketballGame } from '../../../model/basketballGame.model';
 import { ViewKontrolaData } from '../../../model/kontrola.model';
 import { KontrolaService } from '../../../services/kontrola.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-view-kontrola-modal',
@@ -69,7 +70,7 @@ async loadKontrolaData(): Promise<void> {
 
   try {
     if (this.viewAllReferees) {
-      const fullKontrola: any = await this.kontrolaService.getFullKontrola(this.game._id).toPromise();
+      const fullKontrola: any = await firstValueFrom(this.kontrolaService.getFullKontrola(this.game._id));
       const gameInfo = fullKontrola?.gameId && typeof fullKontrola.gameId === 'object'
         ? fullKontrola.gameId
         : this.game;
@@ -86,7 +87,7 @@ async loadKontrolaData(): Promise<void> {
       };
       this.refereeGrades = fullKontrola?.refereeGrades || [];
     } else {
-      const result = await this.kontrolaService.getMyKontrola(this.game._id).toPromise();
+      const result = await firstValueFrom(this.kontrolaService.getMyKontrola(this.game._id));
       this.kontrolaData = result || null;
       this.refereeGrades = result?.refereeGrade ? [result.refereeGrade] : [];
     }

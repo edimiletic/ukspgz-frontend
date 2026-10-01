@@ -7,17 +7,14 @@ import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AuthService } from '../../services/login.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
-import { FooterComponent } from "../footer/footer.component";
-import { HeaderComponent } from "../header/header.component";
 import { DeleteExpensesModalComponent } from "../expenses/delete-expenses-modal/delete-expenses-modal.component";
 import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-details/modal-expense-report-details.component";
 import { SubmitModalExpenseComponent } from "./submit-modal-expense/submit-modal-expense.component";
 import { DeleteItemModalComponent } from './delete-item-modal/delete-item-modal.component';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { RejectExpenseModalComponent } from './reject-expense-modal/reject-expense-modal.component';
 @Component({
   selector: 'app-expense-report-details',
-  imports: [RouterModule, CommonModule, FooterComponent, HeaderComponent, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent, SidebarComponent, RejectExpenseModalComponent],
+  imports: [RouterModule, CommonModule, DeleteExpensesModalComponent, ModalExpenseReportDetailsComponent, SubmitModalExpenseComponent, DeleteItemModalComponent, RejectExpenseModalComponent],
   templateUrl: './expense-report-details.component.html',
   styleUrl: './expense-report-details.component.scss'
 })
@@ -59,8 +56,7 @@ private loadCurrentUser() {
   this.authService.getCurrentUser().subscribe({
     next: (user) =>{
        if (!user) {
-        console.log('No user found (likely SSR)');
-        return; // Stop execution on server-side
+                return; // Stop execution on server-side
       }
       this.currentUser = user;
       this.isAdmin = user.role === 'Admin';
@@ -193,8 +189,7 @@ private loadCurrentUser() {
 
   onExpenseDeleted() {
   // Handle successful deletion - navigate back to expenses list
-  console.log('Report deleted successfully');
-  this.closeDeleteModal();
+    this.closeDeleteModal();
   this.router.navigate(['/expenses'], { 
     queryParams: { 
       message: 'deleted',
@@ -232,8 +227,7 @@ onDeleteReport() {
   }
 
   onExpenseSaved(expenseData: ExpenseItem) {
-    console.log('New expense item:', expenseData);
-    
+        
     if (!this.report) {
       this.showError('Greška: Izvješće nije učitano.');
       return;
@@ -257,8 +251,7 @@ const expenseItem = {
     // Call the PATCH API to add expense item
     this.travelExpenseService.addExpenseItem(this.getReportId(), expenseItem).subscribe({
       next: (updatedReport) => {
-        console.log('Expense item added successfully:', updatedReport);
-        this.report = updatedReport;
+                this.report = updatedReport;
         this.closeAddExpenseModal();
         this.showSuccess('Stavka je uspješno dodana!');
       },
@@ -410,8 +403,7 @@ const expenseItem = {
 
     this.travelExpenseService.removeExpenseItem(this.getReportId(), expenseItemId).subscribe({
       next: (updatedReport) => {
-        console.log('Expense item deleted successfully');
-        this.report = updatedReport;
+                this.report = updatedReport;
         this.closeDeleteExpenseItemModal();
         this.showSuccess('Stavka je uspješno obrisana!');
       },

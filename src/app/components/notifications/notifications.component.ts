@@ -4,15 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import { Notification, NotificationResponse } from '../../model/notification.model';
-import { HeaderComponent } from "../header/header.component";
-import { FooterComponent } from "../footer/footer.component";
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { AuthService } from '../../services/login.service';
 import { isAdminUser, userHasRole } from '../../model/roles';
 
 @Component({
   selector: 'app-notifications',
-  imports: [FormsModule, CommonModule, FooterComponent, SidebarComponent, HeaderComponent],
+  imports: [FormsModule, CommonModule],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss'
 })

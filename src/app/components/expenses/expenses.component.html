@@ -1,9 +1,6 @@
 <!-- src/app/components/expenses/expenses.component.html -->
 <!-- SIMPLIFIED VERSION - Single table view -->
 
-<app-header></app-header>
-<app-sidebar></app-sidebar>
-
 <div class="main-layout">
   <section class="content">
     <!-- Page Header -->
@@ -241,5 +238,3 @@
   (expenseDeleted)="onExpenseDeleted($event)"
   (error)="onDeleteError($event)">
 </app-delete-expenses-modal>
-
-<app-footer></app-footer>

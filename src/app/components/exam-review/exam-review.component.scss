@@ -1,15 +1,8 @@
 // src/app/components/exam-review/exam-review.component.scss
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   font-family: 'Segoe UI', sans-serif;
   background-color: #f8fafc;
-  min-height: 100vh;
-}
-
-app-footer {
-  margin-top: auto;
-  flex-shrink: 0;
 }
 
 .review-container {
@@ -18,7 +11,7 @@ app-footer {
   max-width: 1000px;
   margin: 0 auto;
   padding: 2rem;
-  padding-top: calc(92px + 2rem);
+  padding-top: 2rem;
 }
 
 .review-header {
@@ -404,7 +397,7 @@ app-footer {
   align-items: center;
   flex: 1 0 auto;
   padding: 2rem;
-  padding-top: calc(92px + 2rem);
+  padding-top: 2rem;
 
   .loading-message {
     text-align: center;

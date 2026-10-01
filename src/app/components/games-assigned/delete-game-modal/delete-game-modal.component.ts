@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 export interface ConfirmationData {
   title: string;
   message: string;
+  details?: string[];
   confirmText?: string;
   cancelText?: string;
   confirmButtonClass?: string;
   iconClass?: string;
-  data?: any; // Additional data to pass back when confirmed
+  data?: any;
 }
 
 @Component({

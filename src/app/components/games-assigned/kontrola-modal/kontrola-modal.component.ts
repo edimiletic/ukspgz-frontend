@@ -66,36 +66,21 @@ gradeCategories = [
   // Page management
   currentPage = 0;
   totalPages = 1;
-    existingKontrolaId: string | null = null; // ← Add this
-
-
-  constructor() {
-    console.log('KontrolaModalComponent constructor');
-    console.log('kontrolaService type:', typeof this.kontrolaService);
-    console.log('kontrolaService:', this.kontrolaService);
-    console.log('saveKontrola method:', this.kontrolaService?.saveKontrola);
-  }
+    existingKontrolaId: string | null = null;
 
 ngOnChanges(changes: SimpleChanges): void {
-  console.log('🔄 ngOnChanges called with:', changes);
-  
-  if (changes['isOpen'] && this.isOpen && this.game) {
-    console.log('📂 Modal opened for game:', this.game._id);
-    console.log('✏️ Edit mode:', this.isEditMode);
     
+  if (changes['isOpen'] && this.isOpen && this.game) {
+            
     if (this.isEditMode) {
-      console.log('🔧 Loading existing kontrola for editing...');
-      this.loadExistingKontrola();
+            this.loadExistingKontrola();
     } else {
-      console.log('🆕 Initializing new kontrola form...');
-      this.initializeForm();
+            this.initializeForm();
     }
   }
     if (changes['isEditMode']) {
-    console.log('✏️ Edit mode changed:', changes['isEditMode']);
-    if (this.isOpen && this.game && this.isEditMode) {
-      console.log('🔧 Edit mode enabled, loading existing kontrola...');
-      this.loadExistingKontrola();
+        if (this.isOpen && this.game && this.isEditMode) {
+            this.loadExistingKontrola();
     }
   }
 }
@@ -107,20 +92,14 @@ async loadExistingKontrola(): Promise<void> {
   this.errorMessage = '';
 
   try {
-    console.log('🔄 Loading existing kontrola for editing, gameId:', this.game._id);
-    
+        
     const existingKontrola = await firstValueFrom(
       this.kontrolaService.getKontrolaForEdit(this.game._id)
     );
     
-    console.log('📄 Raw existing kontrola data:', existingKontrola);
-    console.log('📄 Type of existingKontrola:', typeof existingKontrola);
-    console.log('📄 Keys in existingKontrola:', Object.keys(existingKontrola || {}));
-    
+                
     if (existingKontrola && existingKontrola.refereeGrades) {
-      console.log('📄 Number of referee grades:', existingKontrola.refereeGrades.length);
-      console.log('📄 First referee grade:', existingKontrola.refereeGrades[0]);
-      this.populateFormWithExistingData(existingKontrola);
+                  this.populateFormWithExistingData(existingKontrola);
     } else {
       console.warn('⚠️ No referee grades found in existing kontrola, falling back to new form');
       this.initializeForm();
@@ -139,12 +118,10 @@ async loadExistingKontrola(): Promise<void> {
 populateFormWithExistingData(existingKontrola: any): void {
   if (!this.game) return;
 
-  console.log('🔧 Populating form with existing kontrola:', existingKontrola);
-
+  
   // Store the existing kontrola ID for updates
   this.existingKontrolaId = existingKontrola._id;
-  console.log('💾 Stored existing kontrola ID:', this.existingKontrolaId);
-
+  
   // Populate basic form data
   this.kontrolaForm = {
     gameId: this.game._id,
@@ -152,12 +129,10 @@ populateFormWithExistingData(existingKontrola: any): void {
     refereeGrades: []
   };
 
-  console.log('🎯 Set težina utakmice to:', existingKontrola.tezinaUtakmice);
-
+  
   // Convert existing grades to the format we need
 const refereeGrades: RefereeGrade[] = existingKontrola.refereeGrades.map((grade: any, index: number) => {
-  console.log(`🧑‍⚖️ Processing referee grade ${index}:`, grade);
-  
+    
   const mappedGrade: RefereeGrade = {
     refereeId: grade.refereeId,
     refereeName: grade.refereeName,
@@ -176,8 +151,7 @@ const refereeGrades: RefereeGrade[] = existingKontrola.refereeGrades.map((grade:
     komentarUtakmice: grade.komentarUtakmice
   };
   
-  console.log(`✅ Mapped grade ${index}:`, mappedGrade);
-  return mappedGrade;
+    return mappedGrade;
 }).filter((grade: RefereeGrade) => grade.refereeRole === 'Sudac');
 
   // Sort referees by role and position for consistent display
@@ -190,9 +164,7 @@ const refereeGrades: RefereeGrade[] = existingKontrola.refereeGrades.map((grade:
   this.currentPage = 0;
   this.errorMessage = '';
 
-  console.log('✅ Final populated form:', this.kontrolaForm);
-  console.log('📊 Total pages set to:', this.totalPages);
-}
+    }
 
 
 
@@ -367,8 +339,7 @@ const refereeGrades: RefereeGrade[] = acceptedReferees.map(assignment => ({
 
  
 async saveKontrola(): Promise<void> {
-    console.log('saveKontrola called, editMode:', this.isEditMode);
-    
+        
     if (!this.validateAllForm()) {
       return;
     }
@@ -381,19 +352,15 @@ async saveKontrola(): Promise<void> {
       
       if (this.isEditMode && this.existingKontrolaId) {
         // Update existing kontrola
-        console.log('Updating existing kontrola:', this.existingKontrolaId);
-        result = await firstValueFrom(
+                result = await firstValueFrom(
           this.kontrolaService.updateKontrola(this.game!._id, this.kontrolaForm)
         );
-        console.log('Kontrola updated successfully:', result);
-      } else {
+              } else {
         // Create new kontrola
-        console.log('Creating new kontrola');
-        result = await firstValueFrom(
+                result = await firstValueFrom(
           this.kontrolaService.saveKontrola(this.kontrolaForm)
         );
-        console.log('Kontrola created successfully:', result);
-      }
+              }
       
       if (result && result.success) {
         const action = this.isEditMode ? 'ažurirana' : 'kreirana';

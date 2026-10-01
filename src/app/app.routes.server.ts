@@ -58,7 +58,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server
   },
   {
-    path: 'exams/result',
+    path: 'exams/result/**',
     renderMode: RenderMode.Server
   },
   

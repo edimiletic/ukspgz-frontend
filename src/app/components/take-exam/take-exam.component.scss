@@ -1,21 +1,13 @@
 // src/app/components/take-exam/take-exam.component.scss
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   font-family: 'Segoe UI', sans-serif;
   background-color: #f8fafc;
-  min-height: 100vh;
-}
-
-app-footer {
-  margin-top: auto;
-  flex-shrink: 0;
 }
 
 .exam-container {
   flex: 1 0 auto;
   padding: 2rem;
-  padding-top: calc(92px + 2rem);
 }
 
 .exam-header {
@@ -588,7 +580,7 @@ app-footer {
   align-items: center;
   flex: 1 0 auto;
   padding: 2rem;
-  padding-top: calc(92px + 2rem);
+  padding: 2rem;
 
   .loading-message {
     text-align: center;
@@ -618,7 +610,7 @@ app-footer {
   align-items: center;
   flex: 1 0 auto;
   padding: 2rem;
-  padding-top: calc(92px + 2rem);
+  padding: 2rem;
 
   .error-card {
     background: white;

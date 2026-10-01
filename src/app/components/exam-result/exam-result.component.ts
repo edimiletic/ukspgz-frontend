@@ -1,28 +1,27 @@
 import { Component, OnInit } from '@angular/core';
-import { ExamAttempt } from '../../model/exam.model';
-import { Router, RouterModule } from '@angular/router';
-import { FooterComponent } from "../footer/footer.component";
-import { HeaderComponent } from "../header/header.component";
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ExamAttempt, AttemptReview } from '../../model/exam.model';
 import { ExamService } from '../../services/exam.service';
 
 @Component({
   selector: 'app-exam-result',
-  imports: [FooterComponent, HeaderComponent, CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './exam-result.component.html',
   styleUrl: './exam-result.component.scss'
 })
 export class ExamResultComponent implements OnInit {
- result: ExamAttempt & { message: string } | null = null;
+  result: ExamAttempt & { message: string } | null = null;
   autoSubmit = false;
   showConfetti = false;
   generatingRetakeExam = false;
+  isLoading = true;
 
   constructor(
+    private route: ActivatedRoute,
     private router: Router,
     private examService: ExamService
   ) {
-    // Get the result from navigation state
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.result = navigation.extras.state['result'];
@@ -31,14 +30,44 @@ export class ExamResultComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.result) {
-      // If no result data, redirect back to exams
+    if (this.result) {
+      this.isLoading = false;
+      this.showPassAnimation();
+      return;
+    }
+
+    const attemptId = this.route.snapshot.paramMap.get('id');
+    if (!attemptId) {
       this.router.navigate(['/exams']);
       return;
     }
 
-    // Show confetti animation if passed
-    if (this.result.passed) {
+    this.examService.getAttemptReview(attemptId).subscribe({
+      next: (review: AttemptReview) => {
+        this.result = {
+          _id: review.attempt._id,
+          userId: '',
+          examId: review.exam?._id || '',
+          answers: review.attempt.answers,
+          score: review.attempt.score,
+          passed: review.attempt.passed,
+          completedAt: review.attempt.completedAt,
+          timeSpent: review.attempt.timeSpent,
+          message: review.attempt.passed
+            ? 'Čestitamo! Uspješno ste položili ispit.'
+            : 'Nažalost, niste položili ispit. Pokušajte ponovo.'
+        };
+        this.isLoading = false;
+        this.showPassAnimation();
+      },
+      error: () => {
+        this.router.navigate(['/exams']);
+      }
+    });
+  }
+
+  private showPassAnimation(): void {
+    if (this.result?.passed) {
       this.showConfetti = true;
       setTimeout(() => {
         this.showConfetti = false;

@@ -1,13 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HeaderComponent } from '../header/header.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { UserService, EligibleOfficialsGroup } from '../../services/user.service';
 
 @Component({
   selector: 'app-eligible-officials',
-  imports: [CommonModule, FormsModule, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './eligible-officials.component.html',
   styleUrl: './eligible-officials.component.scss'
 })

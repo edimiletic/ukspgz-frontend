@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Inject, PLATFORM_ID, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { NotificationService } from '../../services/notification.service';
+import { SidebarNavService } from '../../services/sidebar-nav.service';
 import { Notification } from '../../model/notification.model';
 import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
@@ -13,17 +14,24 @@ import { Subscription, interval } from 'rxjs';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent implements OnInit, OnDestroy {
+export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('appHeader') appHeader?: ElementRef<HTMLElement>;
   notifications: Notification[] = [];
   unreadCount = 0;
   hasUnreadNotifications = false;
+  showMenuButton = false;
+  isMenuOpen = false;
+  isNotificationsOpen = false;
+  isUserMenuOpen = false;
   private notificationSubscription?: Subscription;
   private pollSubscription?: Subscription;
+  private sidebarSubscriptions: Subscription[] = [];
   private isBrowser: boolean;
 
   constructor(
     private authService: AuthService,
     private notificationService: NotificationService,
+    private sidebarNav: SidebarNavService,
     private router: Router,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
@@ -31,11 +39,61 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.sidebarSubscriptions.push(
+      this.sidebarNav.isPresent$.subscribe(present => {
+        this.showMenuButton = present;
+        queueMicrotask(() => this.updateHeaderHeight());
+      }),
+      this.sidebarNav.isOpen$.subscribe(open => this.isMenuOpen = open)
+    );
+
     // Only load notifications in browser
     if (this.isBrowser) {
       this.loadNotifications();
       this.startNotificationPolling();
     }
+  }
+
+  ngAfterViewInit() {
+    this.updateHeaderHeight();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateHeaderHeight();
+  }
+
+  private updateHeaderHeight(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const height = this.appHeader?.nativeElement.offsetHeight;
+    if (height) {
+      document.documentElement.style.setProperty('--header-height', `${height}px`);
+    }
+  }
+
+  toggleMenu(): void {
+    this.sidebarNav.toggle();
+  }
+
+  toggleNotifications(event: Event): void {
+    event.stopPropagation();
+    this.isNotificationsOpen = !this.isNotificationsOpen;
+    this.isUserMenuOpen = false;
+  }
+
+  toggleUserMenu(event: Event): void {
+    event.stopPropagation();
+    this.isUserMenuOpen = !this.isUserMenuOpen;
+    this.isNotificationsOpen = false;
+  }
+
+  @HostListener('document:click')
+  closeHeaderMenus(): void {
+    this.isNotificationsOpen = false;
+    this.isUserMenuOpen = false;
   }
 
   navigateToPage(route: string) {
@@ -59,6 +117,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.pollSubscription) {
       this.pollSubscription.unsubscribe();
     }
+    this.sidebarSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
   loadNotifications() {
@@ -66,6 +125,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.notificationSubscription?.unsubscribe();
     this.notificationSubscription = this.notificationService.getNotifications().subscribe({
       next: (notifications) => {
         this.notifications = notifications.slice(0, 5); // Show only recent 5
@@ -167,6 +227,5 @@ export class HeaderComponent implements OnInit, OnDestroy {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
-    console.log("Logged out");
-  }
+      }
 }

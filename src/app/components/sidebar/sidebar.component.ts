@@ -2,7 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/login.service';
+import { SidebarNavService } from '../../services/sidebar-nav.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -15,16 +17,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private isBrowser: boolean;
   private touchStartX = 0;
   private touchEndX = 0;
+  private openSubscription?: Subscription;
   
   constructor(
     private router: Router, 
     private authService: AuthService,
+    private sidebarNav: SidebarNavService,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
   ngOnInit() {
+    this.sidebarNav.register();
+    this.openSubscription = this.sidebarNav.isOpen$.subscribe(open => this.isSidebarOpen = open);
+
     // Load user data if not available
     if (this.authService.isAuthenticated() && !this.authService.currentUserValue) {
       this.authService.loadUserData();
@@ -64,26 +71,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Toggle sidebar (hamburger menu)
   toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
-    if (this.isBrowser) {
-      this.toggleBodyScroll(this.isSidebarOpen);
-    }
+    this.sidebarNav.toggle();
   }
 
   // Close sidebar
   closeSidebar() {
-    this.isSidebarOpen = false;
-    if (this.isBrowser) {
-      this.toggleBodyScroll(false);
-    }
+    this.sidebarNav.close();
   }
 
   // Open sidebar
   openSidebar() {
-    this.isSidebarOpen = true;
-    if (this.isBrowser) {
-      this.toggleBodyScroll(true);
-    }
+    this.sidebarNav.open();
   }
 
   // Close sidebar when clicking outside or pressing escape
@@ -150,27 +148,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Prevent scroll when sidebar is open on mobile
-  private toggleBodyScroll(disable: boolean) {
-    if (!this.isBrowser) return;
-
-    if (window.innerWidth <= 768) {
-      if (disable) {
-        document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-      } else {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-      }
-    }
-  }
-
   // Clean up when component is destroyed
   ngOnDestroy() {
-    if (this.isBrowser) {
-      this.toggleBodyScroll(false);
-    }
+    this.openSubscription?.unsubscribe();
+    this.sidebarNav.unregister();
   }
 }

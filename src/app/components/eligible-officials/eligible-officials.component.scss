@@ -2,14 +2,12 @@
   display: block;
   font-family: 'Segoe UI', sans-serif;
   background-color: #f4f6f8;
-  min-height: 100vh;
 }
 
 .eligible-container {
-  margin-top: 92px;
-  margin-left: 250px;
+  margin-top: 0;
+  margin-left: 0;
   padding: 2rem;
-  min-height: calc(100vh - 92px);
 }
 
 .header {

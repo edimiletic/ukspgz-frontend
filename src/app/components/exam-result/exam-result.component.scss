@@ -3,12 +3,18 @@
   display: block;
   font-family: 'Segoe UI', sans-serif;
   background: #f8fafc;
-  min-height: 100vh;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: #4a5568;
 }
 
 .result-container {
   max-width: 800px;
-  margin: 92px auto;
+  margin: 0 auto;
   padding: 2rem;
   position: relative;
 }

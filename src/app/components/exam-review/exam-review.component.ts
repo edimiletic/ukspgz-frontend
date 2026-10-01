@@ -2,13 +2,11 @@ import { Component } from '@angular/core';
 import { AttemptReview, ReviewQuestion } from '../../model/exam.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
-import { FooterComponent } from "../footer/footer.component";
-import { HeaderComponent } from "../header/header.component";
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-exam-review',
-  imports: [FooterComponent, HeaderComponent, CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './exam-review.component.html',
   styleUrl: './exam-review.component.scss'
 })

@@ -1,4 +1,5 @@
 import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
@@ -8,15 +9,12 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TravelExpenseService } from '../../services/travel-expense.service';
-import { HeaderComponent } from "../header/header.component";
 import { KontrolaService } from '../../services/kontrola.service';
-import { FooterComponent } from "../footer/footer.component";
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { userHasRole, canViewStatistics, getStatisticsRoles, GameAssignmentRole } from '../../model/roles';
 
 @Component({
   selector: 'app-statistics',
-  imports: [CommonModule, FormsModule, HeaderComponent, FooterComponent, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.scss'
 })
@@ -211,8 +209,7 @@ loadStatistics() {
 
 async loadGradeStatistics() {
   this.isLoadingGrades = true;
-  console.log('Starting to load grade statistics...');
-  
+    
   try {
     // Build filters for the request
     const filters: any = {};
@@ -222,31 +219,25 @@ async loadGradeStatistics() {
     if (dateRange.start && dateRange.end) {
       filters.startDate = dateRange.start;
       filters.endDate = dateRange.end;
-      console.log('Added date filter:', dateRange);
-    }
+          }
     
     // Add competition filter
     if (this.selectedCompetition) {
       filters.competition = this.selectedCompetition;
-      console.log('Added competition filter:', this.selectedCompetition);
-    }
+          }
     
     // Add role filter
     filters.role = this.selectedRole;
-    console.log('Added role filter:', this.selectedRole);
-    
-    console.log('Final filters for kontrola request:', filters);
-    
+        
+        
     // Get kontrola data from backend
-    const kontrolaData = await this.kontrolaService.getAllKontrolaForStatistics(filters).toPromise();
+    const kontrolaData = await firstValueFrom(this.kontrolaService.getAllKontrolaForStatistics(filters));
     
-    console.log('Received kontrola data:', kontrolaData?.length || 0, 'records');
-    
+        
     // Process the data (this will further filter by role on frontend)
     this.processKontrolaData(kontrolaData || []);
     
-    console.log('Final grade stats:', this.gradeStats);
-    
+        
   } catch (error) {
     console.error('Error loading grade statistics:', error);
     // Set safe default values
@@ -272,7 +263,7 @@ async loadGameStatistics() {
   this.isLoadingGames = true;
   try {
     // Get all referees FIRST
-    const refereesResponse = await this.userService.getReferees().toPromise();
+    const refereesResponse = await firstValueFrom(this.userService.getReferees());
     const referees = refereesResponse || [];
 
     // Populate availableReferees for use in other methods
@@ -283,11 +274,11 @@ async loadGameStatistics() {
       kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
     };
 
-    console.log('Loaded referees:', this.availableReferees); // Debug log
+     // Debug log
 
     // Get all games with filters
     const filters = this.buildGameFilters();
-    const gamesResponse = await this.basketballGameService.getAllGames(filters).toPromise();
+    const gamesResponse = await firstValueFrom(this.basketballGameService.getAllGames(filters));
     const games = gamesResponse?.games || [];
 
     this.calculateRefereeStats(games, referees);
@@ -307,7 +298,7 @@ async loadGameStatistics() {
 async loadAbsenceStatistics() {
   this.isLoadingAbsences = true;
   try {
-    const absencesResponse = await this.absenceService.getAllAbsences().toPromise();
+    const absencesResponse = await firstValueFrom(this.absenceService.getAllAbsences());
     const absences = absencesResponse || []; // Fix: Handle undefined
     this.calculateAbsenceStats(absences);
   } catch (error) {
@@ -318,8 +309,7 @@ async loadAbsenceStatistics() {
 }
 async loadExpenseStatistics() {
   this.isLoadingExpenses = true;
-  console.log('Starting to load expense statistics...');
-  
+    
   try {
     // Add null check
     if (!this.travelExpenseService) {
@@ -336,16 +326,13 @@ async loadExpenseStatistics() {
       return;
     }
 
-    console.log('Calling getAllTravelExpenses...');
-    const expensesResponse = await this.travelExpenseService.getAllTravelExpenses().toPromise();
+        const expensesResponse = await firstValueFrom(this.travelExpenseService.getAllTravelExpenses());
     const expenses = expensesResponse || [];
     
-    console.log('Received expenses:', expenses.length, expenses);
-    
+        
     this.calculateExpenseStats(expenses);
     
-    console.log('Final expense stats:', this.expenseStats);
-    
+        
   } catch (error) {
     console.error('Error loading expense statistics:', error);
     // Set safe default values
@@ -415,7 +402,7 @@ getDateRange(): { start: string; end: string } {
       break;
   }
   
-  console.log('Date range calculated:', result, 'for period:', this.selectedPeriod); // Debug log
+   // Debug log
   return result;
 }
 
@@ -506,8 +493,7 @@ calculateCompetitionStats(games: any[]) {
 }
 
 calculateAbsenceStats(absences: any[]) {
-  console.log('Calculating absence stats, available referees:', this.availableReferees);
-  
+    
   const dateRange = this.getDateRange();
   let filteredAbsences = absences;
 
@@ -561,8 +547,7 @@ calculateAbsenceStats(absences: any[]) {
     refereeMap.set(ref.personalCode, `${ref.name} ${ref.surname}`);
   });
 
-  console.log('Referee map for role', this.selectedRole, ':', refereeMap);
-
+  
   // Filter absences to only include those from referees with the selected role
   const roleFilteredAbsences = filteredAbsences.filter(absence => {
     return refereeMap.has(absence.userPersonalCode);
@@ -721,15 +706,14 @@ calculateSummaryStats() {
 }
 
   onPeriodChange() {
-      console.log('Period changed, reloading all statistics...'); // Debug log
+       // Debug log
     this.loadStatistics();
   }
 
 
   exportStatistics() {
     // Placeholder for export functionality
-    console.log('Exporting statistics...');
-    alert('Izvoz statistika će biti implementiran u sljedećoj verziji.');
+        alert('Izvoz statistika će biti implementiran u sljedećoj verziji.');
   }
 
   getObjectKeys(obj: any): string[] {

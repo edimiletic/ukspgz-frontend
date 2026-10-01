@@ -1,7 +1,7 @@
 .statistika-container {
-  margin-top: 92px;
+  margin-top: 0;
   min-height: 100vh;
-  margin-left: 250px;
+  margin-left: 0;
   padding: 2rem;
   background-color: #f8f9fa;
   min-height: 100vh;
@@ -926,7 +926,7 @@
 @media (max-width: 768px) {
   .statistika-container{
     margin-left: 0;
-        margin-top: 125px;
+        margin-top: 0;
 
   }
   .category-leaders {
@@ -1114,7 +1114,7 @@
 @media (max-width: 768px) and (orientation: landscape) {
     .statistika-container{
     margin-left: 0;
-        margin-top: 125px;
+        margin-top: 0;
 
   }
   .filters-section {

@@ -2,14 +2,12 @@ import { Component, OnInit, OnDestroy} from '@angular/core';
 import { Exam, ExamAnswer, ExamSubmission } from '../../model/exam.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
-import { FooterComponent } from "../footer/footer.component";
-import { HeaderComponent } from "../header/header.component";
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-take-exam',
-  imports: [FooterComponent, HeaderComponent, CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './take-exam.component.html',
   styleUrl: './take-exam.component.scss'
 })
@@ -79,10 +77,55 @@ exam: Exam | null = null;
   }
 
   initializeAnswers(): void {
-    if (this.exam) {
-      for (let i = 0; i < this.exam.questions.length; i++) {
-        this.userAnswers[i] = null;
+    if (!this.exam) {
+      return;
+    }
+
+    const saved = this.readSavedAnswers(this.exam._id);
+    for (let i = 0; i < this.exam.questions.length; i++) {
+      const savedAnswer = saved[i];
+      this.userAnswers[i] = savedAnswer === true || savedAnswer === false ? savedAnswer : null;
+      if (this.userAnswers[i] !== null) {
+        this.answeredQuestions.add(i);
       }
+    }
+  }
+
+  selectAnswer(questionIndex: number, answer: boolean): void {
+    this.userAnswers[questionIndex] = answer;
+    this.answeredQuestions.add(questionIndex);
+    this.persistAnswers();
+  }
+
+  private storageKey(examId: string): string {
+    return `exam-answers-${examId}`;
+  }
+
+  private readSavedAnswers(examId: string): { [key: number]: boolean | null } {
+    try {
+      const raw = sessionStorage.getItem(this.storageKey(examId));
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private persistAnswers(): void {
+    if (!this.exam) {
+      return;
+    }
+    try {
+      sessionStorage.setItem(this.storageKey(this.exam._id), JSON.stringify(this.userAnswers));
+    } catch {
+      // Ignore storage quota / private mode failures
+    }
+  }
+
+  private clearSavedAnswers(examId: string): void {
+    try {
+      sessionStorage.removeItem(this.storageKey(examId));
+    } catch {
+      // Ignore
     }
   }
 
@@ -108,7 +151,6 @@ exam: Exam | null = null;
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
     }
-    alert('Vrijeme je isteklo! Ispit će biti automatski poslan.');
     this.submitExam(true);
   }
 
@@ -127,11 +169,6 @@ exam: Exam | null = null;
     if (this.timeRemaining <= 300) return 'timer-critical'; // 5 minutes
     if (this.timeRemaining <= 900) return 'timer-warning'; // 15 minutes
     return 'timer-normal';
-  }
-
-  selectAnswer(questionIndex: number, answer: boolean): void {
-    this.userAnswers[questionIndex] = answer;
-    this.answeredQuestions.add(questionIndex);
   }
 
   goToQuestion(index: number): void {
@@ -201,16 +238,14 @@ exam: Exam | null = null;
       timeSpent: timeSpentMinutes
     };
 
-    console.log('Submitting exam with answers:', answers);
-
     this.examService.submitExam(submission).subscribe({
       next: (result) => {
         if (this.timerInterval) {
           clearInterval(this.timerInterval);
         }
+        this.clearSavedAnswers(this.exam!._id);
         
-        // Navigate to results page with the result data
-        this.router.navigate(['/exams/result'], {
+        this.router.navigate(['/exams/result', result._id], {
           state: { 
             result: result,
             autoSubmit: autoSubmit

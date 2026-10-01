@@ -11,8 +11,8 @@
     min-height: 100vh;
     
     // Account for both fixed header and sidebar
-    margin-left: 250px;
-    margin-top: 92px; // Add margin for fixed header (adjust to your header height)
+    margin-left: 0;
+    margin-top: 0; // Add margin for fixed header (adjust to your header height)
 }
 
 .content {
@@ -26,7 +26,7 @@ padding: 1rem 2rem;
   .main-layout {
     flex-direction: column;
     margin-left: 0;
-    margin-top: 125px; // Header + mobile sidebar height
+    margin-top: 0; // Header + mobile sidebar height
   }
   
   .content {

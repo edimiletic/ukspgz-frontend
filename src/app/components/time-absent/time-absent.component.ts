@@ -1,8 +1,6 @@
 import { AbsenceService } from './../../services/absence.service';
 import { CommonModule } from '@angular/common';
 import { Component, HostBinding, HostListener } from '@angular/core';
-import { HeaderComponent } from "../header/header.component";
-import { FooterComponent } from "../footer/footer.component";
 import { AbsenceData, TimeAbsentModalComponent } from './time-absent-modal/time-absent-modal.component';
 import { Absence } from '../../model/absence.model';
 import { DeleteTimeAbsentModalComponent } from "./delete-time-absent-modal/delete-time-absent-modal.component";
@@ -12,7 +10,6 @@ import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { canSeeAllGames, isAdminUser } from '../../model/roles';
 
 
@@ -22,7 +19,7 @@ interface AbsenceWithUser extends Absence {
 
 @Component({
   selector: 'app-time-absent',
-  imports: [RouterModule, HeaderComponent, FooterComponent, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule, SidebarComponent],
+  imports: [RouterModule, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule],
   templateUrl: './time-absent.component.html',
   styleUrl: './time-absent.component.scss'
 })
@@ -129,7 +126,7 @@ isMobileFiltersOpen: boolean = false;
       // Admin: Load all absences (backend now includes user names)
       this.absenceService.getAllAbsences().subscribe({
         next: (absences: AbsenceWithUser[]) => {
-          console.log('Admin absences loaded:', absences); // Debug log
+           // Debug log
           this.allAbsences = absences;
           this.categorizeAbsences(absences);
           this.applyFilters(); // Apply any existing filters
@@ -145,7 +142,7 @@ isMobileFiltersOpen: boolean = false;
       // Regular user: Load only their absences and categorize them too
       this.absenceService.getCurrentUserAbsences().subscribe({
         next: (absences: Absence[]) => {
-          console.log('User absences loaded:', absences); // Debug log
+           // Debug log
           this.allAbsences = absences;
           this.categorizeAbsences(absences); // Also categorize user absences
           this.applyFilters(); // Apply any existing filters
@@ -230,13 +227,7 @@ isMobileFiltersOpen: boolean = false;
     const endIndex = startIndex + this.futureLimit;
     this.futureDisplayedAbsences = this.futureAbsences.slice(startIndex, endIndex);
     
-    console.log('Future pagination updated:', {
-      page: this.futurePage,
-      totalPages: this.futureTotalPages,
-      totalItems: this.futureAbsences.length,
-      displayedItems: this.futureDisplayedAbsences.length
-    });
-  }
+      }
 
   updateOngoingPagination() {
     this.ongoingTotalPages = Math.max(1, Math.ceil(this.ongoingAbsences.length / this.ongoingLimit));
@@ -443,20 +434,17 @@ if (window.innerWidth <= 693) {
   }
 
   onAbsenceSaved() {
-    console.log('Absence saved successfully!');
-    this.loadAbsences();
+        this.loadAbsences();
     this.showSuccess('Odsustvo je uspješno kreirano!');
   }
 
   onAbsenceUpdated() {
-    console.log('Absence updated successfully!');
-    this.loadAbsences();
+        this.loadAbsences();
     this.showSuccess('Odsustvo je uspješno ažurirano!');
   }
 
   onAbsenceDeleted() {
-    console.log('Absence deleted successfully!');
-    this.loadAbsences();
+        this.loadAbsences();
     this.showSuccess('Odsustvo je uspješno obrisano!');
   }
 

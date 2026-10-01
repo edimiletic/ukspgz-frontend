@@ -1,7 +1,9 @@
 <!-- src/app/components/exam-result/exam-result.component.html -->
-<app-header></app-header>
+<div class="loading-container" *ngIf="isLoading">
+  <p>Učitavanje rezultata...</p>
+</div>
 
-<div class="result-container">
+<div class="result-container" *ngIf="result">
   <!-- Confetti Animation -->
   <div class="confetti" *ngIf="showConfetti">
     <div class="confetti-piece" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]"></div>
@@ -20,13 +22,13 @@
     <div class="result-header">
       <!-- <div class="result-icon">{{ getResultIcon() }}</div> -->
       <h1 class="result-title">{{ getResultTitle() }}</h1>
-      <!-- <p class="result-message" *ngIf="result?.message">{{ result?.message }}</p> -->
+      <!-- <p class="result-message" *ngIf="result.message">{{ result.message }}</p> -->
     </div>
 
     <!-- Score Display -->
     <div class="score-section">
       <div class="score-circle" [class]="getScoreClass()">
-        <div class="score-value">{{ result?.score || 0 }}</div>
+        <div class="score-value">{{ result.score || 0 }}</div>
         <div class="score-total">/ 25</div>
       </div>
       
@@ -46,7 +48,7 @@
         <div class="stat-item">
           <div class="stat-icon correct">✅</div>
           <div class="stat-content">
-            <div class="stat-value">{{ result?.score || 0 }}</div>
+            <div class="stat-value">{{ result.score || 0 }}</div>
             <div class="stat-label">Točnih odgovora</div>
           </div>
         </div>
@@ -54,7 +56,7 @@
         <div class="stat-item">
           <div class="stat-icon incorrect">❌</div>
           <div class="stat-content">
-            <div class="stat-value">{{ 25 - (result?.score || 0) }}</div>
+            <div class="stat-value">{{ 25 - (result.score || 0) }}</div>
             <div class="stat-label">Netočnih odgovora</div>
           </div>
         </div>
@@ -79,19 +81,19 @@
 
     <!-- Pass/Fail Status -->
     <div class="status-section">
-      <div class="status-badge" [class]="result?.passed ? 'status-passed' : 'status-failed'">
-        <!-- <i class="status-icon">{{ result?.passed ? '🏆' : '📚' }}</i> -->
+      <div class="status-badge" [class]="result.passed ? 'status-passed' : 'status-failed'">
+        <!-- <i class="status-icon">{{ result.passed ? '🏆' : '📚' }}</i> -->
         <span class="status-text">
-          {{ result?.passed ? 'POLOŽEN ISPIT' : 'NEPOLOŽEN ISPIT' }}
+          {{ result.passed ? 'POLOŽEN ISPIT' : 'NEPOLOŽEN ISPIT' }}
         </span>
       </div>
 
       <div class="status-details">
-        <p *ngIf="result?.passed" class="success-text">
+        <p *ngIf="result.passed" class="success-text">
           Uspješno ste završili ispit s rezultatom {{ getScorePercentage() }}%. 
           Vaš certifikat će biti uskoro dostupan za preuzimanje.
         </p>
-        <p *ngIf="!result?.passed" class="fail-text">
+        <p *ngIf="!result.passed" class="fail-text">
           Za prolaz je potrebno najmanje 20 točnih odgovora (80%). 
           Možete pokušati ponovo kad god budete spremni.
         </p>
@@ -126,7 +128,7 @@
 
         <button 
           class="certificate-btn" 
-          *ngIf="result?.passed" 
+          *ngIf="result.passed" 
           (click)="downloadCertificate()"
         >
           <i class="btn-icon">📜</i>
@@ -135,7 +137,7 @@
         
         <button 
           class="retake-btn" 
-          *ngIf="!result?.passed" 
+          *ngIf="!result.passed" 
           (click)="retakeExam()"
           [disabled]="generatingRetakeExam"
         >
@@ -159,7 +161,7 @@
   </div>
 
   <!-- Additional Tips -->
-  <div class="tips-section" *ngIf="!result?.passed">
+  <div class="tips-section" *ngIf="!result.passed">
     <h3>Savjeti za sljedeći pokušaj:</h3>
     <ul class="tips-list">
       <li>📖 Pregledajte pravila košarke i najčešće situacije u igri</li>
@@ -170,5 +172,3 @@
     </ul>
   </div>
 </div>
-
-<app-footer></app-footer>

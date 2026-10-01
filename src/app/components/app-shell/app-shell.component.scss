@@ -1,0 +1,35 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f4f6f8;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.shell-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  margin-top: var(--header-height, 92px);
+  margin-left: var(--sidebar-width, 250px);
+  min-height: 0;
+
+  &.no-sidebar {
+    margin-left: 0;
+  }
+}
+
+.shell-content {
+  flex: 1;
+}
+
+app-footer {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .shell-main {
+    margin-left: 0;
+  }
+}

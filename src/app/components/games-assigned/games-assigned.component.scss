@@ -10,8 +10,8 @@
 .main-layout {
   display: flex;
   min-height: 100vh;
-  margin-left: 250px;
-  margin-top: 92px;
+  margin-left: 0;
+  margin-top: 0;
 }
 
 .content {
@@ -743,7 +743,7 @@
   .main-layout {
     flex-direction: column;
     margin-left: 0;
-    margin-top: 125px;
+    margin-top: 0;
   }
 
   .content {

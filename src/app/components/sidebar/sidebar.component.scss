@@ -13,10 +13,6 @@
   // Add padding to account for header height
   padding-top: calc(80px + 0.5rem);
 
-  .hamburger-btn {
-    display: none; // Hidden on desktop
-  }
-
   .sidebar-content {
     height: 100%;
     overflow-y: auto;
@@ -88,44 +84,14 @@
     position: relative;
     z-index: 1080; // Below header but above content
 
-    // Hamburger Button
-    .hamburger-btn {
-      display: block;
-      position: fixed;
-      top: 90px;
-      width: 100%;
-      height: 45px;
-      background-color: #34495e;
-      border: none;
-      cursor: pointer;
-      z-index: 1010; // Above sidebar content but below header
-      padding: 8px;
-      transition: all 0.3s ease;
-      justify-items: anchor-center;
-
-      &:hover {
-        background-color: #2c3e50;
-      }
-
-      .hamburger-line {
-        display: block;
-        width: 25px;
-        height: 3px;
-        background-color: white;
-        margin: 5px 0;
-        transition: all 0.3s ease;
-        border-radius: 2px;
-      }
-    }
-
     // Sidebar Content (full width under header)
     .sidebar-content {
       position: fixed;
-      // top: 100px; // Right under the header
+      top: var(--header-height, 92px);
       left: 0;
       width: 100%;
       height: auto;
-      max-height: calc(100vh - 90px); // Fill remaining screen height
+      max-height: calc(100vh - var(--header-height, 92px));
       background-color: #34495e;
       z-index: 1005;
       transform: translateY(-100%); // Hidden above by default
@@ -186,6 +152,7 @@
 
     // Overlay (clicking outside closes menu)
     .sidebar-overlay {
+      display: block;
       position: fixed;
       top: 0;
       left: 0;
@@ -208,18 +175,6 @@
 // SMALL MOBILE (phones in portrait)
 @media (max-width: 480px) {
   .sidebar {
-    .hamburger-btn {
-
-      height: 40px;
-      padding: 6px;
-
-      .hamburger-line {
-        width: 22px;
-        // height: 2px;
-        margin: 4px 0;
-      }
-    }
-
     .sidebar-content {
       ul {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -272,7 +227,7 @@
 @media (max-width: 768px) and (orientation: landscape) {
   .sidebar {
     .sidebar-content {
-      top: 125px;
+      top: var(--header-height, 92px);
       
       ul {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -319,7 +274,6 @@
   .sidebar {
     .sidebar-content,
     .sidebar-overlay,
-    .hamburger-btn,
     ul li a {
       transition: none !important;
     }

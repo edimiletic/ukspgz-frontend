@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
 import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewEligibleOfficials, canViewStatistics, GAME_ASSIGNMENT_ROLES, getRoleNames, isAdminUser, normalizeRoleAssignments, pickPrimaryRole, userHasRole } from '../model/roles';
@@ -44,21 +44,6 @@ export class AuthService {
     };
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-
-    if (this.isBrowser) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers = headers.set('Authorization', `Bearer ${token}`);
-      }
-    }
-
-    return headers;
-  }
-
   login(credentials: { username: string, password: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials, {
       headers: { 'Content-Type': 'application/json' }
@@ -77,11 +62,15 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearSession();
+    this.router.navigate(['/login']);
+  }
+
+  clearSession(): void {
     if (this.isBrowser) {
       localStorage.removeItem('token');
     }
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
   }
 
   isAuthenticated(): boolean {
@@ -114,6 +103,10 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<User> {
+    if (this.currentUserValue) {
+      return of(this.currentUserValue);
+    }
+
     if (!this.isBrowser) {
       return of(null as any);
     }
@@ -123,9 +116,7 @@ export class AuthService {
       return throwError(() => new Error('No token found'));
     }
 
-    return this.http.get<User>(`${this.apiUrl}/me`, {
-      headers: this.getAuthHeaders()
-    }).pipe(
+    return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       map(user => this.normalizeUser(user) as User),
       tap(user => this.currentUserSubject.next(user)),
       catchError(error => {
@@ -210,6 +201,7 @@ export class AuthService {
   }
 
   refreshUser(): Observable<User> {
+    this.currentUserSubject.next(null);
     return this.getCurrentUser();
   }
 

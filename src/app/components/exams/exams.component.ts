@@ -4,18 +4,15 @@ import { Exam, ExamStats, ExamAttempt, QuestionBank } from './../../model/exam.m
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
 import { AddQuestionModalComponent } from "./add-question-modal/add-question-modal.component";
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { DeleteExamModalComponent } from "./delete-exam-modal/delete-exam-modal.component";
 
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, FooterComponent, AddQuestionModalComponent, RouterModule, SidebarComponent, DeleteExamModalComponent],
+  imports: [CommonModule, AddQuestionModalComponent, RouterModule, DeleteExamModalComponent],
   templateUrl: './exams.component.html',
   styleUrl: './exams.component.scss'
 })
@@ -55,8 +52,7 @@ loadCurrentUser(): void {
       if (user) {
         this.currentUser = user;
       } else {
-        console.log('No user returned from getCurrentUser');
-        this.currentUser = null;
+                this.currentUser = null;
       }
     },
     error: (err) => {
@@ -86,7 +82,7 @@ loadCurrentUser(): void {
     this.loading = true;
     this.examService.getUserAttempts().subscribe({
       next: (attempts: ExamAttempt[]) => {
-        console.log('Loaded exam attempts:', attempts); // Debug log
+         // Debug log
         this.userAttempts = attempts;
         this.loading = false;
       },
@@ -124,8 +120,7 @@ loadCurrentUser(): void {
         this.showSuccessToast('Ispit je uspješno generiran! Preusmjeravam vas...');
         
         // Navigate to exam taking page immediately
-        console.log('Navigating to exam with ID:', exam._id);
-        this.router.navigate(['/exams/take', exam._id]);
+                this.router.navigate(['/exams/take', exam._id]);
       },
       error: (err) => {
         this.generatingExam = false;
@@ -158,8 +153,7 @@ loadCurrentUser(): void {
     // Refresh stats after adding a question
     this.loadExamStats();
     this.showSuccessToast(`Pitanje "${newQuestion.questionText.substring(0, 50)}..." je uspješno dodano!`);
-    console.log('New question added:', newQuestion);
-  }
+      }
 
   // Toast notification methods
   showSuccessToast(message: string): void {

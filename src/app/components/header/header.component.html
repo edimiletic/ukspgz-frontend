@@ -1,18 +1,29 @@
 <!-- src/app/components/header/header.component.html -->
-<header class="header">
-  <img class="logo" src="assets\HKS_Logo.webp" alt="hks-logo" (click)="navigateToPage('/home')">
+<header class="header" #appHeader>
+  <button
+    *ngIf="showMenuButton"
+    type="button"
+    class="hamburger-btn"
+    [class.active]="isMenuOpen"
+    (click)="toggleMenu()"
+    aria-label="Izbornik">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+  <img class="logo" src="assets/HKS_Logo.webp" alt="hks-logo" (click)="navigateToPage('/home')">
   <h1 class="title-full">Hrvatski Košarkaški Savez</h1>
     <h1 class="title-short">HKS</h1>
   <div class="user-info">
     <div class="header-buttons">
       
       <!-- Notification Bell -->
-      <div class="notification-dropdown">
-        <div class="notification-icon" [class.has-notifications]="hasUnreadNotifications">
+      <div class="notification-dropdown" [class.open]="isNotificationsOpen">
+        <div class="notification-icon" [class.has-notifications]="hasUnreadNotifications" (click)="toggleNotifications($event)">
           <i class="fas fa-bell"></i>
           <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         </div>
-        <div class="dropdown-menu notification-menu">
+        <div class="dropdown-menu notification-menu" *ngIf="isNotificationsOpen" (click)="$event.stopPropagation()">
           <div class="notification-header">
             <span>Obavijesti</span>
             <button *ngIf="notifications.length > 0" class="mark-all-read" (click)="markAllAsRead()">
@@ -48,10 +59,10 @@
       </div>
 
       <!-- User Dropdown -->
-      <div class="user-dropdown">
-        <div class="user-icon"><i class="fas fa-user"></i></div>
-        <div class="dropdown-menu">
-          <div class="dropdown-item" (click)="logout()">Logout</div>
+      <div class="user-dropdown" [class.open]="isUserMenuOpen">
+        <div class="user-icon" (click)="toggleUserMenu($event)"><i class="fas fa-user"></i></div>
+        <div class="dropdown-menu" *ngIf="isUserMenuOpen" (click)="$event.stopPropagation()">
+          <div class="dropdown-item" (click)="logout()">Odjava</div>
         </div>
       </div>
     </div>

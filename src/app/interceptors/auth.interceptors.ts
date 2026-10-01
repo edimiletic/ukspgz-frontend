@@ -3,15 +3,17 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/login.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const authService = inject(AuthService);
   const platformId = inject(PLATFORM_ID);
   const isBrowser = isPlatformBrowser(platformId);
   const isLoginRequest = req.url.includes('/login');
 
   if (isBrowser && !isLoginRequest) {
-    const token = localStorage.getItem('token');
+    const token = authService.getToken();
     if (token) {
       req = req.clone({
         setHeaders: {
@@ -24,7 +26,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (isBrowser && error.status === 401 && !isLoginRequest) {
-        localStorage.removeItem('token');
+        authService.clearSession();
         router.navigate(['/login']);
       }
       return throwError(() => error);

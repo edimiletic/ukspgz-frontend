@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { AuthService } from '../../services/login.service';
 import { BasketballGameService } from '../../services/basketballGame.service';
 import { TravelExpenseService } from '../../services/travel-expense.service';
@@ -24,7 +21,7 @@ import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent, SidebarComponent, CreateGameModalComponent, AddQuestionModalComponent, TimeAbsentModalComponent, ExpensesModalComponent],
+  imports: [CommonModule, RouterModule, CreateGameModalComponent, AddQuestionModalComponent, TimeAbsentModalComponent, ExpensesModalComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -508,8 +505,7 @@ getGameStatusText(game: BasketballGame): string {
   }
 
    onGameCreated(result: any): void {
-    console.log('Game created from home:', result);
-    this.closeCreateGameModal();
+        this.closeCreateGameModal();
     
     // Show success toast
     if (result.message) {
@@ -531,8 +527,7 @@ getGameStatusText(game: BasketballGame): string {
   }
 
 onQuestionAdded(newQuestion: any): void {
-    console.log('Question added from home:', newQuestion);
-    this.closeAddQuestionModal();
+        this.closeAddQuestionModal();
     
     // Show success toast
     this.showSuccess(`Pitanje "${newQuestion.questionText.substring(0, 50)}..." je uspješno dodano!`);
@@ -574,8 +569,7 @@ onQuestionAdded(newQuestion: any): void {
   }
 
   onAbsenceSaved(): void {
-    console.log('Absence saved from home');
-    this.closeTimeAbsentModal();
+        this.closeTimeAbsentModal();
     
     // Show success toast
     this.showSuccess('Odsustvo je uspješno kreirano!');
@@ -600,8 +594,7 @@ startNewExam(): void {
       this.showSuccess('Ispit je uspješno generiran! Preusmjeravam vas...');
       
       // Navigate to exam taking page immediately
-      console.log('Navigating to exam with ID:', exam._id);
-      this.router.navigate(['/exams/take', exam._id]);
+            this.router.navigate(['/exams/take', exam._id]);
     },
     error: (err) => {
       this.isLoading = false;
@@ -621,8 +614,7 @@ closeExpensesModal(): void {
 }
 
 onExpenseReportCreated(event: { reportData: any; reportId: string }): void {
-  console.log('Expense report created from home:', event);
-  this.closeExpensesModal();
+    this.closeExpensesModal();
   
   // Show success toast
   this.showSuccess('Izvješće je uspješno kreirano!');

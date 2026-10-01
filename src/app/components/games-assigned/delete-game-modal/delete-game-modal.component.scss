@@ -87,21 +87,23 @@
   font-weight: 400;
   line-height: 1.5;
 
-  // Support for HTML content
-  :global {
-    strong {
-      color: #e74c3c;
-      font-weight: 600;
-    }
+  .warning-lead {
+    color: #e74c3c;
+    font-weight: 600;
+    margin: 0 0 0.75rem;
+  }
 
-    em {
-      font-style: italic;
-      color: #6c757d;
-    }
+  .warning-detail {
+    margin: 0.25rem 0;
+    font-style: italic;
+    color: #6c757d;
+  }
 
-    br {
-      margin: 0.25rem 0;
-    }
+  .warning-detail:last-child {
+    margin-top: 0.75rem;
+    font-style: normal;
+    font-weight: 600;
+    color: #e74c3c;
   }
 }
 

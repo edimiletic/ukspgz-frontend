@@ -1,8 +1,6 @@
 import { BasketballGameService } from './../../services/basketballGame.service';
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from "../header/header.component";
-import { FooterComponent } from "../footer/footer.component";
 import { AuthService } from '../../services/login.service';
 import { BasketballGame, BasketballGameUtils, RefereeAssignment, RefereeGroups, RefereeInfo } from '../../model/basketballGame.model';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +8,6 @@ import { RejectionModalComponent } from "./rejection-modal/rejection-modal.compo
 import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.component";
 import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewFullKontrola, isAdminUser, userHasRole } from '../../model/roles';
 import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.component";
 import { KontrolaService } from '../../services/kontrola.service';
@@ -20,7 +17,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent, SidebarComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
+  imports: [CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss'
 })
@@ -119,8 +116,7 @@ isMobileFiltersOpen: boolean = false;
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
-        console.log('Current user loaded:', user);
-        this.currentUser = user;
+                this.currentUser = user;
         // Load games after we have user data
         this.loadMyGames();
       },
@@ -212,30 +208,21 @@ kontrolaStatusMap = new Map<string, boolean>();
 // Add this method to check and cache kontrola status
 
 checkGameKontrolaStatus(gameId: string): void {
-  console.log('Checking kontrola status for game:', gameId);
-  console.log('Current user:', this.currentUser);
-  
-  if (!this.kontrolaStatusMap.has(gameId)) {
-    this.kontrolaStatusMap.set(gameId, false);
-    
-    this.kontrolaService.hasKontrola(gameId).subscribe({
-      next: (response) => {
-        console.log(`Kontrola exists response for game ${gameId}:`, response);
-        this.kontrolaStatusMap.set(gameId, response.exists);
-        
-        // Force change detection
-        setTimeout(() => {
-          console.log(`Kontrola status map updated for ${gameId}:`, this.kontrolaStatusMap.get(gameId));
-        }, 100);
-      },
-      error: (error) => {
-        console.error('Error checking kontrola for game', gameId, error);
-        this.kontrolaStatusMap.set(gameId, false);
-      }
-    });
-  } else {
-    console.log(`Kontrola status already cached for ${gameId}:`, this.kontrolaStatusMap.get(gameId));
+  if (this.kontrolaStatusMap.has(gameId)) {
+    return;
   }
+
+  this.kontrolaStatusMap.set(gameId, false);
+
+  this.kontrolaService.hasKontrola(gameId).subscribe({
+    next: (response) => {
+      this.kontrolaStatusMap.set(gameId, response.exists);
+    },
+    error: (error) => {
+      console.error('Error checking kontrola for game', gameId, error);
+      this.kontrolaStatusMap.set(gameId, false);
+    }
+  });
 }
 
 // Helper method for template
@@ -270,8 +257,7 @@ getKontrolaStatus(gameId: string): boolean {
   // Handle kontrola saved
  
 onKontrolaSaved(result: any): void {
-  console.log('Kontrola saved:', result);
-  
+    
   // Check if the result indicates success
   if (result && result.success) {
     this.showSuccess(result.message || 'Kontrola je uspješno spremljena!');
@@ -305,12 +291,9 @@ onGameCreated(result: any) {
 }
   // Open edit game modal
   openEditGameModal(game: BasketballGame) {
-    console.log('Opening edit modal for game:', game);
-    this.gameToEdit = game;
+        this.gameToEdit = game;
     this.isEditGameModalOpen = true;
-    console.log('Edit modal state:', this.isEditGameModalOpen);
-    console.log('Game to edit:', this.gameToEdit);
-  }
+          }
 
   // Close edit game modal
   closeEditGameModal() {
@@ -329,11 +312,9 @@ onGameCreated(result: any) {
     
     if (this.canSeeAllGames()) {
       // If admin, load all games in the system
-      console.log('Admin loading all games...');
-      this.basketballGameService.getAllGames().subscribe({
+            this.basketballGameService.getAllGames().subscribe({
         next: (response) => {
-          console.log('Admin received games:', response);
-          this.categorizeGames(response.games);
+                    this.categorizeGames(response.games);
           this.isLoading = false;
         },
         error: (error) => {
@@ -344,11 +325,9 @@ onGameCreated(result: any) {
       });
     } else {
       // If referee, load only assigned games
-      console.log('Referee loading assigned games...');
-      this.basketballGameService.getMyAssignments().subscribe({
+            this.basketballGameService.getMyAssignments().subscribe({
         next: (games) => {
-          console.log('Referee received games:', games);
-          this.categorizeGames(games);
+                    this.categorizeGames(games);
           this.isLoading = false;
         },
         error: (error) => {
@@ -361,8 +340,7 @@ onGameCreated(result: any) {
   }
 
  categorizeGames(games: BasketballGame[]) {
-    console.log('Categorizing games:', games);
-    const now = new Date();
+        const now = new Date();
     
     if (this.canSeeAllGames()) {
       // For admin, show upcoming games and history only
@@ -372,11 +350,7 @@ onGameCreated(result: any) {
 
       this.allGameHistory = games.filter(game => this.isGameInPast(game, now));
 
-      console.log('Admin games categorized:', {
-        pending: this.allPendingGames.length,
-        history: this.allGameHistory.length
-      });
-    } else {
+          } else {
       // For referees, show only their assigned games
       this.allPendingGames = games.filter(game => {
         const myAssignment = this.getMyAssignment(game);
@@ -394,12 +368,7 @@ onGameCreated(result: any) {
                myAssignment?.assignmentStatus === 'Rejected';
       });
 
-      console.log('Referee games categorized:', {
-        pending: this.allPendingGames.length,
-        confirmed: this.allConfirmedGames.length,
-        history: this.allGameHistory.length
-      });
-    }
+          }
     
     // Apply filters after categorization (which will also update pagination)
     this.applyFilters();
@@ -564,46 +533,47 @@ onGameCreated(result: any) {
   }
 
   // Method to format all referees for display (filtered based on user role)
-  getAllRefereesFormatted(game: BasketballGame): string {
+  getAllRefereesFormatted(game: BasketballGame): { label: string; text: string }[] {
     const refereeGroups = this.getAllReferees(game);
     const myAssignment = this.getMyAssignment(game);
     const myRole = myAssignment?.role;
-    const parts = [];
+    const parts: { label: string; text: string }[] = [];
 
-    // Format Sudac
     if (refereeGroups['Sudac'].length > 0) {
-      const sudci = refereeGroups['Sudac']
-        .sort((a, b) => a.position - b.position)
-        .map(ref => `${ref.name} ${ref.statusText}`)
-        .join(', ');
-      parts.push(`<strong>Sudci:</strong> ${sudci}`);
+      parts.push({
+        label: 'Sudci',
+        text: refereeGroups['Sudac']
+          .sort((a, b) => a.position - b.position)
+          .map(ref => `${ref.name} ${ref.statusText}`)
+          .join(', ')
+      });
     }
 
-    // Format Delegat
     if (refereeGroups['Delegat'].length > 0) {
-      const delegati = refereeGroups['Delegat']
-        .map(ref => `${ref.name} ${ref.statusText}`)
-        .join(', ');
-      parts.push(`<strong>Delegat:</strong> ${delegati}`);
+      parts.push({
+        label: 'Delegat',
+        text: refereeGroups['Delegat'].map(ref => `${ref.name} ${ref.statusText}`).join(', ')
+      });
     }
 
     if (refereeGroups['Kontrolor'].length > 0) {
-      const kontrolori = refereeGroups['Kontrolor']
-        .map(ref => `${ref.name} ${ref.statusText}`)
-        .join(', ');
-      parts.push(`<strong>Kontrolor:</strong> ${kontrolori}`);
+      parts.push({
+        label: 'Kontrolor',
+        text: refereeGroups['Kontrolor'].map(ref => `${ref.name} ${ref.statusText}`).join(', ')
+      });
     }
 
-    // Format Pomoćni Sudac - show for admin or if current user is NOT Sudac or Delegat
     if (refereeGroups['Pomoćni Sudac'].length > 0 && (this.canSeeAllGames() || (myRole !== 'Sudac' && myRole !== 'Delegat' && myRole !== 'Kontrolor'))) {
-      const pomocni = refereeGroups['Pomoćni Sudac']
-        .sort((a, b) => a.position - b.position)
-        .map(ref => `${ref.name} ${ref.statusText}`)
-        .join(', ');
-      parts.push(`<strong>Pomoćni sudci:</strong> ${pomocni}`);
+      parts.push({
+        label: 'Pomoćni sudci',
+        text: refereeGroups['Pomoćni Sudac']
+          .sort((a, b) => a.position - b.position)
+          .map(ref => `${ref.name} ${ref.statusText}`)
+          .join(', ')
+      });
     }
 
-    return parts.length > 0 ? parts.join(' | ') : 'Nema dodijeljenih sudaca';
+    return parts;
   }
 
   // Method to get referee summary for cards
@@ -796,13 +766,13 @@ if (window.innerWidth <= 693) {
     this.gameToDelete = game;
     this.confirmationData = {
       title: 'Obriši Utakmicu',
-      message: `
-        <strong>Jeste li sigurni da želite obrisati ovu utakmicu?</strong><br><br>
-        <em><strong>${game.homeTeam}</strong> vs <strong>${game.awayTeam}</strong></em><br>
-        <em>${this.formatDate(game.date)} u ${game.time}</em><br>
-        <em>${game.venue}</em><br><br>
-        <strong>Ova akcija se ne može poništiti.</strong>
-      `,
+      message: 'Jeste li sigurni da želite obrisati ovu utakmicu?',
+      details: [
+        `${game.homeTeam} vs ${game.awayTeam}`,
+        `${this.formatDate(game.date)} u ${game.time}`,
+        game.venue,
+        'Ova akcija se ne može poništiti.'
+      ],
       confirmText: 'Obriši Utakmicu',
       cancelText: 'Odustani',
       confirmButtonClass: 'btn-danger',
@@ -810,8 +780,7 @@ if (window.innerWidth <= 693) {
       data: game
     };
     this.isConfirmationModalOpen = true;
-    console.log('Modal should be open now:', this.isConfirmationModalOpen);
-  }
+      }
 
   closeConfirmationModal(): void {
     this.isConfirmationModalOpen = false;
@@ -873,22 +842,19 @@ if (window.innerWidth <= 693) {
 
 
 async openKontrolaModal(game: BasketballGame): Promise<void> {
-  console.log('Opening kontrola modal for game:', game);
-  
+    
   this.gameForKontrola = game;
   
   try {
     const response = await firstValueFrom(this.kontrolaService.hasKontrola(game._id));
-    console.log('🔍 Kontrola exists:', response.exists);
-    
+        
     // Set edit mode first
     this.isKontrolaEditMode = response.exists;
     
     // Use setTimeout to ensure change detection picks up the edit mode change
     setTimeout(() => {
       this.isKontrolaModalOpen = true;
-      console.log('📝 Modal opened with edit mode:', this.isKontrolaEditMode);
-    }, 10);
+          }, 10);
     
   } catch (error) {
     console.error('❌ Error checking kontrola existence:', error);

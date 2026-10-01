@@ -2,8 +2,6 @@
 // SIMPLIFIED VERSION - Single view for admin
 
 import { Component, OnInit } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { ExpensesModalComponent } from './expenses-modal/expenses-modal.component';
 import { NewTravelExpense, TravelExpense } from '../../model/travel-expense.model';
 import { TravelExpenseService } from '../../services/travel-expense.service';
@@ -12,7 +10,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DeleteExpensesModalComponent } from './delete-expenses-modal/delete-expenses-modal.component';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { SidebarComponent } from "../sidebar/sidebar.component";
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
 
@@ -22,13 +19,10 @@ type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
   selector: 'app-expenses',
   imports: [
     RouterModule,
-    HeaderComponent,
-    FooterComponent,
     ExpensesModalComponent,
     FormsModule,
     CommonModule,
-    DeleteExpensesModalComponent,
-    SidebarComponent
+    DeleteExpensesModalComponent
   ],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss',
@@ -88,8 +82,7 @@ export class ExpensesComponent implements OnInit {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
          if (!user) {
-        console.log('No user found (likely SSR)');
-        return; // Stop execution on server-side
+                return; // Stop execution on server-side
       }
         this.currentUser = user;
         this.isAdmin = user.role === 'Admin';
@@ -315,8 +308,7 @@ onDeleteConfirmed() {
 }
 
 onExpenseDeleted(expenseId: string) {
-  console.log('Expense deleted:', expenseId);
-  this.successMessage = 'Izvješće je uspješno obrisano!';
+    this.successMessage = 'Izvješće je uspješno obrisano!';
   this.loadTravelExpenses();
   this.closeDeleteModal();
   setTimeout(() => this.clearMessages(), 4000);
