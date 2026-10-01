@@ -36,7 +36,7 @@
               Nema novih obavijesti
             </div>
             
-            <div *ngFor="let notification of notifications" 
+            <div *ngFor="let notification of notifications; trackBy: trackByNotificationId" 
                  class="notification-item" 
                  [class.unread]="!notification.isRead"
                  (click)="markAsRead(notification)">

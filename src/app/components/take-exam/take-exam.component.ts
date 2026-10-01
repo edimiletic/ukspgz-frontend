@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy} from '@angular/core';
-import { Exam, ExamAnswer, ExamSubmission } from '../../model/exam.model';
+import { Exam, ExamAnswer, ExamQuestion, ExamSubmission } from '../../model/exam.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
 import { CommonModule } from '@angular/common';
@@ -302,5 +302,9 @@ exam: Exam | null = null;
   // Public method for template to navigate back to exams
   navigateToExams(): void {
     this.router.navigate(['/exams']);
+  }
+
+  trackByQuestion(_index: number, question: ExamQuestion): string {
+    return question._id || String(_index);
   }
 }

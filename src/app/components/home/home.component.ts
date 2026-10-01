@@ -12,7 +12,7 @@ import { BasketballGame } from '../../model/basketballGame.model';
 import { TravelExpense } from '../../model/travel-expense.model';
 import { Absence } from '../../model/absence.model';
 import { Exam, ExamAttempt } from '../../model/exam.model';
-import { CreateGameModalComponent } from "../games-assigned/create-game-modal/create-game-modal.component";
+import { EditGameModalComponent } from "../games-assigned/edit-game-modal/edit-game-modal.component";
 import { AddQuestionModalComponent } from "../exams/add-question-modal/add-question-modal.component";
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
@@ -21,7 +21,7 @@ import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, CreateGameModalComponent, AddQuestionModalComponent, TimeAbsentModalComponent, ExpensesModalComponent],
+  imports: [CommonModule, RouterModule, EditGameModalComponent, AddQuestionModalComponent, TimeAbsentModalComponent, ExpensesModalComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -612,6 +612,18 @@ openExpensesModal(): void {
 closeExpensesModal(): void {
   this.isExpensesModalOpen = false;
 }
+
+  trackByGameId(_index: number, game: BasketballGame): string {
+    return game._id;
+  }
+
+  trackByExpenseId(_index: number, expense: TravelExpense): string {
+    return expense.id;
+  }
+
+  trackByAbsenceId(_index: number, absence: Absence): string {
+    return absence._id;
+  }
 
 onExpenseReportCreated(event: { reportData: any; reportId: string }): void {
     this.closeExpensesModal();

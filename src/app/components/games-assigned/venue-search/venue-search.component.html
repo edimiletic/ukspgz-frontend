@@ -14,7 +14,7 @@
   <ul class="venue-results" *ngIf="open && !disabled">
     <li *ngIf="matches.length === 0" class="venue-hint">Nema dvorane s tim nazivom</li>
     <li
-      *ngFor="let venue of matches"
+      *ngFor="let venue of matches; trackBy: trackByVenue"
       (mousedown)="choose(venue)"
       [class.active]="venue === selected">
       {{ venue }}

@@ -342,4 +342,8 @@ export class NotificationsComponent implements OnInit {
   goBack() {
     this.router.navigate(['/home']);
   }
+
+  trackByNotificationId(_index: number, notification: Notification): string {
+    return notification._id;
+  }
 }

@@ -95,7 +95,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let absence of futureDisplayedAbsences">
+                            <tr *ngFor="let absence of futureDisplayedAbsences; trackBy: trackByAbsenceId">
                                 <td>{{ absence.displayId }}</td>
                                 <td>{{ absence.userName }}</td>
                                 <td>{{ absence.userRole || '-' }}</td>
@@ -162,7 +162,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let absence of ongoingDisplayedAbsences" class="ongoing-row">
+                            <tr *ngFor="let absence of ongoingDisplayedAbsences; trackBy: trackByAbsenceId" class="ongoing-row">
                                 <td>{{ absence.displayId }}</td>
                                 <td>{{ absence.userName }}</td>
                                 <td>{{ absence.userRole || '-' }}</td>
@@ -230,7 +230,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let absence of pastDisplayedAbsences" class="past-row">
+                            <tr *ngFor="let absence of pastDisplayedAbsences; trackBy: trackByAbsenceId" class="past-row">
                                 <td>{{ absence.displayId }}</td>
                                 <td>{{ absence.userName }}</td>
                                 <td>{{ absence.userRole || '-' }}</td>
@@ -306,7 +306,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let absence of futureDisplayedAbsences">
+                            <tr *ngFor="let absence of futureDisplayedAbsences; trackBy: trackByAbsenceId">
                                 <td>{{ absence.displayId }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
@@ -369,7 +369,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let absence of ongoingDisplayedAbsences" class="ongoing-row">
+                            <tr *ngFor="let absence of ongoingDisplayedAbsences; trackBy: trackByAbsenceId" class="ongoing-row">
                                 <td>{{ absence.displayId }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
@@ -434,7 +434,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let absence of pastDisplayedAbsences" class="past-row">
+                            <tr *ngFor="let absence of pastDisplayedAbsences; trackBy: trackByAbsenceId" class="past-row">
                                 <td>{{ absence.displayId }}</td>
                                 <td>{{ formatDate(absence.startDate) }}</td>
                                 <td>{{ formatDate(absence.endDate) }}</td>
@@ -503,16 +503,11 @@
 
 
 <!-- Modals - Only show for non-admin users -->
-<app-time-absent-modal [isOpen]="isModalOpen" (closeModalEvent)="closeModal()" (absenceSaved)="onAbsenceSaved()"
-    (error)="onModalError($event)" *ngIf="canCreateOwnAbsence">
+<app-time-absent-modal *ngIf="canCreateOwnAbsence" [isOpen]="isAbsenceFormOpen" [absence]="absenceToEdit"
+    (closeModalEvent)="closeModal()" (absenceSaved)="onAbsenceSaved()" (absenceUpdated)="onAbsenceUpdated()"
+    (error)="onModalError($event)">
 </app-time-absent-modal>
 
-<app-delete-time-absent-modal [isOpen]="isDeleteModalOpen" [absenceToDelete]="absenceToDelete"
-    (closeModalEvent)="closeDeleteModal()" (absenceDeleted)="onAbsenceDeleted()" (error)="onModalError($event)"
-    *ngIf="canCreateOwnAbsence">
-</app-delete-time-absent-modal>
-
-<app-edit-time-absent-modal [isOpen]="isEditModalOpen" [absenceToEdit]="absenceToEdit"
-    (closeModalEvent)="closeEditModal()" (absenceUpdated)="onAbsenceUpdated()" (error)="onModalError($event)"
-    *ngIf="canCreateOwnAbsence">
-</app-edit-time-absent-modal>
+<app-confirmation-modal *ngIf="canCreateOwnAbsence" [isOpen]="isDeleteModalOpen" [isBusy]="isConfirmBusy"
+    [confirmationData]="confirmationData" (close)="closeDeleteModal()" (confirm)="onDeleteConfirmed($event)">
+</app-confirmation-modal>

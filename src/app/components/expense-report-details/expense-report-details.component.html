@@ -195,25 +195,13 @@
   (save)="onExpenseSaved($event)">
 </app-modal-expense-report-details>
 
-<app-delete-expenses-modal [isOpen]="isDeleteModalOpen" [expenseToDelete]="report" (close)="closeDeleteModal()"
-    (expenseDeleted)="onExpenseDeleted()"  (error)="onDeleteError($event)">>
-</app-delete-expenses-modal>
-
-<app-submit-modal-expense
-  [isOpen]="isSubmitModalOpen"
-  [report]="report"
-  (close)="closeSubmitModal()"
-  (submitConfirmed)="onSubmitConfirmed($event)"
-  (error)="onSubmitError($event)">
-</app-submit-modal-expense>
-
-<!-- Delete Expense Item Confirmation Modal -->
-<app-delete-item-modal
-  [isOpen]="isDeleteExpenseItemModalOpen"
-  [expenseItemId]="expenseItemToDelete"
-  (close)="closeDeleteExpenseItemModal()"
-  (deleteConfirmed)="onDeleteExpenseItemConfirmed($event)">
-</app-delete-item-modal>
+<app-confirmation-modal
+  [isOpen]="isConfirmOpen"
+  [isBusy]="isConfirmBusy"
+  [confirmationData]="confirmationData"
+  (close)="closeConfirmModal()"
+  (confirm)="onConfirm($event)">
+</app-confirmation-modal>
 
 <app-reject-expense-modal
   [isOpen]="isRejectModalOpen"

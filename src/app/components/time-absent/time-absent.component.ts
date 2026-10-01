@@ -1,10 +1,9 @@
 import { AbsenceService } from './../../services/absence.service';
 import { CommonModule } from '@angular/common';
 import { Component, HostBinding, HostListener } from '@angular/core';
-import { AbsenceData, TimeAbsentModalComponent } from './time-absent-modal/time-absent-modal.component';
+import { TimeAbsentModalComponent } from './time-absent-modal/time-absent-modal.component';
 import { Absence } from '../../model/absence.model';
-import { DeleteTimeAbsentModalComponent } from "./delete-time-absent-modal/delete-time-absent-modal.component";
-import { EditTimeAbsentModalComponent } from "./edit-time-absent-modal/edit-time-absent-modal.component";
+import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { User } from '../../model/user.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
@@ -19,12 +18,12 @@ interface AbsenceWithUser extends Absence {
 
 @Component({
   selector: 'app-time-absent',
-  imports: [RouterModule, TimeAbsentModalComponent, CommonModule, DeleteTimeAbsentModalComponent, EditTimeAbsentModalComponent, FormsModule],
+  imports: [RouterModule, TimeAbsentModalComponent, CommonModule, ConfirmationModalComponent, FormsModule],
   templateUrl: './time-absent.component.html',
   styleUrl: './time-absent.component.scss'
 })
 export class TimeAbsentComponent {
-isModalOpen = false;
+  isAbsenceFormOpen = false;
   absences: AbsenceWithUser[] = [];
   // Original data (unfiltered)
   allAbsences: AbsenceWithUser[] = [];
@@ -56,7 +55,11 @@ isModalOpen = false;
 
   isLoading = false;
   isDeleteModalOpen = false;
-  isEditModalOpen = false;
+  isConfirmBusy = false;
+  confirmationData: ConfirmationData = {
+    title: 'Potvrdi brisanje',
+    message: 'Jeste li sigurni da želite obrisati ovo odsustvo?'
+  };
   absenceToEdit: Absence | null = null;
   absenceToDelete: Absence | null = null;
   isAdmin = false;
@@ -404,33 +407,82 @@ if (window.innerWidth <= 693) {
   }
 
   openModal() {
-    this.isModalOpen = true;
+    this.absenceToEdit = null;
+    this.isAbsenceFormOpen = true;
   }
 
   closeModal() {
-    this.isModalOpen = false;
+    this.isAbsenceFormOpen = false;
+    this.absenceToEdit = null;
   }
 
   openEditModal(absence: Absence) {
     if (!this.isOwnAbsence(absence)) return;
     this.absenceToEdit = absence;
-    this.isEditModalOpen = true;
+    this.isAbsenceFormOpen = true;
   }
 
   openDeleteModal(absence: Absence) {
     if (!this.isOwnAbsence(absence)) return;
     this.absenceToDelete = absence;
+    this.confirmationData = {
+      title: 'Potvrdi brisanje',
+      message: 'Jeste li sigurni da želite obrisati ovo odsustvo?',
+      details: [
+        `${this.formatDate(absence.startDate)} – ${this.formatDate(absence.endDate)}`,
+        'Ova akcija se ne može poništiti.'
+      ],
+      confirmText: 'Obriši',
+      loadingText: 'Brisanje...',
+      data: absence
+    };
     this.isDeleteModalOpen = true;
-  }
-
-  closeEditModal() {
-    this.isEditModalOpen = false;
-    this.absenceToEdit = null;
   }
 
   closeDeleteModal() {
     this.isDeleteModalOpen = false;
+    this.isConfirmBusy = false;
     this.absenceToDelete = null;
+  }
+
+  onDeleteConfirmed(payload: unknown): void {
+    const absence = payload as Absence | undefined;
+    if (!absence?._id || this.isConfirmBusy) return;
+
+    this.isConfirmBusy = true;
+    this.absenceService.deleteAbsence(absence._id).subscribe({
+      next: () => {
+        this.onAbsenceDeleted();
+        this.closeDeleteModal();
+      },
+      error: (error) => {
+        this.isConfirmBusy = false;
+        this.onModalError(this.getDeleteErrorMessage(error));
+      }
+    });
+  }
+
+  private getDeleteErrorMessage(error: any): string {
+    const backendError = error.error?.error;
+    if (backendError) {
+      if (backendError.includes('cannot delete active')) {
+        return 'Ne možete obrisati aktivno odsustvo.';
+      }
+      if (backendError.includes('cannot delete past')) {
+        return 'Ne možete obrisati završeno odsustvo.';
+      }
+      if (backendError.includes('Access denied')) {
+        return 'Nemate dozvolu za brisanje odsustva.';
+      }
+      if (backendError.includes('not found')) {
+        return 'Odsustvo nije pronađeno.';
+      }
+      return backendError;
+    }
+    if (error.status === 400) return 'Ne možete obrisati ovo odsustvo.';
+    if (error.status === 403) return 'Nemate dozvolu za brisanje odsustva.';
+    if (error.status === 404) return 'Odsustvo nije pronađeno.';
+    return 'Greška pri brisanju odsustva. Molimo pokušajte ponovo.';
   }
 
   onAbsenceSaved() {
@@ -475,6 +527,10 @@ if (window.innerWidth <= 693) {
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+  }
+
+  trackByAbsenceId(_index: number, absence: Absence): string {
+    return absence._id;
   }
 
   toggleMobileFilters(): void {

@@ -100,4 +100,12 @@ export class EligibleOfficialsComponent implements OnInit {
   roleLabel(roles: string[]): string {
     return roles.length ? roles.join(', ') : '—';
   }
+
+  trackByCompetition(_index: number, group: EligibleOfficialsGroup): string {
+    return group.competition;
+  }
+
+  trackByOfficialId(_index: number, person: EligibleOfficialsGroup['officials'][number]): string {
+    return person._id;
+  }
 }

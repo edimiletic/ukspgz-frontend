@@ -231,10 +231,10 @@
   (success)="onReportCreated($event)">
 </app-expenses-modal>
 
-<app-delete-expenses-modal
+<app-confirmation-modal
   [isOpen]="isDeleteModalOpen"
-  [expenseToDelete]="expenseToDelete"
+  [isBusy]="isConfirmBusy"
+  [confirmationData]="confirmationData"
   (close)="closeDeleteModal()"
-  (expenseDeleted)="onExpenseDeleted($event)"
-  (error)="onDeleteError($event)">
-</app-delete-expenses-modal>
+  (confirm)="onDeleteConfirmed($event)">
+</app-confirmation-modal>

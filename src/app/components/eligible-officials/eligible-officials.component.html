@@ -29,7 +29,7 @@
     Nema osoba za odabranu ulogu.
   </div>
 
-  <section *ngFor="let group of filteredGroups" class="league-card">
+  <section *ngFor="let group of filteredGroups; trackBy: trackByCompetition" class="league-card">
     <div class="league-header">
       <h2>{{ group.competition }}</h2>
       <span class="count">{{ group.officials.length }}</span>
@@ -46,7 +46,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let person of getPagedOfficials(group)">
+          <tr *ngFor="let person of getPagedOfficials(group); trackBy: trackByOfficialId">
             <td>{{ person.surname }} {{ person.name }}</td>
             <td>{{ roleLabel(person.roles) }}</td>
             <td>{{ person.rang || '—' }}</td>

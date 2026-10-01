@@ -42,7 +42,7 @@
       <h4>Navigacija po pitanjima</h4>
       <div class="question-grid">
         <button 
-          *ngFor="let question of exam.questions; let i = index"
+          *ngFor="let question of exam.questions; let i = index; trackBy: trackByQuestion"
           class="question-nav-btn"
           [class]="getQuestionStatusClass(i)"
           (click)="goToQuestion(i)"

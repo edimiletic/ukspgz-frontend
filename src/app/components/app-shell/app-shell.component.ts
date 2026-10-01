@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
@@ -11,7 +11,8 @@ import { FooterComponent } from '../footer/footer.component';
   selector: 'app-shell',
   imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent, FooterComponent],
   templateUrl: './app-shell.component.html',
-  styleUrl: './app-shell.component.scss'
+  styleUrl: './app-shell.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppShellComponent {
   hideSidebar$: Observable<boolean>;

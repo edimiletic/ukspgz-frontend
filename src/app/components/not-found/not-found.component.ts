@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-not-found',
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="not-found">
       <h1>Stranica nije pronađena</h1>

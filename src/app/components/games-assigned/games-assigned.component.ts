@@ -5,8 +5,7 @@ import { AuthService } from '../../services/login.service';
 import { BasketballGame, BasketballGameUtils, RefereeAssignment, RefereeGroups, RefereeInfo } from '../../model/basketballGame.model';
 import { FormsModule } from '@angular/forms';
 import { RejectionModalComponent } from "./rejection-modal/rejection-modal.component";
-import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.component";
-import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
+import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewFullKontrola, isAdminUser, userHasRole } from '../../model/roles';
 import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.component";
@@ -17,7 +16,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [CommonModule, FormsModule, RejectionModalComponent, CreateGameModalComponent, DeleteGameModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
+  imports: [CommonModule, FormsModule, RejectionModalComponent, ConfirmationModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss'
 })
@@ -83,22 +82,18 @@ isMobileFiltersOpen: boolean = false;
   isRejectionModalOpen = false;
   gameToReject: BasketballGame | null = null;
 
-  // Create game modal
-  isCreateGameModalOpen = false;
-
-  // Edit game modal
-  isEditGameModalOpen = false;
+  isGameFormModalOpen = false;
   gameToEdit: BasketballGame | null = null;
 
-  // Confirmation modal for delete
   isConfirmationModalOpen = false;
+  isConfirmBusy = false;
   confirmationData: ConfirmationData = {
     title: '',
     message: '',
     confirmText: 'Obriši',
     cancelText: 'Odustani',
     confirmButtonClass: 'btn-danger',
-    iconClass: 'fa-trash'
+    loadingText: 'Brisanje...'
   };
   gameToDelete: BasketballGame | null = null;
 
@@ -271,14 +266,19 @@ onKontrolaSaved(result: any): void {
 
 
 
-  // Open create game modal
   openCreateGameModal() {
-    this.isCreateGameModalOpen = true;
+    this.gameToEdit = null;
+    this.isGameFormModalOpen = true;
   }
 
-  // Close create game modal
-  closeCreateGameModal() {
-    this.isCreateGameModalOpen = false;
+  openEditGameModal(game: BasketballGame) {
+    this.gameToEdit = game;
+    this.isGameFormModalOpen = true;
+  }
+
+  closeGameFormModal() {
+    this.isGameFormModalOpen = false;
+    this.gameToEdit = null;
   }
 
 onGameCreated(result: any) {
@@ -287,21 +287,9 @@ onGameCreated(result: any) {
   } else {
     this.showSuccess('Utakmica je uspješno kreirana');
   }
-  this.loadMyGames(); // Refresh the games list
+  this.loadMyGames();
 }
-  // Open edit game modal
-  openEditGameModal(game: BasketballGame) {
-        this.gameToEdit = game;
-    this.isEditGameModalOpen = true;
-          }
 
-  // Close edit game modal
-  closeEditGameModal() {
-    this.isEditGameModalOpen = false;
-    this.gameToEdit = null;
-  }
-
-  // Handle game update success
   onGameUpdated(updatedGame: any) {
     this.showSuccess(updatedGame?.message || 'Utakmica je uspješno ažurirana!');
     this.loadMyGames();
@@ -773,28 +761,30 @@ if (window.innerWidth <= 693) {
         game.venue,
         'Ova akcija se ne može poništiti.'
       ],
-      confirmText: 'Obriši Utakmicu',
+      confirmText: 'Obriši utakmicu',
       cancelText: 'Odustani',
       confirmButtonClass: 'btn-danger',
-      iconClass: 'fa-trash',
+      loadingText: 'Brisanje...',
       data: game
     };
     this.isConfirmationModalOpen = true;
-      }
+  }
 
   closeConfirmationModal(): void {
     this.isConfirmationModalOpen = false;
+    this.isConfirmBusy = false;
     this.gameToDelete = null;
-    // No need to manually reset loading state - the modal will handle it
   }
 
-  onDeleteConfirmed(game: BasketballGame): void {
-    if (!game) return;
+  onDeleteConfirmed(payload: unknown): void {
+    const game = payload as BasketballGame | undefined;
+    if (!game?._id) return;
 
+    this.isConfirmBusy = true;
     this.basketballGameService.deleteGame(game._id).subscribe({
-      next: (response) => {
+      next: () => {
         this.showSuccess(`Utakmica ${game.homeTeam} vs ${game.awayTeam} je uspješno obrisana.`);
-        this.loadMyGames(); // Refresh the list
+        this.loadMyGames();
         this.closeConfirmationModal();
       },
       error: (error) => {
@@ -982,6 +972,10 @@ async openKontrolaModal(game: BasketballGame): Promise<void> {
     
     // ADD PAGINATION UPDATE
     this.updatePagination();
+  }
+
+  trackByGameId(_index: number, game: BasketballGame): string {
+    return game._id;
   }
 
 toggleMobileFilters(): void {

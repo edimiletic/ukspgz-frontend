@@ -227,5 +227,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
-      }
+  }
+
+  trackByNotificationId(_index: number, notification: Notification): string {
+    return notification._id;
+  }
 }

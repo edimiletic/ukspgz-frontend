@@ -106,7 +106,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of pendingDisplayedGames">
+              <tr *ngFor="let game of pendingDisplayedGames; trackBy: trackByGameId">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
@@ -196,7 +196,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of confirmedDisplayedGames">
+              <tr *ngFor="let game of confirmedDisplayedGames; trackBy: trackByGameId">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
@@ -275,7 +275,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let game of historyDisplayedGames">
+              <tr *ngFor="let game of historyDisplayedGames; trackBy: trackByGameId">
                 <td>{{ formatDate(game.date) }}</td>
                 <td>{{ game.time }}</td>
                 <td>{{ game.venue }}</td>
@@ -418,20 +418,15 @@
   (reject)="onRejectionConfirmed($event)">
 </app-rejection-modal>
 
-<!-- Create Game Modal -->
-<app-create-game-modal [isOpen]="isCreateGameModalOpen" (close)="closeCreateGameModal()"
-  (gameCreated)="onGameCreated($event)">
-</app-create-game-modal>
-
-<!-- Edit Game Modal -->
-<app-edit-game-modal [isOpen]="isEditGameModalOpen" [game]="gameToEdit" (close)="closeEditGameModal()"
-  (gameUpdated)="onGameUpdated($event)">
-</app-edit-game-modal>
+<!-- Game form modal (create + edit) -->
+<app-game-form-modal [isOpen]="isGameFormModalOpen" [game]="gameToEdit" (close)="closeGameFormModal()"
+  (gameCreated)="onGameCreated($event)" (gameUpdated)="onGameUpdated($event)">
+</app-game-form-modal>
 
 <!-- Confirmation Modal -->
-<app-delete-game-modal [isOpen]="isConfirmationModalOpen" [confirmationData]="confirmationData"
-  (close)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
-</app-delete-game-modal>
+<app-confirmation-modal [isOpen]="isConfirmationModalOpen" [isBusy]="isConfirmBusy"
+  [confirmationData]="confirmationData" (close)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
+</app-confirmation-modal>
 
 <app-view-kontrola-modal [isOpen]="isViewKontrolaModalOpen" [game]="gameForViewKontrola"
   [currentUserId]="currentUser?._id || ''" [viewAllReferees]="viewAllKontrola" (close)="closeViewKontrolaModal()">

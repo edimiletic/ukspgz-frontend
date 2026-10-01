@@ -137,7 +137,7 @@
               </button>
             </div>
             <div class="activity-list">
-              <div *ngFor="let game of recentGames" class="activity-item">
+              <div *ngFor="let game of recentGames; trackBy: trackByGameId" class="activity-item">
                 <div class="activity-info">
                   <h4>{{ game.homeTeam }} vs {{ game.awayTeam }}</h4>
                   <p class="activity-meta">
@@ -166,7 +166,7 @@
               </button>
             </div>
             <div class="activity-list">
-              <div *ngFor="let expense of recentExpenses" class="activity-item">
+              <div *ngFor="let expense of recentExpenses; trackBy: trackByExpenseId" class="activity-item">
                 <div class="activity-info">
                   <h4>{{ expense.type }} - {{ expense.month }} {{ expense.year }}</h4>
                   <p class="activity-meta">
@@ -190,7 +190,7 @@
             <i class="fas fa-exclamation-triangle"></i>
             <div class="alert-content">
               <h4>{{ isAdmin ? 'Trenutna odsustva sudaca' : 'Vaše trenutno odsustvo' }}</h4>
-              <div *ngFor="let absence of currentAbsences" class="absence-item">
+              <div *ngFor="let absence of currentAbsences; trackBy: trackByAbsenceId" class="absence-item">
                 <p>
                   <strong>{{ isAdmin ? absence.userName + ': ' : '' }}</strong>
                   {{ formatDate(absence.startDate) }} - {{ formatDate(absence.endDate) }}
@@ -263,10 +263,10 @@
   </div>
 </div>
 
-<!-- Create Game Modal -->
-<app-create-game-modal [isOpen]="isCreateGameModalOpen" (close)="closeCreateGameModal()"
+<!-- Game form modal -->
+<app-game-form-modal [isOpen]="isCreateGameModalOpen" (close)="closeCreateGameModal()"
   (gameCreated)="onGameCreated($event)">
-</app-create-game-modal>
+</app-game-form-modal>
 
 <app-add-question-modal
   [isOpen]="isAddQuestionModalOpen"

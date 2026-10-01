@@ -4,8 +4,8 @@
     <!-- Modal Header -->
     <div class="modal-header">
       <h2>
-        <span *ngIf="currentStep === 1">Uredi Utakmicu</span>
-        <span *ngIf="currentStep === 2">Uredi Sudce</span>
+        <span *ngIf="currentStep === 1">{{ isCreateMode ? 'Kreiraj novu utakmicu' : 'Uredi utakmicu' }}</span>
+        <span *ngIf="currentStep === 2">{{ isCreateMode ? 'Dodijeli suce' : 'Uredi suca' }}</span>
       </h2>
       <button class="close-btn" (click)="closeModal()" [disabled]="isLoading">
         <i class="fas fa-times"></i>
@@ -21,7 +21,7 @@
       <div class="step-divider"></div>
       <div class="step" [class.active]="currentStep === 2">
         <span class="step-number">2</span>
-        <span class="step-title">Uredi Sudce</span>
+        <span class="step-title">{{ isCreateMode ? 'Dodijeli suce' : 'Uredi suca' }}</span>
       </div>
     </div>
 
@@ -36,7 +36,7 @@
       <!-- Step 1: Game Details -->
       <div *ngIf="currentStep === 1" class="step-content">
         <form class="game-form">
-          <div class="form-row">
+          <div class="form-row" [class.form-row-single]="isCreateMode">
             <div class="form-group">
               <label for="competition">Natjecanje</label>
               <select 
@@ -51,7 +51,7 @@
                 <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" *ngIf="!isCreateMode">
               <label for="status">Status</label>
               <select 
                 id="status" 
@@ -317,7 +317,7 @@
             Odustani
           </button>
           <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="isLoading">
-            {{ shouldShowNominations() ? 'Dalje' : 'Spremi' }} <i class="fas fa-arrow-right"></i>
+            {{ shouldShowNominations() ? 'Dalje' : (isCreateMode ? 'Kreiraj utakmicu' : 'Spremi') }} <i class="fas fa-arrow-right"></i>
           </button>
         </ng-container>
 
@@ -332,10 +332,10 @@
           <button 
             type="button" 
             class="btn btn-success" 
-            (click)="updateGame()" 
+            (click)="saveGame()" 
             [disabled]="isLoading || isLoadingReferees || isLoadingAbsences">
             <span *ngIf="!isLoading">
-              Spremi
+              {{ isCreateMode ? 'Kreiraj utakmicu' : 'Spremi' }}
             </span>
             <span *ngIf="isLoading">
               <i class="fas fa-spinner fa-spin"></i> Spremanje...

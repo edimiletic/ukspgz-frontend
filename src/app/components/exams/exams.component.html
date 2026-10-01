@@ -131,7 +131,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let attempt of userAttempts" class="attempt-row">
+            <tr *ngFor="let attempt of userAttempts; trackBy: trackByAttemptId" class="attempt-row">
               <td class="exam-title">{{ getExamTitle(attempt) }}</td>
               <td class="attempt-date">
                 {{ attempt.completedAt ? formatDate(attempt.completedAt) : 'N/A' }}
@@ -196,9 +196,10 @@
   </div>
 </div>
 
-<app-delete-exam-modal
+<app-confirmation-modal
   [isOpen]="isDeleteAttemptModalOpen"
-  [attemptToDelete]="attemptToDelete"
+  [isBusy]="isConfirmBusy"
+  [confirmationData]="confirmationData"
   (close)="closeDeleteAttemptModal()"
-  (deleteConfirmed)="onDeleteAttemptConfirmed($event)">
-</app-delete-exam-modal>
+  (confirm)="onDeleteAttemptConfirmed($event)">
+</app-confirmation-modal>

@@ -7,12 +7,12 @@ import { CommonModule } from '@angular/common';
 import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
 import { AddQuestionModalComponent } from "./add-question-modal/add-question-modal.component";
-import { DeleteExamModalComponent } from "./delete-exam-modal/delete-exam-modal.component";
+import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, AddQuestionModalComponent, RouterModule, DeleteExamModalComponent],
+  imports: [CommonModule, AddQuestionModalComponent, RouterModule, ConfirmationModalComponent],
   templateUrl: './exams.component.html',
   styleUrl: './exams.component.scss'
 })
@@ -27,7 +27,12 @@ export class ExamsComponent implements OnInit {
   showAddQuestionModal = false;
 
   isDeleteAttemptModalOpen = false;
-attemptToDelete: ExamAttempt | null = null;
+  isConfirmBusy = false;
+  attemptToDelete: ExamAttempt | null = null;
+  confirmationData: ConfirmationData = {
+    title: 'Obriši pokušaj ispita',
+    message: 'Jeste li sigurni da želite obrisati ovaj pokušaj ispita?'
+  };
 
   // Toast notification properties
   successMessage: string | null = null;
@@ -255,21 +260,39 @@ deleteAttempt(attemptId: string): void {
   const attempt = this.userAttempts.find(a => a._id === attemptId);
   if (attempt) {
     this.attemptToDelete = attempt;
+    this.confirmationData = {
+      title: 'Obriši pokušaj ispita',
+      message: 'Jeste li sigurni da želite obrisati ovaj pokušaj ispita?',
+      details: [
+        `Ispit: ${this.getExamTitle(attempt)}`,
+        `Datum: ${attempt.completedAt ? this.formatDate(attempt.completedAt) : 'N/A'}`,
+        `Rezultat: ${attempt.score || 0}/25`,
+        `Status: ${attempt.passed ? 'Položen' : 'Nepoložen'}`,
+        'Ova akcija se ne može poništiti.'
+      ],
+      confirmText: 'Obriši pokušaj',
+      loadingText: 'Brisanje...',
+      data: attempt._id
+    };
     this.isDeleteAttemptModalOpen = true;
   }
 }
 
-// Add these methods
 closeDeleteAttemptModal(): void {
   this.isDeleteAttemptModalOpen = false;
+  this.isConfirmBusy = false;
   this.attemptToDelete = null;
 }
 
-onDeleteAttemptConfirmed(attemptId: string): void {
+onDeleteAttemptConfirmed(payload: unknown): void {
+  const attemptId = payload as string | undefined;
+  if (!attemptId || this.isConfirmBusy) return;
+
+  this.isConfirmBusy = true;
   this.examService.deleteExamAttempt(attemptId).subscribe({
-    next: (response) => {
+    next: () => {
       this.showSuccessToast('Pokušaj ispita je uspješno obrisan.');
-      this.loadUserAttempts(); // Refresh the list
+      this.loadUserAttempts();
       this.closeDeleteAttemptModal();
     },
     error: (err) => {
@@ -279,5 +302,9 @@ onDeleteAttemptConfirmed(attemptId: string): void {
     }
   });
 }
+
+  trackByAttemptId(_index: number, attempt: ExamAttempt): string {
+    return attempt._id;
+  }
 
 }

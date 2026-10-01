@@ -93,7 +93,7 @@
 
       <div class="notifications-list" *ngIf="notifications.length > 0">
         <div class="notification-item" 
-             *ngFor="let notification of notifications"
+             *ngFor="let notification of notifications; trackBy: trackByNotificationId"
              [class.unread]="!notification.isRead"
              [class.selected]="isSelected(notification._id)">
           

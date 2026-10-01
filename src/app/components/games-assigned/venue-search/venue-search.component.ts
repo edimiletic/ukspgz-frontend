@@ -68,6 +68,10 @@ export class VenueSearchComponent implements ControlValueAccessor {
     }
   }
 
+  trackByVenue(_index: number, venue: string): string {
+    return venue;
+  }
+
   choose(name: string): void {
     this.selected = name;
     this.query = name;

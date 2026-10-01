@@ -1,6 +1,6 @@
 // src/app/components/games-assigned/edit-game-modal/edit-game-modal.component.ts
 import { CommonModule } from '@angular/common';
-import { BasketballGame, GameFormData, RefereeAssignmentData, RefereeSelection } from '../../../model/basketballGame.model';
+import { BasketballGame, CreateGameRequest, GameFormData, RefereeAssignmentData, RefereeSelection } from '../../../model/basketballGame.model';
 import { User } from '../../../model/user.model';
 import { UserService } from '../../../services/user.service';
 import { BasketballGameService } from './../../../services/basketballGame.service';
@@ -17,7 +17,7 @@ import { TimeSelectComponent } from '../time-select/time-select.component';
 import { VenueSearchComponent } from '../venue-search/venue-search.component';
 
 @Component({
-  selector: 'app-edit-game-modal',
+  selector: 'app-game-form-modal',
   imports: [CommonModule, FormsModule, TimeSelectComponent, VenueSearchComponent],
   templateUrl: './edit-game-modal.component.html',
   styleUrl: './edit-game-modal.component.scss'
@@ -26,7 +26,12 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() game: BasketballGame | null = null;
   @Output() close = new EventEmitter<void>();
+  @Output() gameCreated = new EventEmitter<any>();
   @Output() gameUpdated = new EventEmitter<any>();
+
+  get isCreateMode(): boolean {
+    return !this.game;
+  }
 
   // Form data
   gameForm: GameFormData = {
@@ -117,6 +122,9 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   ) {}
 
   canManageCalendar(): boolean {
+    if (this.isCreateMode) {
+      return true;
+    }
     return canManageCalendar(this.authService.currentUserValue, this.gameForm.competition);
   }
 
@@ -208,13 +216,24 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && this.isOpen && this.game) {
-      this.loadCatalog();
-      this.loadReferees();
-      this.loadAbsences();
+    if (!this.isOpen) {
+      return;
+    }
+    if (!changes['isOpen'] && !changes['game']) {
+      return;
+    }
+
+    this.errorMessage = '';
+    this.loadCatalog();
+    this.loadReferees();
+    this.loadAbsences();
+
+    if (this.game) {
       this.populateForm();
       this.currentStep = this.canManageCalendar() || !this.shouldShowNominations() ? 1 : 2;
-      this.errorMessage = '';
+    } else {
+      this.resetForm();
+      this.currentStep = 1;
     }
   }
 
@@ -422,7 +441,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   async nextStep() {
     if (this.validateGameForm()) {
       if (!this.shouldShowNominations()) {
-        await this.updateGame();
+        await this.saveGame();
         return;
       }
       this.currentStep = 2;
@@ -621,6 +640,86 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     });
 
     return newRefereeNames;
+  }
+
+  async saveGame() {
+    if (this.isCreateMode) {
+      await this.createGame();
+      return;
+    }
+    await this.updateGame();
+  }
+
+  async createGame() {
+    if (this.shouldShowNominations() && !this.validateRefereeAssignments()) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    try {
+      const gameData: CreateGameRequest = {
+        homeTeam: this.gameForm.homeTeam.trim(),
+        awayTeam: this.gameForm.awayTeam.trim(),
+        date: this.gameForm.date,
+        time: this.gameForm.time,
+        venue: this.gameForm.venue.trim(),
+        competition: this.gameForm.competition,
+        notes: this.gameForm.notes.trim()
+      };
+
+      const createdGame = await firstValueFrom(this.basketballGameService.createGame(gameData));
+      if (!createdGame) {
+        throw new Error('Failed to create game');
+      }
+
+      const assignments: RefereeAssignmentData[] = [];
+      this.selectedReferees.sudci.forEach(sudac => {
+        if (sudac.userId) {
+          assignments.push({ userId: sudac.userId, role: 'Sudac', position: sudac.position });
+        }
+      });
+      if (this.selectedReferees.delegat) {
+        assignments.push({ userId: this.selectedReferees.delegat, role: 'Delegat', position: 1 });
+      }
+      if (this.selectedReferees.kontrolor && this.showKontrolorField()) {
+        assignments.push({ userId: this.selectedReferees.kontrolor, role: 'Kontrolor', position: 1 });
+      }
+      this.selectedReferees.pomocniSudci.forEach(pomocni => {
+        if (pomocni.userId) {
+          assignments.push({ userId: pomocni.userId, role: 'Pomoćni Sudac', position: pomocni.position });
+        }
+      });
+
+      const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
+      for (const assignment of assignments) {
+        const result: any = await firstValueFrom(
+          this.basketballGameService.assignReferee(createdGame._id, assignment)
+        );
+        if (result?.releasedNominations?.length) {
+          releasedNominations.push(...result.releasedNominations);
+        }
+      }
+
+      let message = assignments.length
+        ? `Utakmica kreirana i ${assignments.length} nominacija poslano!`
+        : 'Utakmica je uspješno kreirana';
+      if (releasedNominations.length) {
+        const released = releasedNominations
+          .map(item => `${item.homeTeam} vs ${item.awayTeam} (${item.competition})`)
+          .join(', ');
+        message += ` Niže nominacije su puštene i trebaju novu osobu: ${released}.`;
+      }
+
+      this.gameCreated.emit({ ...createdGame, message });
+      this.closeModal();
+    } catch (error: any) {
+      console.error('Error creating game:', error);
+      this.errorMessage = error?.error?.error || 'Greška pri kreiranju utakmice. Molimo pokušajte ponovo.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   // Form submission

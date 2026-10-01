@@ -1,0 +1,37 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ confirmationData.title }}</h3>
+      <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isBusy">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="warning-text">
+        <p class="warning-lead">{{ confirmationData.message }}</p>
+        <p class="warning-detail" *ngFor="let line of confirmationData.details; trackBy: trackByDetail">{{ line }}</p>
+      </div>
+
+      <div class="button-group">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="closeModal()"
+          [disabled]="isBusy">
+          {{ confirmationData.cancelText || 'Odustani' }}
+        </button>
+
+        <button
+          type="button"
+          class="btn"
+          [ngClass]="confirmationData.confirmButtonClass || 'btn-danger'"
+          [disabled]="isBusy"
+          (click)="confirmAction()">
+          <span *ngIf="isBusy">{{ confirmationData.loadingText || 'Pričekajte...' }}</span>
+          <span *ngIf="!isBusy">{{ confirmationData.confirmText || 'Potvrdi' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

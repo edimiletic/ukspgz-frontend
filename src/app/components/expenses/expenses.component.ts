@@ -8,7 +8,7 @@ import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AuthService } from '../../services/login.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DeleteExpensesModalComponent } from './delete-expenses-modal/delete-expenses-modal.component';
+import { ConfirmationData, ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
@@ -22,7 +22,7 @@ type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
     ExpensesModalComponent,
     FormsModule,
     CommonModule,
-    DeleteExpensesModalComponent
+    ConfirmationModalComponent
   ],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss',
@@ -30,6 +30,11 @@ type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
 export class ExpensesComponent implements OnInit {
   isModalOpen = false;
   isDeleteModalOpen = false;
+  isConfirmBusy = false;
+  confirmationData: ConfirmationData = {
+    title: 'Potvrdi brisanje',
+    message: 'Jeste li sigurni da želite obrisati ovo izvješće?'
+  };
 
     private platformId = inject(PLATFORM_ID);
 
@@ -291,34 +296,65 @@ export class ExpensesComponent implements OnInit {
 
   openDeleteModal(expense: TravelExpense) {
     this.expenseToDelete = expense;
+    this.confirmationData = {
+      title: 'Potvrdi brisanje',
+      message: 'Jeste li sigurni da želite obrisati ovo izvješće?',
+      details: [
+        `${expense.type} — ${expense.month} ${expense.year}`,
+        'Ova akcija se ne može poništiti.'
+      ],
+      confirmText: 'Obriši',
+      loadingText: 'Brisanje...',
+      data: expense
+    };
     this.isDeleteModalOpen = true;
   }
 
   closeDeleteModal() {
     this.isDeleteModalOpen = false;
+    this.isConfirmBusy = false;
     this.expenseToDelete = null;
   }
 
-onDeleteConfirmed() {
-  // Modal already deleted the expense, just handle UI updates
-  this.successMessage = 'Izvješće je uspješno obrisano!';
-  this.loadTravelExpenses();
-  this.closeDeleteModal();
-  setTimeout(() => this.clearMessages(), 4000);
-}
+  onDeleteConfirmed(payload: unknown) {
+    const expense = payload as TravelExpense | undefined;
+    if (!expense?.id || this.isConfirmBusy) return;
 
-onExpenseDeleted(expenseId: string) {
-    this.successMessage = 'Izvješće je uspješno obrisano!';
-  this.loadTravelExpenses();
-  this.closeDeleteModal();
-  setTimeout(() => this.clearMessages(), 4000);
-}
+    this.isConfirmBusy = true;
+    this.travelExpenseService.deleteTravelExpense(expense.id).subscribe({
+      next: () => {
+        this.successMessage = 'Izvješće je uspješno obrisano!';
+        this.loadTravelExpenses();
+        this.closeDeleteModal();
+        setTimeout(() => this.clearMessages(), 4000);
+      },
+      error: (error) => {
+        this.isConfirmBusy = false;
+        this.errorMessage = this.getDeleteErrorMessage(error);
+        setTimeout(() => this.clearMessages(), 6000);
+      }
+    });
+  }
 
-onDeleteError(errorMessage: string) {
-  this.errorMessage = errorMessage;
-  this.closeDeleteModal();
-  setTimeout(() => this.clearMessages(), 6000);
-}  
+  private getDeleteErrorMessage(error: any): string {
+    const backendError = error.error?.error;
+    if (backendError) {
+      if (backendError.includes('Cannot delete submitted')) {
+        return 'Ne možete obrisati podneseno izvješće.';
+      }
+      if (backendError.includes('Access denied')) {
+        return 'Nemate dozvolu za brisanje ovog izvješća.';
+      }
+      if (backendError.includes('not found')) {
+        return 'Izvješće nije pronađeno.';
+      }
+      return backendError;
+    }
+    if (error.status === 400) return 'Ne možete obrisati ovo izvješće.';
+    if (error.status === 403) return 'Nemate dozvolu za brisanje izvješća.';
+    if (error.status === 404) return 'Izvješće nije pronađeno.';
+    return 'Greška pri brisanju izvješća. Molimo pokušajte ponovo.';
+  }  
 
   // Helper methods
   formatDate(dateString: string): string {
