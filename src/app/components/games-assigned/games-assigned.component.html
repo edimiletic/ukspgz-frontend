@@ -414,9 +414,19 @@
 </app-kontrola-modal>
 
 <!-- Rejection Modal -->
-<app-rejection-modal [isOpen]="isRejectionModalOpen" [gameInfo]="gameToReject" (close)="closeRejectionModal()"
-  (reject)="onRejectionConfirmed($event)">
-</app-rejection-modal>
+<app-reason-modal
+  [isOpen]="isRejectionModalOpen"
+  [isBusy]="isRejectBusy"
+  title="Odbij nominaciju"
+  label="Razlog odbijanja"
+  placeholder="Molimo unesite razlog zašto odbijate ovu nominaciju..."
+  confirmText="Odbij nominaciju"
+  busyText="Odbijanje..."
+  [minLength]="10"
+  [details]="rejectionDetails"
+  (close)="closeRejectionModal()"
+  (confirm)="onRejectionConfirmed($event)">
+</app-reason-modal>
 
 <!-- Game form modal (create + edit) -->
 <app-game-form-modal [isOpen]="isGameFormModalOpen" [game]="gameToEdit" (close)="closeGameFormModal()"

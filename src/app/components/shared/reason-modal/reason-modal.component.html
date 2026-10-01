@@ -1,0 +1,37 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ title }}</h3>
+      <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isBusy">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="lead" *ngIf="message">{{ message }}</p>
+      <p class="detail" *ngFor="let line of details; trackBy: trackByDetail">{{ line }}</p>
+
+      <label class="form-label" [attr.for]="'reason-field'">{{ label }}<span class="required">*</span></label>
+      <textarea
+        id="reason-field"
+        class="form-control"
+        rows="4"
+        [(ngModel)]="reason"
+        [placeholder]="placeholder"
+        [disabled]="isBusy"
+        [maxlength]="maxLength"></textarea>
+      <div class="character-count">{{ reason.length }}/{{ maxLength }} znakova</div>
+      <p class="error-text" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div>
+
+    <div class="button-group">
+      <button type="button" class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="isBusy">
+        Odustani
+      </button>
+      <button type="button" class="btn btn-danger" (click)="confirmAction()" [disabled]="isBusy || !isFormValid">
+        <span *ngIf="isBusy">{{ busyText }}</span>
+        <span *ngIf="!isBusy">{{ confirmText }}</span>
+      </button>
+    </div>
+  </div>
+</div>

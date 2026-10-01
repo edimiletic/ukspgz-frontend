@@ -203,9 +203,16 @@
   (confirm)="onConfirm($event)">
 </app-confirmation-modal>
 
-<app-reject-expense-modal
+<app-reason-modal
   [isOpen]="isRejectModalOpen"
-  [isSubmitting]="isReviewing"
+  [isBusy]="isReviewing"
+  title="Odbij izvješće"
+  message="Objasnite korisniku što treba ispraviti."
+  label="Napomena"
+  placeholder="Opišite što korisnik treba ispraviti..."
+  confirmText="Odbij i vrati"
+  busyText="Slanje..."
+  [minLength]="1"
   (close)="closeRejectModal()"
-  (rejectConfirmed)="onRejectConfirmed($event)">
-</app-reject-expense-modal>
+  (confirm)="onRejectConfirmed($event)">
+</app-reason-modal>

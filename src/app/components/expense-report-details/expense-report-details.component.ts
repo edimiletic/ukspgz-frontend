@@ -9,7 +9,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-details/modal-expense-report-details.component";
-import { RejectExpenseModalComponent } from './reject-expense-modal/reject-expense-modal.component';
+import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
 
 type ReportConfirm =
   | { kind: 'delete-report' }
@@ -18,7 +18,7 @@ type ReportConfirm =
 
 @Component({
   selector: 'app-expense-report-details',
-  imports: [RouterModule, CommonModule, ConfirmationModalComponent, ModalExpenseReportDetailsComponent, RejectExpenseModalComponent],
+  imports: [RouterModule, CommonModule, ConfirmationModalComponent, ModalExpenseReportDetailsComponent, ReasonModalComponent],
   templateUrl: './expense-report-details.component.html',
   styleUrl: './expense-report-details.component.scss'
 })

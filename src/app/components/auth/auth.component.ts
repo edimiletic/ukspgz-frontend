@@ -52,7 +52,6 @@ export class AuthComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.errorMessage = error.error?.error || 'Neispravno korisničko ime ili lozinka';
-        console.error('❌ Login error in component:', error);
       },
       complete: () => {
         this.isLoading = false;

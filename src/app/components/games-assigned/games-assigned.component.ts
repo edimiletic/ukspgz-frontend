@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { BasketballGame, BasketballGameUtils, RefereeAssignment, RefereeGroups, RefereeInfo } from '../../model/basketballGame.model';
 import { FormsModule } from '@angular/forms';
-import { RejectionModalComponent } from "./rejection-modal/rejection-modal.component";
+import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewFullKontrola, isAdminUser, userHasRole } from '../../model/roles';
@@ -16,7 +16,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [CommonModule, FormsModule, RejectionModalComponent, ConfirmationModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
+  imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss'
 })
@@ -80,7 +80,9 @@ isMobileFiltersOpen: boolean = false;
 
   // Rejection modal
   isRejectionModalOpen = false;
+  isRejectBusy = false;
   gameToReject: BasketballGame | null = null;
+  rejectionDetails: string[] = [];
 
   isGameFormModalOpen = false;
   gameToEdit: BasketballGame | null = null;
@@ -392,18 +394,29 @@ onGameCreated(result: any) {
     const game = this.pendingGames.find(g => g._id === gameId);
     if (game) {
       this.gameToReject = game;
+      this.rejectionDetails = [
+        `${game.homeTeam} vs ${game.awayTeam}`,
+        `${this.formatDate(game.date)} u ${game.time}`,
+        game.venue,
+        game.competition
+      ];
       this.isRejectionModalOpen = true;
     }
   }
 
   closeRejectionModal() {
+    if (this.isRejectBusy) {
+      return;
+    }
     this.isRejectionModalOpen = false;
+    this.isRejectBusy = false;
     this.gameToReject = null;
+    this.rejectionDetails = [];
   }
 
   onRejectionConfirmed(rejectionReason: string) {
-    if (!this.gameToReject) return;
-    
+    if (!this.gameToReject || this.isRejectBusy) return;
+    this.isRejectBusy = true;
     this.respondToAssignment(this.gameToReject._id, 'Rejected', rejectionReason);
   }
 
@@ -425,11 +438,13 @@ onGameCreated(result: any) {
         this.loadMyGames();
         
         if (response === 'Rejected') {
+          this.isRejectBusy = false;
           this.closeRejectionModal();
         }
       },
       error: (error) => {
         console.error('Error responding to assignment:', error);
+        this.isRejectBusy = false;
         this.showError('Greška pri odgovaranju na nominaciju.');
       }
     });
