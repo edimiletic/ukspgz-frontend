@@ -1,15 +1,24 @@
 // src/app/components/exam-review/exam-review.component.scss
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   font-family: 'Segoe UI', sans-serif;
   background-color: #f8fafc;
   min-height: 100vh;
 }
 
+app-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
 .review-container {
+  flex: 1 0 auto;
+  width: 100%;
   max-width: 1000px;
-  margin: 92px auto;
+  margin: 0 auto;
   padding: 2rem;
+  padding-top: calc(92px + 2rem);
 }
 
 .review-header {
@@ -393,8 +402,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  flex: 1 0 auto;
   padding: 2rem;
+  padding-top: calc(92px + 2rem);
 
   .loading-message {
     text-align: center;

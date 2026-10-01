@@ -1,7 +1,14 @@
 <!-- src/app/components/take-exam/take-exam.component.html -->
 <app-header></app-header>
 
-<div class="exam-container" *ngIf="exam && !error; else errorTemplate">
+<div class="loading-container" *ngIf="isLoading">
+  <div class="loading-message">
+    <div class="spinner"></div>
+    <p>Učitavanje ispita...</p>
+  </div>
+</div>
+
+<div class="exam-container" *ngIf="exam && !error && !isLoading">
   <!-- Exam Header -->
   <div class="exam-header">
     <div class="exam-info">
@@ -218,17 +225,15 @@
   </div>
 </div>
 
-<ng-template #errorTemplate>
-  <div class="error-container">
-    <div class="error-card">
-      <div class="error-icon">❌</div>
-      <h3>Greška</h3>
-      <p>{{ error || 'Neočekivana greška prilikom učitavanja ispita.' }}</p>
-      <button class="back-btn" (click)="navigateToExams()">
-        Povratak na ispite
-      </button>
-    </div>
+<div class="error-container" *ngIf="error && !isLoading">
+  <div class="error-card">
+    <div class="error-icon">❌</div>
+    <h3>Greška</h3>
+    <p>{{ error }}</p>
+    <button class="back-btn" (click)="navigateToExams()">
+      Povratak na ispite
+    </button>
   </div>
-</ng-template>
+</div>
 
 <app-footer></app-footer>

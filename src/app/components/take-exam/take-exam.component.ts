@@ -20,6 +20,7 @@ exam: Exam | null = null;
   isSubmitting = false;
   showConfirmDialog = false;
   error: string | null = null;
+  isLoading = true;
   
   // Timer properties
   timeRemaining = 0; // in seconds
@@ -44,6 +45,7 @@ exam: Exam | null = null;
       this.loadExam(examId);
     } else {
       this.error = 'Neispravni ID ispita.';
+      this.isLoading = false;
     }
   }
 
@@ -54,6 +56,8 @@ exam: Exam | null = null;
   }
 
   loadExam(examId: string): void {
+    this.isLoading = true;
+    this.error = null;
     this.examService.getCurrentExam().subscribe({
       next: (exam: Exam) => {
         if (exam._id === examId) {
@@ -64,10 +68,12 @@ exam: Exam | null = null;
         } else {
           this.error = 'Ispit nije pronađen ili je istekao.';
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Failed to load exam:', err);
         this.error = 'Greška prilikom učitavanja ispita.';
+        this.isLoading = false;
       }
     });
   }
