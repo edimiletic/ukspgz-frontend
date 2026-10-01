@@ -14,12 +14,14 @@ export class ViewKontrolaModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() game: BasketballGame | null = null;
   @Input() currentUserId: string = '';
+  @Input() viewAllReferees = false;
   @Output() close = new EventEmitter<void>();
 
   constructor(private kontrolaService: KontrolaService) {}
 
 
   kontrolaData: ViewKontrolaData | null = null;
+  refereeGrades: any[] = [];
   isLoading = false;
   errorMessage = '';
 
@@ -52,28 +54,47 @@ detailedGradeCategories = [
 ];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && this.isOpen && this.game && this.currentUserId) {
+    if (this.isOpen && this.game && (this.viewAllReferees || this.currentUserId)) {
       this.loadKontrolaData();
     }
   }
-
-// Update loadKontrolaData method
-// src/app/components/games-assigned/view-kontrola-modal/view-kontrola-modal.component.ts
-// Update the loadKontrolaData method
 
 async loadKontrolaData(): Promise<void> {
   if (!this.game) return;
 
   this.isLoading = true;
   this.errorMessage = '';
+  this.kontrolaData = null;
+  this.refereeGrades = [];
 
   try {
-    const result = await this.kontrolaService.getMyKontrola(this.game._id).toPromise();
-    this.kontrolaData = result || null; // Handle undefined case
+    if (this.viewAllReferees) {
+      const fullKontrola: any = await this.kontrolaService.getFullKontrola(this.game._id).toPromise();
+      const gameInfo = fullKontrola?.gameId && typeof fullKontrola.gameId === 'object'
+        ? fullKontrola.gameId
+        : this.game;
+      const createdBy = fullKontrola?.createdBy;
+      this.kontrolaData = {
+        gameId: this.game._id,
+        gameInfo,
+        tezinaUtakmice: fullKontrola?.tezinaUtakmice,
+        refereeGrade: fullKontrola?.refereeGrades?.[0] || null,
+        createdAt: fullKontrola?.createdAt,
+        createdBy: createdBy?.name
+          ? `${createdBy.name} ${createdBy.surname || ''}`.trim()
+          : (createdBy || '')
+      };
+      this.refereeGrades = fullKontrola?.refereeGrades || [];
+    } else {
+      const result = await this.kontrolaService.getMyKontrola(this.game._id).toPromise();
+      this.kontrolaData = result || null;
+      this.refereeGrades = result?.refereeGrade ? [result.refereeGrade] : [];
+    }
   } catch (error) {
     console.error('Error loading kontrola:', error);
     this.errorMessage = 'Greška pri učitavanju kontrole.';
     this.kontrolaData = null;
+    this.refereeGrades = [];
   } finally {
     this.isLoading = false;
   }
@@ -92,20 +113,20 @@ async loadKontrolaData(): Promise<void> {
   closeModal(): void {
     this.close.emit();
     this.kontrolaData = null;
+    this.refereeGrades = [];
     this.errorMessage = '';
   }
 
-  // Helper method to get grade value by category key
-  getGradeValue(categoryKey: string): string {
-    if (!this.kontrolaData?.refereeGrade) return '';
+  getGradeValue(categoryKey: string, grade: any = this.kontrolaData?.refereeGrade): string {
+    if (!grade) return '';
     
     switch (categoryKey) {
-      case 'ocjena': return this.kontrolaData.refereeGrade.ocjena; // Add this line
-      case 'pogreske': return this.kontrolaData.refereeGrade.pogreske;
-      case 'prekrsaji': return this.kontrolaData.refereeGrade.prekrsaji;
-      case 'tehnikaMehanika': return this.kontrolaData.refereeGrade.tehnikaMehanika;
-      case 'timskiRad': return this.kontrolaData.refereeGrade.timskiRad;
-      case 'kontrolaUtakmice': return this.kontrolaData.refereeGrade.kontrolaUtakmice;
+      case 'ocjena': return grade.ocjena;
+      case 'pogreske': return grade.pogreske;
+      case 'prekrsaji': return grade.prekrsaji;
+      case 'tehnikaMehanika': return grade.tehnikaMehanika;
+      case 'timskiRad': return grade.timskiRad;
+      case 'kontrolaUtakmice': return grade.kontrolaUtakmice;
       default: return '';
     }
   }

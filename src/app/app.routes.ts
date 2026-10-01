@@ -7,7 +7,6 @@ import { TimeAbsentComponent } from './components/time-absent/time-absent.compon
 import { ExpensesComponent } from './components/expenses/expenses.component';
 import { BasketRulesComponent } from './components/basket-rules/basket-rules.component';
 import { AuthGuard } from './guards/auth.guard';
-import { AdminGuard } from './guards/admin.guard';
 import { ExpenseReportDetailsComponent } from './components/expense-report-details/expense-report-details.component';
 import { ExamsComponent } from './components/exams/exams.component';
 import { TakeExamComponent } from './components/take-exam/take-exam.component';
@@ -17,6 +16,7 @@ import { StatisticsComponent } from './components/statistics/statistics.componen
 import { NotificationsComponent } from './components/notifications/notifications.component';
 import { EligibleOfficialsComponent } from './components/eligible-officials/eligible-officials.component';
 import { EligibleOfficialsGuard } from './guards/eligible-officials.guard';
+import { StatisticsGuard } from './guards/statistics.guard';
 
 export const routes: Routes = [
   {path: 'login', component: AuthComponent},
@@ -38,7 +38,7 @@ export const routes: Routes = [
   {
     path: 'statistics',
     component: StatisticsComponent,
-    canActivate: [AuthGuard, AdminGuard]
+    canActivate: [AuthGuard, StatisticsGuard]
   },
   {
     path: 'eligible-officials',

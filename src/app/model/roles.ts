@@ -229,6 +229,14 @@ export const canNominateAssistants = (userOrRole?: RoleSource | string | null, c
 export const canSeeAllGames = (userOrRole?: RoleSource | string | null): boolean =>
   isAdminUser(userOrRole) || getRoleNames(userOrRole).some((role) => COMMISSIONER_ROLES.includes(role));
 
+export const canViewFullKontrola = (
+  userOrRole?: RoleSource | string | null,
+  competition?: string | null
+): boolean =>
+  isAdminUser(userOrRole) ||
+  canManageCalendar(userOrRole, competition) ||
+  canNominateOfficials(userOrRole, competition);
+
 export const isTopProfessionalCompetition = (competition?: string | null): boolean =>
   !!competition && TOP_PROFESSIONAL_COMPETITIONS.includes(competition);
 
@@ -250,6 +258,21 @@ export const canViewEligibleOfficials = (userOrRole?: RoleSource | string | null
   isAdminUser(userOrRole) ||
   userHasRole(userOrRole, 'Povjerenik natjecanja') ||
   userHasRole(userOrRole, 'Povjerenik za službene osobe');
+
+export const canViewStatistics = (userOrRole?: RoleSource | string | null): boolean =>
+  isAdminUser(userOrRole) || getRoleNames(userOrRole).some((role) => COMMISSIONER_ROLES.includes(role));
+
+export const getStatisticsRoles = (userOrRole?: RoleSource | string | null): GameAssignmentRole[] => {
+  if (!canViewStatistics(userOrRole)) return [];
+  if (
+    isAdminUser(userOrRole) ||
+    userHasRole(userOrRole, 'Povjerenik natjecanja') ||
+    userHasRole(userOrRole, 'Povjerenik za službene osobe')
+  ) {
+    return [...GAME_ASSIGNMENT_ROLES];
+  }
+  return ['Pomoćni Sudac'];
+};
 
 export const canAssignGameRole = (
   userOrRole: RoleSource | string | null | undefined,

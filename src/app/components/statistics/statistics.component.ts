@@ -12,7 +12,7 @@ import { HeaderComponent } from "../header/header.component";
 import { KontrolaService } from '../../services/kontrola.service';
 import { FooterComponent } from "../footer/footer.component";
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { userHasRole } from '../../model/roles';
+import { userHasRole, canViewStatistics, getStatisticsRoles, GameAssignmentRole } from '../../model/roles';
 
 @Component({
   selector: 'app-statistics',
@@ -24,6 +24,7 @@ export class StatisticsComponent implements OnInit {
   // Current user and auth
   currentUser: any = null;
   isAdmin: boolean = false;
+  statisticsRoles: GameAssignmentRole[] = [];
 
   // Loading states
   isLoading = false;
@@ -161,18 +162,23 @@ private travelExpenseService = inject(TravelExpenseService);
   ) {}
 
   ngOnInit() {
-    this.checkAdminAccess();
+    this.checkStatisticsAccess();
     this.initializeDefaultValues();
     this.loadStatistics();
   }
 
-  checkAdminAccess() {
+  checkStatisticsAccess() {
     this.currentUser = this.authService.currentUserValue;
     this.isAdmin = this.authService.hasRole('Admin');
-    
-    if (!this.isAdmin) {
+    this.statisticsRoles = getStatisticsRoles(this.currentUser);
+
+    if (!canViewStatistics(this.currentUser) || !this.statisticsRoles.length) {
       this.router.navigate(['/home']);
       return;
+    }
+
+    if (!this.statisticsRoles.includes(this.selectedRole as GameAssignmentRole)) {
+      this.selectedRole = this.statisticsRoles[0];
     }
   }
 
@@ -735,6 +741,9 @@ calculateSummaryStats() {
   }
 
 onRoleChange() {
+  if (!this.statisticsRoles.includes(this.selectedRole as GameAssignmentRole)) {
+    this.selectedRole = this.statisticsRoles[0] || 'Sudac';
+  }
   // Reset expanded states when role changes
   this.showAllAbsences = false;
   this.showAllExpenses = false;
@@ -794,7 +803,7 @@ clearAllFilters() {
   this.selectedCompetition = '';
   
   // Reset role to default
-  this.selectedRole = 'Sudac';
+  this.selectedRole = this.statisticsRoles[0] || 'Sudac';
   
   // Reset expanded states
   this.showAllAbsences = false;

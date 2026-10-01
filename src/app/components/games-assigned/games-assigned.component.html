@@ -260,11 +260,11 @@
                 <th>Ekipe</th>
                 <th>Sudački tim</th>
                 <th>Status</th>
-                <!-- Add new Kontrola column for Admins and Delegats -->
-                <th *ngIf="canAccessKontrola()">Kontrola</th>
-                <!-- Add new View Kontrola column for Referees -->
-                <th *ngIf="!canAccessKontrola()">Moja kontrola</th>
-                <th *ngIf="canSeeAllGames()">Akcije</th>
+                <!-- Kontrola column for writers and commissioners -->
+                <th *ngIf="showsKontrolaColumn()">Kontrola</th>
+                <!-- Own kontrola for field officials -->
+                <th *ngIf="!showsKontrolaColumn()">Moja kontrola</th>
+                <th *ngIf="isAdmin()">Akcije</th>
               </tr>
             </thead>
             <tbody>
@@ -283,18 +283,30 @@
                     {{ getStatusDisplay(game) }}
                   </span>
                 </td>
-                <!-- Add/Edit Kontrola column for Admins and Delegats -->
-                <td *ngIf="canAccessKontrola()">
-                  <div class="kontrola-actions">
+                <!-- Add/Edit/View Kontrola -->
+                <td *ngIf="showsKontrolaColumn()">
+                  <div class="kontrola-actions" *ngIf="canWriteKontrola(game)">
                     <button class="btn btn-kontrola" (click)="openKontrolaModal(game)"
-                      [disabled]="!canWriteKontrola(game)"
                       [title]="getKontrolaStatus(game._id) ? 'Uredi kontrolu' : 'Dodaj kontrolu'">
                       <i [class]="getKontrolaStatus(game._id) ? 'fas fa-edit' : 'fas fa-plus'"></i>
                     </button>
                   </div>
+                  <div class="view-kontrola-actions" *ngIf="!canWriteKontrola(game)">
+                    <button *ngIf="canViewGameKontrola(game) && getKontrolaStatus(game._id)" class="btn btn-view-kontrola"
+                      (click)="openViewKontrolaModal(game, true)" title="Pogledaj kontrolu">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <span *ngIf="canViewGameKontrola(game) && !getKontrolaStatus(game._id)" class="no-kontrola"
+                      title="Kontrola još nije kreirana">
+                      <i class="fas fa-clock text-muted"></i>
+                    </span>
+                    <span *ngIf="!canViewGameKontrola(game)" class="no-access" title="Nemate pristup kontroli ove utakmice">
+                      <i class="fas fa-minus text-muted"></i>
+                    </span>
+                  </div>
                 </td>
                 <!-- View Kontrola column for Referees -->
-                <td *ngIf="!canAccessKontrola()">
+                <td *ngIf="!showsKontrolaColumn()">
                   <div class="view-kontrola-actions">
                     <!-- Case 1: User participated AND kontrola exists - Show eye button -->
                     <button *ngIf="canViewKontrola(game) && getKontrolaStatus(game._id)" class="btn btn-view-kontrola"
@@ -314,7 +326,7 @@
                     </span>
                   </div>
                 </td>
-                <td *ngIf="canSeeAllGames()">
+                <td *ngIf="isAdmin()">
                   <div class="admin-action-buttons">
                     <button *ngIf="canEditGame(game)" class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
                       <i class="fas fa-pen"></i>
@@ -409,7 +421,7 @@
 </app-delete-game-modal>
 
 <app-view-kontrola-modal [isOpen]="isViewKontrolaModalOpen" [game]="gameForViewKontrola"
-  [currentUserId]="currentUser?._id || ''" (close)="closeViewKontrolaModal()">
+  [currentUserId]="currentUser?._id || ''" [viewAllReferees]="viewAllKontrola" (close)="closeViewKontrolaModal()">
 </app-view-kontrola-modal>
 
 <app-footer></app-footer>

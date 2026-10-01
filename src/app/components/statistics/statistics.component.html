@@ -32,12 +32,9 @@
 
                 <div class="filter-group">
                     <label for="role">Uloga:</label>
-                    <select id="role" [(ngModel)]="selectedRole" (change)="onRoleChange()" class="form-control">
-                        <option value="Sudac">Sudac</option>
-                        <option value="Delegat">Delegat</option>
-                        <option value="Pomoćni Sudac">Pomoćni Sudac</option>
-                        <option value="Kontrolor">Kontrolor</option>
-                        <!-- <option value="Admin">Admin</option> -->
+                    <select id="role" [(ngModel)]="selectedRole" (change)="onRoleChange()" class="form-control"
+                        [disabled]="statisticsRoles.length <= 1">
+                        <option *ngFor="let role of statisticsRoles" [value]="role">{{ role }}</option>
                     </select>
                 </div>
 

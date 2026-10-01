@@ -11,7 +11,7 @@ import { CreateGameModalComponent } from "./create-game-modal/create-game-modal.
 import { ConfirmationData, DeleteGameModalComponent } from "./delete-game-modal/delete-game-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 import { SidebarComponent } from "../sidebar/sidebar.component";
-import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, isAdminUser, userHasRole } from '../../model/roles';
+import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewFullKontrola, isAdminUser, userHasRole } from '../../model/roles';
 import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.component";
 import { KontrolaService } from '../../services/kontrola.service';
 import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
@@ -152,7 +152,20 @@ isMobileFiltersOpen: boolean = false;
     return canSeeAllGames(this.currentUser);
   }
 
+  canViewGameKontrola(game: BasketballGame): boolean {
+    return canViewFullKontrola(this.currentUser, game.competition);
+  }
+
+  showsKontrolaColumn(): boolean {
+    return this.canAccessKontrola() ||
+      userHasRole(this.currentUser, 'Povjerenik natjecanja') ||
+      userHasRole(this.currentUser, 'Povjerenik za službene osobe');
+  }
+
   canEditGame(game: BasketballGame): boolean {
+    if (this.isGameInPast(game) && !this.isAdmin()) {
+      return false;
+    }
     return this.canManageCalendar(game.competition) ||
       this.canNominateOfficials(game.competition) ||
       this.canNominateAssistants(game.competition);
@@ -173,6 +186,7 @@ isMobileFiltersOpen: boolean = false;
 
   isViewKontrolaModalOpen = false;
   gameForViewKontrola: BasketballGame | null = null;
+  viewAllKontrola = false;
 
   // Check if current user can view kontrola (only referees who participated)
   canViewKontrola(game: BasketballGame): boolean {
@@ -234,9 +248,9 @@ getKontrolaStatus(gameId: string): boolean {
 }
 
   // Open view kontrola modal
-  openViewKontrolaModal(game: BasketballGame): void {
-    console.log('Opening view kontrola modal for game:', game);
+  openViewKontrolaModal(game: BasketballGame, viewAll = false): void {
     this.gameForViewKontrola = game;
+    this.viewAllKontrola = viewAll;
     this.isViewKontrolaModalOpen = true;
   }
 
@@ -244,6 +258,7 @@ getKontrolaStatus(gameId: string): boolean {
   closeViewKontrolaModal(): void {
     this.isViewKontrolaModalOpen = false;
     this.gameForViewKontrola = null;
+    this.viewAllKontrola = false;
   }
 
   // Close kontrola modal
@@ -768,12 +783,16 @@ if (window.innerWidth <= 693) {
 
   // Admin action methods
   editGame(game: BasketballGame): void {
-    console.log('Edit game:', game);
+    if (!this.canEditGame(game)) {
+      return;
+    }
     this.openEditGameModal(game);
   }
 
   deleteGame(game: BasketballGame): void {
-    console.log('Delete game clicked:', game);
+    if (this.isGameInPast(game) && !this.isAdmin()) {
+      return;
+    }
     this.gameToDelete = game;
     this.confirmationData = {
       title: 'Obriši Utakmicu',

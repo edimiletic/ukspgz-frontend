@@ -6,7 +6,7 @@
     <div class="modal-header">
       <h2>
         <i class="fas fa-eye"></i>
-        Moja kontrola
+        {{ viewAllReferees ? 'Kontrola' : 'Moja kontrola' }}
       </h2>
       <button class="close-btn" (click)="closeModal()">
         <i class="fas fa-times"></i>
@@ -53,17 +53,20 @@
         </div>
       </div>
 
-<!-- Moje Ocjene -->
-<div class="section">
-  <h3><i class="fas fa-star"></i> Moje ocjene</h3>
+<!-- Ocjene sudaca -->
+<div class="section" *ngFor="let grade of refereeGrades">
+  <h3>
+    <i class="fas fa-star"></i>
+    {{ viewAllReferees ? (grade.refereeName || 'Sudac') : 'Moje ocjene' }}
+    <span *ngIf="viewAllReferees && grade.refereeRole" class="referee-role">{{ grade.refereeRole }}</span>
+  </h3>
   
   <!-- Overall Grade - First and Prominent -->
   <div class="overall-grade-display">
     <div class="overall-grade-item">
       <span class="overall-grade-label">Ocjena</span>
-      <span [class]="'overall-grade-badge ' + getGradeDisplay(getGradeValue('ocjena')).class">
-        <!-- <i [class]="getGradeDisplay(getGradeValue('ocjena')).icon"></i> -->
-        {{ getGradeDisplay(getGradeValue('ocjena')).label }}
+      <span [class]="'overall-grade-badge ' + getGradeDisplay(getGradeValue('ocjena', grade)).class">
+        {{ getGradeDisplay(getGradeValue('ocjena', grade)).label }}
       </span>
     </div>
   </div>
@@ -73,33 +76,28 @@
   <div class="grades-display">
     <div *ngFor="let category of detailedGradeCategories" class="grade-item">
       <span class="grade-label">{{ category.label }}</span>
-      <span [class]="'grade-badge ' + getGradeDisplay(getGradeValue(category.key)).class">
-        <!-- <i [class]="getGradeDisplay(getGradeValue(category.key)).icon"></i> -->
-        {{ getGradeDisplay(getGradeValue(category.key)).label }}
+      <span [class]="'grade-badge ' + getGradeDisplay(getGradeValue(category.key, grade)).class">
+        {{ getGradeDisplay(getGradeValue(category.key, grade)).label }}
       </span>
     </div>
   </div>
-</div>
 
       <!-- Komentari -->
-      <div class="section">
-        <h3><i class="fas fa-comments"></i> Komentari i napomene</h3>
-        
-        <div class="comment-section">
-          <h4><i class="fas fa-user-check"></i> Kontrolirani sudac</h4>
-          <div class="comment-content">{{ kontrolaData.refereeGrade.kontroliraniSudac }}</div>
-        </div>
-
-        <div class="comment-section">
-          <h4><i class="fas fa-exclamation-triangle"></i> Komentirane situacije</h4>
-          <div class="comment-content">{{ kontrolaData.refereeGrade.komentiranesituacije }}</div>
-        </div>
-
-        <div class="comment-section">
-          <h4><i class="fas fa-clipboard-list"></i> Komentar utakmice i cjelokupna izvedba</h4>
-          <div class="comment-content">{{ kontrolaData.refereeGrade.komentarUtakmice }}</div>
-        </div>
+      <div class="comment-section">
+        <h4><i class="fas fa-user-check"></i> Kontrolirani sudac</h4>
+        <div class="comment-content">{{ grade.kontroliraniSudac }}</div>
       </div>
+
+      <div class="comment-section">
+        <h4><i class="fas fa-exclamation-triangle"></i> Komentirane situacije</h4>
+        <div class="comment-content">{{ grade.komentiranesituacije }}</div>
+      </div>
+
+      <div class="comment-section">
+        <h4><i class="fas fa-clipboard-list"></i> Komentar utakmice i cjelokupna izvedba</h4>
+        <div class="comment-content">{{ grade.komentarUtakmice }}</div>
+      </div>
+</div>
 
       <!-- Kontrola Info -->
       <div class="kontrola-info">

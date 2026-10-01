@@ -100,7 +100,7 @@
           <span>Osobe za nominaciju</span>
         </a>
       </li>
-      <li *ngIf="isAdmin()">
+      <li *ngIf="canViewStatistics()">
         <a
           (click)="navigateToPage('/statistics')"
           [class.active]="isActiveRoute('/statistics')"

@@ -81,6 +81,13 @@ saveKontrola(kontrolaData: KontrolaData): Observable<any> {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  getFullKontrola(gameId: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.get(`${this.apiUrl}/kontrola/game/${gameId}/all`, { headers })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   hasKontrola(gameId: string): Observable<{exists: boolean}> {
     const headers = this.getAuthHeaders();
     
