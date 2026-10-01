@@ -90,8 +90,7 @@
 
       <div class="status-details">
         <p *ngIf="result.passed" class="success-text">
-          Uspješno ste završili ispit s rezultatom {{ getScorePercentage() }}%. 
-          Vaš certifikat će biti uskoro dostupan za preuzimanje.
+          Uspješno ste završili ispit s rezultatom {{ getScorePercentage() }}%.
         </p>
         <p *ngIf="!result.passed" class="fail-text">
           Za prolaz je potrebno najmanje 20 točnih odgovora (80%). 
@@ -124,15 +123,6 @@
         <button class="review-answers-btn" (click)="reviewAnswers()">
           <!-- <i class="btn-icon">🔍</i> -->
           Pregled odgovora
-        </button>
-
-        <button 
-          class="certificate-btn" 
-          *ngIf="result.passed" 
-          (click)="downloadCertificate()"
-        >
-          <i class="btn-icon">📜</i>
-          Preuzmi certifikat
         </button>
         
         <button 

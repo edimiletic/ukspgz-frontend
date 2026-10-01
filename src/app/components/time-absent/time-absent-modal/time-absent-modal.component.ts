@@ -32,7 +32,8 @@ export class TimeAbsentModalComponent implements OnChanges {
     private absenceService: AbsenceService,
     private authService: AuthService
   ) {
-    this.todayDate = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    this.todayDate = this.formatLocalDate(today);
     this.getCurrentUser();
   }
 
@@ -41,6 +42,14 @@ export class TimeAbsentModalComponent implements OnChanges {
   }
 
   get datesLocked(): boolean {
+    return this.endDateLocked;
+  }
+
+  get startDateLocked(): boolean {
+    return !this.isCreateMode && this.hasAbsenceStarted();
+  }
+
+  get endDateLocked(): boolean {
     return !this.isCreateMode && this.isAbsenceFinished();
   }
 
@@ -82,20 +91,46 @@ export class TimeAbsentModalComponent implements OnChanges {
   }
 
   updateMinEndDate(): void {
+    if (this.startDateLocked) {
+      this.minEndDate = this.todayDate;
+      return;
+    }
     this.minEndDate = this.startDate || '';
   }
 
   isAbsenceFinished(): boolean {
     if (!this.absence) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const endDate = new Date(this.absence.endDate);
-    endDate.setHours(0, 0, 0, 0);
-    return endDate < today;
+    return this.startOfDay(new Date(this.absence.endDate)).getTime() < this.startOfDay(new Date()).getTime();
+  }
+
+  hasAbsenceStarted(): boolean {
+    if (!this.absence) return false;
+    return this.startOfDay(new Date(this.absence.startDate)).getTime() <= this.startOfDay(new Date()).getTime();
+  }
+
+  private startOfDay(date: Date): Date {
+    const copy = new Date(date);
+    copy.setHours(0, 0, 0, 0);
+    return copy;
+  }
+
+  private formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   formatDateForInput(dateString: string): string {
-    return new Date(dateString).toISOString().split('T')[0];
+    const isoDay = String(dateString || '').match(/^(\d{4}-\d{2}-\d{2})/);
+    if (isoDay) {
+      return isoDay[1];
+    }
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+    return this.formatLocalDate(date);
   }
 
   formatDate(dateString: string): string {
@@ -153,8 +188,10 @@ export class TimeAbsentModalComponent implements OnChanges {
       reason: this.reason.trim() || undefined
     };
     if (!this.datesLocked) {
-      updateData.startDate = this.startDate;
       updateData.endDate = this.endDate;
+      if (!this.startDateLocked) {
+        updateData.startDate = this.startDate;
+      }
     }
 
     this.absenceService.updateAbsence(updateData).subscribe({

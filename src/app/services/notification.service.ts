@@ -100,9 +100,8 @@ export class NotificationService {
   }
 
   // Get all notifications with pagination (for dedicated notifications page)
-  getAllNotifications(page = 1, limit = 20): Observable<NotificationResponse> {
+  getAllNotifications(page = 1, limit = 20, filters?: { type?: string; unread?: boolean }): Observable<NotificationResponse> {
     if (!this.isBrowser) {
-      // Return empty response on server-side matching NotificationResponse interface
       return of({
         notifications: [],
         total: 0,
@@ -111,6 +110,14 @@ export class NotificationService {
       });
     }
 
-    return this.http.get<NotificationResponse>(`${this.apiUrl}/all?page=${page}&limit=${limit}`);
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (filters?.type) {
+      params.set('type', filters.type);
+    }
+    if (filters?.unread) {
+      params.set('unread', 'true');
+    }
+
+    return this.http.get<NotificationResponse>(`${this.apiUrl}/all?${params.toString()}`);
   }
 }

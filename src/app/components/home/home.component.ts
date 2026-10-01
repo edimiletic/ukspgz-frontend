@@ -112,15 +112,15 @@ isExpensesModalOpen = false;
   }
 
   private loadCommissionerDashboard(): void {
-    Promise.all([
+    Promise.allSettled([
       this.loadAdminGames(),
       this.loadUserExpenses(),
       this.loadUserAbsences()
-    ]).then(() => {
-      this.isLoading = false;
-    }).catch((error) => {
-      console.error('Error loading commissioner dashboard:', error);
-      this.hasError = true;
+    ]).then((results) => {
+      const failures = results.filter(result => result.status === 'rejected');
+      if (failures.length > 0) {
+        this.showError('Neki podaci nisu mogli biti učitani. Molimo pokušajte osvježiti stranicu.');
+      }
       this.isLoading = false;
     });
   }

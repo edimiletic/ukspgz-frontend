@@ -125,7 +125,7 @@
                 </td>
                 <td *ngIf="!canSeeAllGames()">
                   <div class="action-buttons">
-                    <button class="btn btn-success btn-sm" (click)="acceptAssignment(game._id)" title="Prihvati">
+                    <button class="btn btn-success btn-sm" (click)="acceptAssignment(game._id)" title="Prihvati" [disabled]="isResponding">
                       <i class="fas fa-check"></i>
                     </button>
                     <button class="btn btn-danger btn-sm" (click)="rejectAssignment(game._id)" title="Odbij">
@@ -380,20 +380,6 @@
   </section>
 </div>
 
-<!-- Toast Notifications -->
-<div class="toast-container">
-  <div *ngIf="successMessage" class="toast toast-success">
-    <span class="toast-emoji">✅</span>
-    <span class="toast-message">{{ successMessage }}</span>
-    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-
-  <div *ngIf="errorMessage" class="toast toast-error">
-    <span class="toast-emoji">❌</span>
-    <span class="toast-message">{{ errorMessage }}</span>
-    <button class="toast-close" (click)="clearMessages()"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-</div>
 <!-- Toast Notifications -->
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">

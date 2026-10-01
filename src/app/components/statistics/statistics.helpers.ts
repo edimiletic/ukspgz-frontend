@@ -141,11 +141,15 @@ export function calculateRefereeStats(games: any[], referees: any[], selectedRol
       if (assignment.assignmentStatus !== 'Accepted') {
         return;
       }
+      if (selectedRole !== 'Admin' && assignment.role !== selectedRole) {
+        return;
+      }
       const stats = refereesMap.get(assignment.userId._id);
       if (!stats) {
         return;
       }
       stats.gamesInPeriod++;
+      stats.totalGames++;
       stats.competitions[game.competition] = (stats.competitions[game.competition] || 0) + 1;
       stats.roles[assignment.role] = (stats.roles[assignment.role] || 0) + 1;
     });

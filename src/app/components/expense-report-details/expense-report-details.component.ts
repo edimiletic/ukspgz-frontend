@@ -10,6 +10,7 @@ import { PLATFORM_ID, inject } from '@angular/core';
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-details/modal-expense-report-details.component";
 import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
+import { isAdminUser } from '../../model/roles';
 
 type ReportConfirm =
   | { kind: 'delete-report' }
@@ -65,7 +66,7 @@ private loadCurrentUser() {
                 return; // Stop execution on server-side
       }
       this.currentUser = user;
-      this.isAdmin = user.role === 'Admin';
+      this.isAdmin = isAdminUser(user);
       this.route.params.subscribe(params => {
         const reportId = params['id'];
         if (reportId) {
@@ -596,7 +597,7 @@ const expenseItem = {
       next: (updatedReport) => {
         this.report = updatedReport;
         this.isReviewing = false;
-        this.isRejectModalOpen = false;
+        this.closeRejectModal();
         this.showSuccess(action === 'approve'
           ? 'Izvješće je odobreno.'
           : 'Izvješće je vraćeno korisniku na ispravak.');

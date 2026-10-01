@@ -52,9 +52,12 @@ export class NotificationsComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     
-    this.notificationService.getAllNotifications(this.currentPage, this.limit).subscribe({
+    this.notificationService.getAllNotifications(this.currentPage, this.limit, {
+      type: this.filterType || undefined,
+      unread: this.showOnlyUnread || undefined
+    }).subscribe({
       next: (response: NotificationResponse) => {
-        this.notifications = this.applyFilters(response.notifications);
+        this.notifications = response.notifications;
         this.totalPages = response.totalPages;
         this.totalNotifications = response.total;
         this.currentPage = response.currentPage;

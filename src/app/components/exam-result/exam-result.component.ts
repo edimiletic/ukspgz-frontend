@@ -157,13 +157,6 @@ export class ExamResultComponent implements OnInit {
     this.router.navigate(['/exams']);
   }
 
-  downloadCertificate(): void {
-    if (this.result?.passed) {
-      // TODO: Implement certificate download functionality
-      alert('Funkcionalnost preuzimanja certifikata će biti dostupna uskoro.');
-    }
-  }
-
   reviewAnswers(): void {
     if (this.result?._id) {
       this.router.navigate(['/exams/review', this.result._id]);

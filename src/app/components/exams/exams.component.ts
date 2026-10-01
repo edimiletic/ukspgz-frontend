@@ -6,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
+import { isAdminUser } from '../../model/roles';
 import { AddQuestionModalComponent } from "./add-question-modal/add-question-modal.component";
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 
@@ -48,17 +49,13 @@ export class ExamsComponent implements OnInit {
     this.loadCurrentUser();
     this.loadCurrentExam();
     this.loadUserAttempts();
-    this.loadExamStats();
   }
 
 loadCurrentUser(): void {
   this.authService.getCurrentUser().subscribe({
     next: (user: User | null) => {
-      if (user) {
-        this.currentUser = user;
-      } else {
-                this.currentUser = null;
-      }
+      this.currentUser = user;
+      this.loadExamStats();
     },
     error: (err) => {
       console.error('Failed to load user:', err);
@@ -100,17 +97,18 @@ loadCurrentUser(): void {
   }
 
   loadExamStats(): void {
-    if (this.currentUser?.role === 'Admin') {
-      this.examService.getExamStats().subscribe({
-        next: (stats: ExamStats) => {
-          this.examStats = stats;
-        },
-        error: (err) => {
-          console.error('Failed to load exam stats:', err);
-          this.showErrorToast('Greška prilikom učitavanja statistika ispita.');
-        }
-      });
+    if (!this.isAdmin()) {
+      return;
     }
+    this.examService.getExamStats().subscribe({
+      next: (stats: ExamStats) => {
+        this.examStats = stats;
+      },
+      error: (err) => {
+        console.error('Failed to load exam stats:', err);
+        this.showErrorToast('Greška prilikom učitavanja statistika ispita.');
+      }
+    });
   }
 
   startNewExam(): void {
@@ -247,7 +245,7 @@ loadCurrentUser(): void {
   }
 
   isAdmin(): boolean {
-    return this.currentUser?.role === 'Admin';
+    return isAdminUser(this.currentUser);
   }
 
 

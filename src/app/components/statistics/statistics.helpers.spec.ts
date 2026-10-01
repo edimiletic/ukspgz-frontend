@@ -108,8 +108,21 @@ describe('statistics.helpers', () => {
       const stats = calculateRefereeStats(games, [sudac], 'Sudac');
       expect(stats.length).toBe(1);
       expect(stats[0].gamesInPeriod).toBe(2);
+      expect(stats[0].totalGames).toBe(2);
       expect(stats[0].competitions['FAVBET PREMIJER LIGA']).toBe(1);
       expect(stats[0].competitions['3X3']).toBe(1);
+    });
+
+    it('ne broji tuđu ulogu iste osobe', () => {
+      const games = [
+        {
+          competition: 'FAVBET PREMIJER LIGA',
+          refereeAssignments: [
+            { assignmentStatus: 'Accepted', role: 'Delegat', userId: { _id: 'u1' } }
+          ]
+        }
+      ];
+      expect(calculateRefereeStats(games, [sudac], 'Sudac')).toEqual([]);
     });
 
     it('izbacuje suce bez utakmica u razdoblju', () => {

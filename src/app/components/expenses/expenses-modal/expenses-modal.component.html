@@ -46,21 +46,18 @@
           </small> -->
         </div>
 
-        <!-- Report Type
-        <div class="form-group">
-          <label for="reportType">Tip Izvješća<span class="required">*</span></label>
+        <div class="form-group" *ngIf="reportTypes.length !== 1">
+          <label for="reportType">Tip izvješća<span class="required">*</span></label>
           <div class="select-wrapper">
-            <select 
-              id="reportType" 
-              class="form-control" 
+            <select
+              id="reportType"
+              class="form-control"
               [(ngModel)]="reportData.type"
               name="reportType"
               required
               [disabled]="isLoading || (isAdmin && !reportData.userId)">
-              <option value="" *ngIf="reportTypes.length > 1">Odaberite tip izvješća</option>
-              <option 
-                *ngFor="let type of reportTypes" 
-                [value]="type">
+              <option value="">Odaberite tip izvješća</option>
+              <option *ngFor="let type of reportTypes" [value]="type">
                 {{ type }}
               </option>
               <option value="" disabled *ngIf="reportTypes.length === 0">
@@ -69,7 +66,7 @@
             </select>
             <i class="fas fa-chevron-down select-arrow"></i>
           </div>
-        </div> -->
+        </div>
 
         <!-- Season -->
         <div class="form-group">

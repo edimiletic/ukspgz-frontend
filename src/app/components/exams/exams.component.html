@@ -21,7 +21,7 @@
     </div>
 
     <!-- Admin Stats Section -->
-    <div class="admin-stats" *ngIf="currentUser?.role === 'Admin' && examStats">
+    <div class="admin-stats" *ngIf="isAdmin() && examStats">
       <h3>Statistike ispita</h3>
       <div class="stats-grid">
         <div class="stat-item">
@@ -154,7 +154,8 @@
                 >
                   <i class="fas fa-search"></i>
                 </button>
-                <button 
+                <button
+                  *ngIf="isAdmin()"
                   class="btn-icon btn-delete" 
                   (click)="deleteAttempt(attempt._id)"
                   title="Obriši pokušaj"

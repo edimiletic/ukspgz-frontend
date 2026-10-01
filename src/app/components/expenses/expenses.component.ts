@@ -12,6 +12,7 @@ import { ConfirmationData, ConfirmationModalComponent } from '../shared/confirma
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
+import { isAdminUser } from '../../model/roles';
 
 type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
 
@@ -90,7 +91,7 @@ export class ExpensesComponent implements OnInit {
                 return; // Stop execution on server-side
       }
         this.currentUser = user;
-        this.isAdmin = user.role === 'Admin';
+        this.isAdmin = isAdminUser(user);
         this.loadTravelExpenses();
       },
       error: (error) => {
@@ -294,7 +295,14 @@ export class ExpensesComponent implements OnInit {
     this.router.navigate(['/expenses', expense.id]);
   }
 
+  canDeleteExpense(expense: TravelExpense): boolean {
+    return expense.state === 'Skica' || expense.state === 'Odbijeno';
+  }
+
   openDeleteModal(expense: TravelExpense) {
+    if (!this.canDeleteExpense(expense)) {
+      return;
+    }
     this.expenseToDelete = expense;
     this.confirmationData = {
       title: 'Potvrdi brisanje',

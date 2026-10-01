@@ -42,7 +42,7 @@ export class StatisticsComponent implements OnInit {
   isMobileFiltersOpen = false;
 
   selectedRole = 'Sudac';
-  selectedPeriod: StatisticsPeriod = 'custom';
+  selectedPeriod: StatisticsPeriod = 'season';
   selectedMonth = '';
   selectedYear = '';
   selectedSeason = '';

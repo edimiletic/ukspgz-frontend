@@ -81,6 +81,7 @@ isMobileFiltersOpen: boolean = false;
   // Rejection modal
   isRejectionModalOpen = false;
   isRejectBusy = false;
+  isResponding = false;
   gameToReject: BasketballGame | null = null;
   rejectionDetails: string[] = [];
 
@@ -152,7 +153,8 @@ isMobileFiltersOpen: boolean = false;
   showsKontrolaColumn(): boolean {
     return this.canAccessKontrola() ||
       userHasRole(this.currentUser, 'Povjerenik natjecanja') ||
-      userHasRole(this.currentUser, 'Povjerenik za službene osobe');
+      userHasRole(this.currentUser, 'Povjerenik za službene osobe') ||
+      userHasRole(this.currentUser, 'Povjerenik za pomoćne suce');
   }
 
   canEditGame(game: BasketballGame): boolean {
@@ -205,7 +207,7 @@ kontrolaStatusMap = new Map<string, boolean>();
 // Add this method to check and cache kontrola status
 
 checkGameKontrolaStatus(gameId: string): void {
-  if (this.kontrolaStatusMap.has(gameId)) {
+  if (!gameId || this.kontrolaStatusMap.has(gameId)) {
     return;
   }
 
@@ -215,19 +217,17 @@ checkGameKontrolaStatus(gameId: string): void {
     next: (response) => {
       this.kontrolaStatusMap.set(gameId, response.exists);
     },
-    error: (error) => {
-      console.error('Error checking kontrola for game', gameId, error);
+    error: () => {
       this.kontrolaStatusMap.set(gameId, false);
     }
   });
 }
 
-// Helper method for template
+prefetchKontrolaStatuses(games: BasketballGame[]): void {
+  games.forEach(game => this.checkGameKontrolaStatus(game._id));
+}
+
 getKontrolaStatus(gameId: string): boolean {
-  if (!this.kontrolaStatusMap.has(gameId)) {
-    this.checkGameKontrolaStatus(gameId);
-    return false;
-  }
   return this.kontrolaStatusMap.get(gameId) || false;
 }
 
@@ -299,7 +299,8 @@ onGameCreated(result: any) {
 
   loadMyGames() {
     this.isLoading = true;
-    
+    this.kontrolaStatusMap.clear();
+
     if (this.canSeeAllGames()) {
       // If admin, load all games in the system
             this.basketballGameService.getAllGames().subscribe({
@@ -360,7 +361,7 @@ onGameCreated(result: any) {
 
           }
     
-    // Apply filters after categorization (which will also update pagination)
+    this.prefetchKontrolaStatuses(this.allGameHistory);
     this.applyFilters();
   }
 
@@ -387,6 +388,9 @@ onGameCreated(result: any) {
   }
 
   acceptAssignment(gameId: string) {
+    if (this.isResponding) {
+      return;
+    }
     this.respondToAssignment(gameId, 'Accepted');
   }
 
@@ -426,24 +430,21 @@ onGameCreated(result: any) {
       requestBody.rejectionReason = rejectionReason;
     }
 
+    this.isResponding = true;
     this.basketballGameService.respondToAssignment(gameId, requestBody).subscribe({
-      next: (updatedGame) => {
+      next: () => {
+        this.isResponding = false;
         if (response === 'Accepted') {
           this.showSuccess('Nominacija je uspješno prihvaćena! Povjerenik je obaviješten.');
         } else {
           this.showSuccess('Nominacija je uspješno odbijena! Povjerenik je obaviješten.');
-        }
-        
-        // Reload all games to ensure accurate data and smart pagination
-        this.loadMyGames();
-        
-        if (response === 'Rejected') {
           this.isRejectBusy = false;
           this.closeRejectionModal();
         }
+        this.loadMyGames();
       },
-      error: (error) => {
-        console.error('Error responding to assignment:', error);
+      error: () => {
+        this.isResponding = false;
         this.isRejectBusy = false;
         this.showError('Greška pri odgovaranju na nominaciju.');
       }
@@ -823,7 +824,7 @@ if (window.innerWidth <= 693) {
     if (isAdminUser(this.currentUser)) return true;
 
     const hasKontrolor = game.refereeAssignments.some(
-      assignment => assignment.role === 'Kontrolor' && assignment.assignmentStatus !== 'Rejected'
+      assignment => assignment.role === 'Kontrolor' && assignment.assignmentStatus === 'Accepted'
     );
     const userId = this.currentUserId();
 
@@ -831,14 +832,14 @@ if (window.innerWidth <= 693) {
       return game.refereeAssignments.some(
         assignment => assignment.role === 'Kontrolor' &&
           this.assignmentUserId(assignment) === userId &&
-          assignment.assignmentStatus !== 'Rejected'
+          assignment.assignmentStatus === 'Accepted'
       );
     }
 
     return userHasRole(this.currentUser, 'Delegat') && game.refereeAssignments.some(
       assignment => assignment.role === 'Delegat' &&
         this.assignmentUserId(assignment) === userId &&
-        assignment.assignmentStatus !== 'Rejected'
+        assignment.assignmentStatus === 'Accepted'
     );
   }
 

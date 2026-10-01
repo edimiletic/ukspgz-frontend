@@ -6,7 +6,7 @@ import { NotificationService } from '../../services/notification.service';
 import { SidebarNavService } from '../../services/sidebar-nav.service';
 import { Notification } from '../../model/notification.model';
 import { Router } from '@angular/router';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -126,20 +126,20 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.notificationSubscription?.unsubscribe();
-    this.notificationSubscription = this.notificationService.getNotifications().subscribe({
-      next: (notifications) => {
-        this.notifications = notifications.slice(0, 5); // Show only recent 5
-        this.updateNotificationCounts();
+    this.notificationSubscription = forkJoin({
+      notifications: this.notificationService.getNotifications(),
+      unread: this.notificationService.getUnreadCount()
+    }).subscribe({
+      next: ({ notifications, unread }) => {
+        this.notifications = notifications.slice(0, 5);
+        this.unreadCount = unread.count;
+        this.hasUnreadNotifications = this.unreadCount > 0;
       },
-      error: (error) => {
-        console.error('Error loading notifications:', error);
+      error: () => {
+        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+        this.hasUnreadNotifications = this.unreadCount > 0;
       }
     });
-  }
-
-  private updateNotificationCounts() {
-    this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-    this.hasUnreadNotifications = this.unreadCount > 0;
   }
 
   private startNotificationPolling() {
@@ -161,8 +161,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!notification.isRead) {
       this.notificationService.markAsRead(notification._id).subscribe({
         next: () => {
-          notification.isRead = true;
-          this.updateNotificationCounts();
+          this.loadNotifications();
           
           // Navigate to relevant page if notification has gameId
           if (notification.gameId) {
@@ -184,21 +183,13 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const unreadIds = this.notifications
-      .filter(n => !n.isRead)
-      .map(n => n._id);
-
-    if (unreadIds.length > 0) {
-      this.notificationService.markMultipleAsRead(unreadIds).subscribe({
-        next: () => {
-          this.notifications.forEach(n => n.isRead = true);
-          this.updateNotificationCounts();
-        },
-        error: (error) => {
-          console.error('Error marking all notifications as read:', error);
-        }
-      });
-    }
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach(n => n.isRead = true);
+        this.loadNotifications();
+      },
+      error: () => {}
+    });
   }
 
   viewAllNotifications() {

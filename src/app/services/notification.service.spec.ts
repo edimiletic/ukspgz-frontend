@@ -58,6 +58,11 @@ describe('NotificationService', () => {
     expect(page.request.method).toBe('GET');
     page.flush({ notifications: [], total: 0, currentPage: 2, totalPages: 0 });
 
+    service.getAllNotifications(1, 20, { type: 'GAME_ASSIGNMENT', unread: true }).subscribe();
+    const filtered = http.expectOne(`${base}/all?page=1&limit=20&type=GAME_ASSIGNMENT&unread=true`);
+    expect(filtered.request.method).toBe('GET');
+    filtered.flush({ notifications: [], total: 0, currentPage: 1, totalPages: 0 });
+
     service.deleteNotification('n1').subscribe();
     const del = http.expectOne(`${base}/n1`);
     expect(del.request.method).toBe('DELETE');

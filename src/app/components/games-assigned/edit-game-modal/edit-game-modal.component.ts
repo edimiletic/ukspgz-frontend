@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/login.service';
 import { CatalogService } from '../../../services/catalog.service';
 import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
 import { firstValueFrom } from 'rxjs';
-import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
+import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isAdminUser, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
@@ -692,19 +692,27 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         }
       });
 
+      const failedAssignments: string[] = [];
       const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
       for (const assignment of assignments) {
-        const result: any = await firstValueFrom(
-          this.basketballGameService.assignReferee(createdGame._id, assignment)
-        );
-        if (result?.releasedNominations?.length) {
-          releasedNominations.push(...result.releasedNominations);
+        try {
+          const result: any = await firstValueFrom(
+            this.basketballGameService.assignReferee(createdGame._id, assignment)
+          );
+          if (result?.releasedNominations?.length) {
+            releasedNominations.push(...result.releasedNominations);
+          }
+        } catch {
+          failedAssignments.push(`${assignment.role}`);
         }
       }
 
       let message = assignments.length
-        ? `Utakmica kreirana i ${assignments.length} nominacija poslano!`
+        ? `Utakmica kreirana i ${assignments.length - failedAssignments.length} nominacija poslano!`
         : 'Utakmica je uspješno kreirana';
+      if (failedAssignments.length) {
+        message += ` Nisu dodijeljene: ${failedAssignments.join(', ')}.`;
+      }
       if (releasedNominations.length) {
         const released = releasedNominations
           .map(item => `${item.homeTeam} vs ${item.awayTeam} (${item.competition})`)
@@ -863,7 +871,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         try {
           await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
         } catch (error) {
-          console.warn('Error removing assignment:', error);
+          throw error;
         }
         continue;
       }
@@ -968,7 +976,13 @@ this.currentStep = 1;
 
  // Get minimum date (for editing, we allow past dates since the game might have already happened)
  getMinDate(): string {
-   return '';
+   if (!this.isCreateMode && isAdminUser(this.authService.currentUserValue)) {
+     return '';
+   }
+   const now = new Date();
+   const month = String(now.getMonth() + 1).padStart(2, '0');
+   const day = String(now.getDate()).padStart(2, '0');
+   return `${now.getFullYear()}-${month}-${day}`;
  }
 
  // Add this method to initialize all availability arrays

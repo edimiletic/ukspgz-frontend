@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './reason-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReasonModalComponent {
+export class ReasonModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() isBusy = false;
   @Input() title = 'Odbijanje';
@@ -27,6 +27,13 @@ export class ReasonModalComponent {
 
   reason = '';
   errorMessage = '';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && !this.isOpen) {
+      this.reason = '';
+      this.errorMessage = '';
+    }
+  }
 
   get isFormValid(): boolean {
     const len = this.reason.trim().length;
