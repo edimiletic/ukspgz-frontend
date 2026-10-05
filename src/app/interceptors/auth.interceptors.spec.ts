@@ -46,7 +46,7 @@ describe('authInterceptor', () => {
     req.flush({ token: 'x' });
   });
 
-  it('na 401 čisti sesiju i šalje na login', () => {
+  it('na 401 s Bearer tokenom čisti sesiju i šalje na login', () => {
     auth.getToken.and.returnValue('abc.def.ghi');
     http.get('/api/users').subscribe({
       next: () => fail('očekivana 401'),
@@ -55,6 +55,17 @@ describe('authInterceptor', () => {
     httpMock.expectOne('/api/users').flush({ error: 'expired' }, { status: 401, statusText: 'Unauthorized' });
     expect(auth.clearSession).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('na 401 bez Authorization ne čisti sesiju', () => {
+    auth.getToken.and.returnValue(null);
+    http.get('/api/users').subscribe({
+      next: () => fail('očekivana 401'),
+      error: err => expect(err.status).toBe(401)
+    });
+    httpMock.expectOne('/api/users').flush({ error: 'no token' }, { status: 401, statusText: 'Unauthorized' });
+    expect(auth.clearSession).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('bez tokena ne stavlja Authorization', () => {

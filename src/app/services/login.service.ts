@@ -8,6 +8,16 @@ import { User } from '../model/user.model';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
+function decodeJwtPayload(token: string): { exp?: number } {
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid token');
+  }
+  const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  return JSON.parse(atob(padded));
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,10 +33,6 @@ export class AuthService {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-
-    if (this.isBrowser && this.isAuthenticated()) {
-      this.loadUserData();
-    }
   }
 
   private normalizeUser(user: any): User | null {
@@ -80,14 +86,8 @@ export class AuthService {
     if (!token) return false;
 
     try {
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        localStorage.removeItem('token');
-        return false;
-      }
-
-      const payload = JSON.parse(atob(parts[1]));
-      const isExpired = payload.exp * 1000 < Date.now();
+      const payload = decodeJwtPayload(token);
+      const isExpired = typeof payload.exp === 'number' && payload.exp * 1000 < Date.now();
 
       if (isExpired) {
         localStorage.removeItem('token');

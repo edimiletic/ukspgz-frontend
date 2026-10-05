@@ -73,6 +73,10 @@ describe('AuthService', () => {
 
     localStorage.setItem('token', jwt(3600));
     expect(service.isAuthenticated()).toBeTrue();
+
+    const unpadded = jwt(3600).replace(/=/g, '');
+    localStorage.setItem('token', unpadded);
+    expect(service.isAuthenticated()).toBeTrue();
   });
 
   it('getCurrentUser ide na /me kad nema cachea', () => {

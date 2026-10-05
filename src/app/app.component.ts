@@ -46,8 +46,10 @@ export class AppComponent implements OnInit {
       next: () => {
         this.isInitializing = false;
       },
-      error: () => {
-        this.authService.clearSession();
+      error: (error) => {
+        if (error?.status === 401 || error?.status === 403) {
+          this.authService.clearSession();
+        }
         this.isInitializing = false;
       }
     });

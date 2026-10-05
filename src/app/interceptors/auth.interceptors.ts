@@ -13,7 +13,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isLoginRequest = req.url.includes('/login');
 
   if (isBrowser && !isLoginRequest) {
-    const token = authService.getToken();
+    const token = authService.getToken() ?? localStorage.getItem('token');
     if (token) {
       req = req.clone({
         setHeaders: {
@@ -25,7 +25,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (isBrowser && error.status === 401 && !isLoginRequest) {
+      const sentAuth = req.headers.has('Authorization');
+      if (isBrowser && error.status === 401 && !isLoginRequest && sentAuth) {
         authService.clearSession();
         router.navigate(['/login']);
       }
