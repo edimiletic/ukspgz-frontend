@@ -13,9 +13,9 @@
             <i class="icon-message"></i>
             <strong>{{ isAdmin ? 'Admin:' : (seesSupervisedAbsences ? 'Nadzor:' : 'Napomena:') }}</strong>
             {{ isAdmin
-              ? 'Pregled odsustva svih službenih osoba.'
+              ? 'Pregled odsustva svih službenih osoba. Po zadanom su prikazani suci; ulogu možete promijeniti u filteru.'
               : (seesSupervisedAbsences
-                ? 'Pregled odsustva osoba na vašim ligama. Vlastito odsustvo i dalje možete kreirati, urediti i obrisati.'
+                ? 'Pregled odsustva službenih osoba na vašim natjecanjima. Po zadanom su prikazani suci; ulogu možete promijeniti u filteru. Vlastito odsustvo i dalje možete kreirati, urediti i obrisati.'
                 : 'Možete odrediti kada ne možete biti na utakmici. Za ta razdoblja nećete biti nominirani.')
             }}
         </div>
@@ -40,6 +40,13 @@
                         <label>Korisnik</label>
                         <input type="text" class="form-control" placeholder="Pretraži po imenu"
                             [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
+                    </div>
+                    <div class="filter-group" *ngIf="showNamedOverview">
+                        <label>Uloga</label>
+                        <select class="form-control" [(ngModel)]="filterValues.role" (change)="onFilterChange()">
+                            <option value="">Sve uloge</option>
+                            <option *ngFor="let role of roleFilterOptions" [value]="role">{{ role }}</option>
+                        </select>
                     </div>
                     <div class="filter-group">
                         <label>Početak odsustva</label>

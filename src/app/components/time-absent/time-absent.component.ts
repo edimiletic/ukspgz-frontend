@@ -9,7 +9,7 @@ import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { canSeeAllGames, isAdminUser } from '../../model/roles';
+import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser } from '../../model/roles';
 
 
 interface AbsenceWithUser extends Absence {
@@ -69,10 +69,14 @@ export class TimeAbsentComponent {
 
 isMobileFiltersOpen: boolean = false;
 
+  readonly roleFilterOptions = GAME_ASSIGNMENT_ROLES;
+  readonly defaultRoleFilter = 'Sudac';
+
   // Filter properties
   filterValues = {
     id: '',
     userName: '',
+    role: 'Sudac',
     startDate: '',
     endDate: ''
   };
@@ -97,6 +101,7 @@ isMobileFiltersOpen: boolean = false;
       this.currentUser = user;
       this.isAdmin = isAdminUser(user);
       this.seesSupervisedAbsences = !this.isAdmin && canSeeAllGames(user);
+      this.filterValues.role = (this.isAdmin || this.seesSupervisedAbsences) ? this.defaultRoleFilter : '';
       this.loadAbsences();
     },
     error: (error) => {
@@ -127,7 +132,7 @@ isMobileFiltersOpen: boolean = false;
 
     if (this.isAdmin || this.seesSupervisedAbsences) {
       // Admin: Load all absences (backend now includes user names)
-      this.absenceService.getAllAbsences().subscribe({
+      this.absenceService.getAllAbsences(1, 1000).subscribe({
         next: (absences: AbsenceWithUser[]) => {
            // Debug log
           this.allAbsences = absences;
@@ -326,6 +331,16 @@ isMobileFiltersOpen: boolean = false;
         return false;
       }
 
+      if (this.showNamedOverview && this.filterValues.role) {
+        const roles = (absence.userRole || '')
+          .split(',')
+          .map((role) => role.trim())
+          .filter(Boolean);
+        if (!roles.includes(this.filterValues.role)) {
+          return false;
+        }
+      }
+
       // Start date filter - EXACT match
       if (this.filterValues.startDate) {
         const filterStartDate = new Date(this.filterValues.startDate);
@@ -366,6 +381,7 @@ isMobileFiltersOpen: boolean = false;
     this.filterValues = {
       id: '',
       userName: '',
+      role: this.showNamedOverview ? this.defaultRoleFilter : '',
       startDate: '',
       endDate: ''
     };
@@ -378,8 +394,9 @@ if (window.innerWidth <= 693) {
 
   // Check if any filters are active
   get hasActiveFilters(): boolean {
-    return !!(this.filterValues.id || this.filterValues.userName || 
-              this.filterValues.startDate || this.filterValues.endDate);
+    const roleChanged = this.showNamedOverview && this.filterValues.role !== this.defaultRoleFilter;
+    return !!(this.filterValues.id || this.filterValues.userName ||
+              this.filterValues.startDate || this.filterValues.endDate || roleChanged);
   }
 
   // Get total count for display

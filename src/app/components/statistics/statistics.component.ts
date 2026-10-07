@@ -19,7 +19,7 @@ import {
   calculateCompetitionStats,
   calculateExpenseStats,
   calculateRefereeStats,
-  currentSeasonLabel,
+  DEFAULT_STATISTICS_SEASON,
   emptyAbsenceStats,
   emptyAvailableReferees,
   emptyExpenseStats,
@@ -76,7 +76,7 @@ export class StatisticsComponent implements OnInit {
     const now = new Date();
     this.selectedMonth = String(now.getMonth() + 1).padStart(2, '0');
     this.selectedYear = String(now.getFullYear());
-    this.selectedSeason = currentSeasonLabel(now);
+    this.selectedSeason = DEFAULT_STATISTICS_SEASON;
     this.loadStatistics();
   }
 
@@ -218,10 +218,10 @@ export class StatisticsComponent implements OnInit {
 
   clearAllFilters() {
     const now = new Date();
-    this.selectedPeriod = 'custom';
+    this.selectedPeriod = 'season';
     this.selectedMonth = String(now.getMonth() + 1).padStart(2, '0');
     this.selectedYear = String(now.getFullYear());
-    this.selectedSeason = currentSeasonLabel(now);
+    this.selectedSeason = DEFAULT_STATISTICS_SEASON;
     this.startDate = '';
     this.endDate = '';
     this.selectedCompetition = '';
