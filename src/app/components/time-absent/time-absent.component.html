@@ -110,7 +110,7 @@
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
                                 <td *ngIf="canCreateOwnAbsence">
-                                    <div class="action-buttons" *ngIf="isOwnAbsence(absence)">
+                                    <div class="action-buttons" *ngIf="canEditAbsence(absence) || canDeleteAbsence(absence)">
                                         <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
                                             <i class="fa-solid fa-pen"></i>
                                         </div>
@@ -177,7 +177,7 @@
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
                                 <td *ngIf="canCreateOwnAbsence">
-                                    <div class="action-buttons" *ngIf="isOwnAbsence(absence)">
+                                    <div class="action-buttons" *ngIf="canEditAbsence(absence) || canDeleteAbsence(absence)">
                                         <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
                                             <i class="fa-solid fa-pen"></i>
                                         </div>
@@ -245,7 +245,7 @@
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
                                 <td *ngIf="canCreateOwnAbsence">
-                                    <div class="action-buttons" *ngIf="isOwnAbsence(absence)">
+                                    <div class="action-buttons" *ngIf="canEditAbsence(absence) || canDeleteAbsence(absence)">
                                         <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
                                             <i class="fa-solid fa-pen"></i>
                                         </div>
@@ -447,7 +447,7 @@
                                 <td>{{ formatDate(absence.endDate) }}</td>
                                 <td>{{ absence.reason || '-' }}</td>
                                 <td>
-                                    <div class="action-buttons">
+                                    <div class="action-buttons" *ngIf="canEditAbsence(absence) || canDeleteAbsence(absence)">
                                         <div class="btn-icon btn-edit" (click)="openEditModal(absence)">
                                             <i class="fa-solid fa-pen"></i>
                                         </div>

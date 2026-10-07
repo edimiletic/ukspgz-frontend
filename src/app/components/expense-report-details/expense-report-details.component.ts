@@ -29,6 +29,7 @@ export class ExpenseReportDetailsComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   isAddExpenseModalOpen = false;
+  isAddItemBusy = false;
   isConfirmOpen = false;
   isConfirmBusy = false;
   confirmationData: ConfirmationData = {
@@ -277,7 +278,9 @@ private loadCurrentUser() {
   }
 
   onExpenseSaved(expenseData: ExpenseItem) {
-        
+    if (this.isAddItemBusy) {
+      return;
+    }
     if (!this.report) {
       this.showError('Greška: Izvješće nije učitano.');
       return;
@@ -298,17 +301,18 @@ const expenseItem = {
     awayTeam: expenseData.awayTeam || undefined
   };
 
-    // Call the PATCH API to add expense item
+    this.isAddItemBusy = true;
     this.travelExpenseService.addExpenseItem(this.getReportId(), expenseItem).subscribe({
       next: (updatedReport) => {
-                this.report = updatedReport;
+        this.report = updatedReport;
+        this.isAddItemBusy = false;
         this.closeAddExpenseModal();
         this.showSuccess('Stavka je uspješno dodana!');
       },
       error: (error) => {
         console.error('Error adding expense item:', error);
+        this.isAddItemBusy = false;
         this.showError(this.getExpenseErrorMessage(error));
-        // Don't close modal on error so user can retry
       }
     });
   }

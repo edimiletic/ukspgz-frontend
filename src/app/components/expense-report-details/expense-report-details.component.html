@@ -189,6 +189,7 @@
 <!-- Modals -->
 <app-modal-expense-report-details
  [isOpen]="isAddExpenseModalOpen"
+  [isSaving]="isAddItemBusy"
   [reportMonth]="report?.month || ''"
   [reportYear]="report?.year || null"
   (close)="closeAddExpenseModal()"

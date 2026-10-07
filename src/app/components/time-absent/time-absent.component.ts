@@ -134,6 +134,22 @@ isMobileFiltersOpen: boolean = false;
     return !!this.currentUser?.personalCode && absence.userPersonalCode === this.currentUser.personalCode;
   }
 
+  isPastAbsence(absence: Absence): boolean {
+    const end = new Date(absence.endDate);
+    end.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return end < today;
+  }
+
+  canEditAbsence(absence: Absence): boolean {
+    return this.isOwnAbsence(absence) && !this.isPastAbsence(absence);
+  }
+
+  canDeleteAbsence(absence: Absence): boolean {
+    return this.isOwnAbsence(absence) && !this.isPastAbsence(absence);
+  }
+
   loadAbsences() {
     this.isLoading = true;
 
@@ -445,13 +461,13 @@ if (window.innerWidth <= 693) {
   }
 
   openEditModal(absence: Absence) {
-    if (!this.isOwnAbsence(absence)) return;
+    if (!this.canEditAbsence(absence)) return;
     this.absenceToEdit = absence;
     this.isAbsenceFormOpen = true;
   }
 
   openDeleteModal(absence: Absence) {
-    if (!this.isOwnAbsence(absence)) return;
+    if (!this.canDeleteAbsence(absence)) return;
     this.absenceToDelete = absence;
     this.confirmationData = {
       title: 'Potvrdi brisanje',
