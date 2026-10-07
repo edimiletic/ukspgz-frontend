@@ -41,26 +41,10 @@ export const COMMISSIONER_ROLES: UserRole[] = [
 
 export const ALL_COMPETITIONS = [
   'SuperSport Premijer liga',
-  'KUP «K. ĆOSIĆ»',
   'PRVA MUŠKA LIGA',
-  'ZAVRŠNI TURNIR ZA POPUNU PRVE MUŠKE LIGE',
-  'DRUGE MUŠKE LIGE',
-  'TREĆE MUŠKE LIGE',
-  'ČETVRTE MUŠKE LIGE',
   'PREMIJER ŽENSKA LIGA',
-  'PRVA ŽENSKA LIGA',
-  'KUP «R. MEGLAJ-RIMAC»',
-  'JUNIORI',
-  'JUNIORKE',
-  'KADETI',
-  'KADETKINJE',
-  'MLAĐI KADETI',
-  'MLAĐE KADETKINJE',
-  'DJEČACI I DJEVOJČICE',
-  'NATJECANJE SREDNJIH ŠKOLA',
-  'NATJECANJE OSNOVNIH ŠKOLA',
-  'Natjecanje MINI KOŠARKA',
-  '3X3'
+  'KUP «K. ĆOSIĆ»',
+  'KUP «R. MEGLAJ-RIMAC»'
 ];
 
 export const COMPETITION_RANK: Record<string, number> = {
@@ -122,13 +106,7 @@ export const timesOverlap = (timeA?: string | null, timeB?: string | null, windo
   return Math.abs(toMinutes(timeA) - toMinutes(timeB)) < windowMinutes;
 };
 
-export const TOP_PROFESSIONAL_COMPETITIONS = [
-  'SuperSport Premijer liga',
-  'PREMIJER ŽENSKA LIGA',
-  'PRVA MUŠKA LIGA',
-  'KUP «K. ĆOSIĆ»',
-  'KUP «R. MEGLAJ-RIMAC»'
-];
+export const TOP_PROFESSIONAL_COMPETITIONS = [...ALL_COMPETITIONS];
 
 export const normalizeRoleAssignments = (userOrRole?: RoleSource | string | null): RoleAssignment[] => {
   if (!userOrRole) return [];

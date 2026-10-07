@@ -98,7 +98,7 @@ describe('statistics.helpers', () => {
           ]
         },
         {
-          competition: '3X3',
+          competition: 'PRVA MUŠKA LIGA',
           refereeAssignments: [
             { assignmentStatus: 'Accepted', role: 'Sudac', userId: { _id: 'u1' } }
           ]
@@ -110,7 +110,7 @@ describe('statistics.helpers', () => {
       expect(stats[0].gamesInPeriod).toBe(2);
       expect(stats[0].totalGames).toBe(2);
       expect(stats[0].competitions['SuperSport Premijer liga']).toBe(1);
-      expect(stats[0].competitions['3X3']).toBe(1);
+      expect(stats[0].competitions['PRVA MUŠKA LIGA']).toBe(1);
     });
 
     it('ne broji tuđu ulogu iste osobe', () => {
@@ -134,7 +134,7 @@ describe('statistics.helpers', () => {
     it('broji utakmice i distinct suce po ligi', () => {
       const games = [
         {
-          competition: '3X3',
+          competition: 'PRVA MUŠKA LIGA',
           refereeAssignments: [
             { assignmentStatus: 'Accepted', role: 'Sudac', userId: { _id: 'a' } },
             { assignmentStatus: 'Accepted', role: 'Sudac', userId: { _id: 'b' } },
