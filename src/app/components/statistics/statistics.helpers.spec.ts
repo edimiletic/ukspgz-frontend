@@ -91,7 +91,7 @@ describe('statistics.helpers', () => {
     it('broji samo Accepted nominacije i ignorira ostale uloge', () => {
       const games = [
         {
-          competition: 'FAVBET PREMIJER LIGA',
+          competition: 'SuperSport Premijer liga',
           refereeAssignments: [
             { assignmentStatus: 'Accepted', role: 'Sudac', userId: { _id: 'u1' } },
             { assignmentStatus: 'Pending', role: 'Sudac', userId: { _id: 'u1' } }
@@ -109,14 +109,14 @@ describe('statistics.helpers', () => {
       expect(stats.length).toBe(1);
       expect(stats[0].gamesInPeriod).toBe(2);
       expect(stats[0].totalGames).toBe(2);
-      expect(stats[0].competitions['FAVBET PREMIJER LIGA']).toBe(1);
+      expect(stats[0].competitions['SuperSport Premijer liga']).toBe(1);
       expect(stats[0].competitions['3X3']).toBe(1);
     });
 
     it('ne broji tuđu ulogu iste osobe', () => {
       const games = [
         {
-          competition: 'FAVBET PREMIJER LIGA',
+          competition: 'SuperSport Premijer liga',
           refereeAssignments: [
             { assignmentStatus: 'Accepted', role: 'Delegat', userId: { _id: 'u1' } }
           ]

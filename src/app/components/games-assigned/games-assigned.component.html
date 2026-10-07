@@ -128,7 +128,7 @@
                     <button class="btn btn-success btn-sm" (click)="acceptAssignment(game._id)" title="Prihvati" [disabled]="isResponding">
                       <i class="fas fa-check"></i>
                     </button>
-                    <button class="btn btn-danger btn-sm" (click)="rejectAssignment(game._id)" title="Odbij">
+                    <button class="btn btn-danger btn-sm" (click)="rejectAssignment(game._id)" title="Odbij" [disabled]="isResponding">
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
@@ -422,6 +422,10 @@
 <!-- Confirmation Modal -->
 <app-confirmation-modal [isOpen]="isConfirmationModalOpen" [isBusy]="isConfirmBusy"
   [confirmationData]="confirmationData" (close)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
+</app-confirmation-modal>
+
+<app-confirmation-modal [isOpen]="isAcceptModalOpen" [isBusy]="isResponding"
+  [confirmationData]="acceptConfirmationData" (close)="closeAcceptModal()" (confirm)="onAcceptConfirmed($event)">
 </app-confirmation-modal>
 
 <app-view-kontrola-modal [isOpen]="isViewKontrolaModalOpen" [game]="gameForViewKontrola"

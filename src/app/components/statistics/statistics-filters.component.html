@@ -46,9 +46,7 @@
         <label for="season">Sezona:</label>
         <select id="season" [ngModel]="selectedSeason"
           (ngModelChange)="selectedSeasonChange.emit($event); filtersChange.emit()" class="form-control">
-          <option value="2023/2024">2023/2024</option>
-          <option value="2024/2025">2024/2025</option>
-          <option value="2025/2026">2025/2026</option>
+          <option *ngFor="let season of seasons; trackBy: trackBySeason" [value]="season.value">{{ season.label }}</option>
         </select>
       </div>
 

@@ -35,11 +35,18 @@ describe('roles', () => {
     it('ignorira nepoznate uloge i natjecanja izvan kataloga', () => {
       const assignments = normalizeRoleAssignments({
         roles: [
-          { name: 'Sudac', competitions: ['FAVBET PREMIJER LIGA', 'NEPOSTOJI'] },
+          { name: 'Sudac', competitions: ['SuperSport Premijer liga', 'NEPOSTOJI'] },
           'NijeUloga'
         ]
       });
-      expect(assignments).toEqual([{ name: 'Sudac', competitions: ['FAVBET PREMIJER LIGA'] }]);
+      expect(assignments).toEqual([{ name: 'Sudac', competitions: ['SuperSport Premijer liga'] }]);
+    });
+
+    it('mapira staro ime FAVBET Premijer lige', () => {
+      const assignments = normalizeRoleAssignments({
+        roles: [{ name: 'Sudac', competitions: ['FAVBET PREMIJER LIGA'] }]
+      });
+      expect(assignments).toEqual([{ name: 'Sudac', competitions: ['SuperSport Premijer liga'] }]);
     });
 
     it('vraća prazno za null', () => {
@@ -80,8 +87,8 @@ describe('roles', () => {
 
     it('kalendar i nominacije ovise o natjecanju', () => {
       expect(canManageCalendar(calendarPov, '3X3')).toBeTrue();
-      expect(canManageCalendar(calendarPov, 'FAVBET PREMIJER LIGA')).toBeFalse();
-      expect(canManageCalendar(admin, 'FAVBET PREMIJER LIGA')).toBeTrue();
+      expect(canManageCalendar(calendarPov, 'SuperSport Premijer liga')).toBeFalse();
+      expect(canManageCalendar(admin, 'SuperSport Premijer liga')).toBeTrue();
 
       expect(canNominateOfficials(officialsPov, '3X3')).toBeTrue();
       expect(canNominateAssistants(assistantPov, '3X3')).toBeTrue();
@@ -128,14 +135,14 @@ describe('roles', () => {
 
   describe('nominacija / raspored', () => {
     it('pomoćni sudac nije vezan uz cap lige', () => {
-      expect(isWithinNominationCap({ najvisaLiga: '3X3' }, 'FAVBET PREMIJER LIGA', 'Pomoćni Sudac')).toBeTrue();
-      expect(isWithinNominationCap({ najvisaLiga: '3X3' }, 'FAVBET PREMIJER LIGA', 'Sudac')).toBeFalse();
-      expect(isWithinNominationCap({ najvisaLiga: 'FAVBET PREMIJER LIGA' }, '3X3', 'Sudac')).toBeTrue();
+      expect(isWithinNominationCap({ najvisaLiga: '3X3' }, 'SuperSport Premijer liga', 'Pomoćni Sudac')).toBeTrue();
+      expect(isWithinNominationCap({ najvisaLiga: '3X3' }, 'SuperSport Premijer liga', 'Sudac')).toBeFalse();
+      expect(isWithinNominationCap({ najvisaLiga: 'SuperSport Premijer liga' }, '3X3', 'Sudac')).toBeTrue();
     });
 
     it('viša postojeća liga blokira novu nižu isti dan', () => {
-      expect(isBlockingScheduleConflict('FAVBET PREMIJER LIGA', '3X3')).toBeTrue();
-      expect(isBlockingScheduleConflict('3X3', 'FAVBET PREMIJER LIGA')).toBeFalse();
+      expect(isBlockingScheduleConflict('SuperSport Premijer liga', '3X3')).toBeTrue();
+      expect(isBlockingScheduleConflict('3X3', 'SuperSport Premijer liga')).toBeFalse();
     });
 
     it('timesOverlap koristi prozor od 60 minuta', () => {
@@ -144,11 +151,11 @@ describe('roles', () => {
     });
 
     it('isEligibleForCompetition: sudac unutar capa, kontrolor samo top lige', () => {
-      const sudac = { roles: [{ name: 'Sudac', competitions: [] }], najvisaLiga: 'FAVBET PREMIJER LIGA' };
-      const kontrolor = { roles: [{ name: 'Kontrolor', competitions: [] }], najvisaLiga: 'FAVBET PREMIJER LIGA' };
+      const sudac = { roles: [{ name: 'Sudac', competitions: [] }], najvisaLiga: 'SuperSport Premijer liga' };
+      const kontrolor = { roles: [{ name: 'Kontrolor', competitions: [] }], najvisaLiga: 'SuperSport Premijer liga' };
       expect(isEligibleForCompetition(sudac, '3X3')).toBeTrue();
       expect(isEligibleForCompetition(kontrolor, '3X3')).toBeFalse();
-      expect(isEligibleForCompetition(kontrolor, 'FAVBET PREMIJER LIGA')).toBeTrue();
+      expect(isEligibleForCompetition(kontrolor, 'SuperSport Premijer liga')).toBeTrue();
     });
   });
 });

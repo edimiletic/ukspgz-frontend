@@ -387,8 +387,55 @@ onGameCreated(result: any) {
     );
   }
 
+  isAcceptModalOpen = false;
+  acceptConfirmationData: ConfirmationData = {
+    title: 'Prihvati nominaciju',
+    message: 'Jeste li sigurni da želite prihvatiti ovu nominaciju?',
+    confirmText: 'Prihvati',
+    cancelText: 'Odustani',
+    confirmButtonClass: 'btn-success',
+    loadingText: 'Prihvaćanje...'
+  };
+  gameToAccept: BasketballGame | null = null;
+
   acceptAssignment(gameId: string) {
     if (this.isResponding) {
+      return;
+    }
+    const game = this.pendingGames.find(g => g._id === gameId);
+    if (!game) {
+      return;
+    }
+    this.gameToAccept = game;
+    this.acceptConfirmationData = {
+      title: 'Prihvati nominaciju',
+      message: 'Jeste li sigurni da želite prihvatiti ovu nominaciju?',
+      details: [
+        `${game.homeTeam} vs ${game.awayTeam}`,
+        `${this.formatDate(game.date)} u ${game.time}`,
+        game.venue,
+        game.competition
+      ],
+      confirmText: 'Prihvati nominaciju',
+      cancelText: 'Odustani',
+      confirmButtonClass: 'btn-success',
+      loadingText: 'Prihvaćanje...',
+      data: game._id
+    };
+    this.isAcceptModalOpen = true;
+  }
+
+  closeAcceptModal() {
+    if (this.isResponding) {
+      return;
+    }
+    this.isAcceptModalOpen = false;
+    this.gameToAccept = null;
+  }
+
+  onAcceptConfirmed(payload: unknown) {
+    const gameId = payload as string | undefined;
+    if (!gameId || this.isResponding) {
       return;
     }
     this.respondToAssignment(gameId, 'Accepted');
@@ -436,6 +483,8 @@ onGameCreated(result: any) {
         this.isResponding = false;
         if (response === 'Accepted') {
           this.showSuccess('Nominacija je uspješno prihvaćena! Povjerenik je obaviješten.');
+          this.isAcceptModalOpen = false;
+          this.gameToAccept = null;
         } else {
           this.showSuccess('Nominacija je uspješno odbijena! Povjerenik je obaviješten.');
           this.isRejectBusy = false;

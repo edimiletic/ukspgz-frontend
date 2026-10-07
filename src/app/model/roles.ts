@@ -40,7 +40,7 @@ export const COMMISSIONER_ROLES: UserRole[] = [
 ];
 
 export const ALL_COMPETITIONS = [
-  'FAVBET PREMIJER LIGA',
+  'SuperSport Premijer liga',
   'KUP «K. ĆOSIĆ»',
   'PRVA MUŠKA LIGA',
   'ZAVRŠNI TURNIR ZA POPUNU PRVE MUŠKE LIGE',
@@ -64,6 +64,7 @@ export const ALL_COMPETITIONS = [
 ];
 
 export const COMPETITION_RANK: Record<string, number> = {
+  'SuperSport Premijer liga': 100,
   'FAVBET PREMIJER LIGA': 100,
   'KUP «K. ĆOSIĆ»': 100,
   'PREMIJER ŽENSKA LIGA': 95,
@@ -90,7 +91,11 @@ export const COMPETITION_RANK: Record<string, number> = {
 export const REFEREE_RANKS = ['Državni sudac', 'Županijski sudac'] as const;
 export type RefereeRank = typeof REFEREE_RANKS[number];
 
+export const canonicalCompetition = (competition?: string | null): string =>
+  competition === 'FAVBET PREMIJER LIGA' ? 'SuperSport Premijer liga' : (competition || '');
+
 export const getCompetitionRank = (competition?: string | null): number =>
+  (competition && COMPETITION_RANK[canonicalCompetition(competition)]) ||
   (competition && COMPETITION_RANK[competition]) || 0;
 
 export const isWithinNominationCap = (
@@ -118,7 +123,7 @@ export const timesOverlap = (timeA?: string | null, timeB?: string | null, windo
 };
 
 export const TOP_PROFESSIONAL_COMPETITIONS = [
-  'FAVBET PREMIJER LIGA',
+  'SuperSport Premijer liga',
   'PREMIJER ŽENSKA LIGA',
   'PRVA MUŠKA LIGA',
   'KUP «K. ĆOSIĆ»',
@@ -146,7 +151,9 @@ export const normalizeRoleAssignments = (userOrRole?: RoleSource | string | null
       const name = ((entry as RoleAssignment).name || (entry as { role?: string }).role) as UserRole;
       if (!USER_ROLES.includes(name)) return null;
       const competitions = Array.isArray(entry.competitions)
-        ? entry.competitions.filter((competition) => ALL_COMPETITIONS.includes(competition))
+        ? entry.competitions
+            .map((competition) => canonicalCompetition(competition))
+            .filter((competition) => ALL_COMPETITIONS.includes(competition))
         : [];
       return { name, competitions };
     })

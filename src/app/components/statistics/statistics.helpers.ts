@@ -21,6 +21,12 @@ export interface AvailableReferees {
 
 export const STATISTICS_COMPETITIONS = ALL_COMPETITIONS;
 
+export const DEFAULT_STATISTICS_SEASON = '2026/2027';
+
+export const STATISTICS_SEASONS = [
+  { value: DEFAULT_STATISTICS_SEASON, label: '2026./2027.' }
+];
+
 export const STATISTICS_MONTHS = [
   { value: '01', label: 'Siječanj' },
   { value: '02', label: 'Veljača' },

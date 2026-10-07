@@ -168,6 +168,19 @@
       background-color: #bdc3c7;
     }
   }
+
+  &.btn-success {
+    background-color: #16a34a;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: #15803d;
+    }
+
+    &:disabled {
+      background-color: #bdc3c7;
+    }
+  }
 }
 
 @media (max-width: 576px) {

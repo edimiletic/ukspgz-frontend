@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameAssignmentRole } from '../../model/roles';
-import { STATISTICS_COMPETITIONS, STATISTICS_MONTHS, StatisticsPeriod } from './statistics.helpers';
+import { STATISTICS_COMPETITIONS, STATISTICS_MONTHS, STATISTICS_SEASONS, StatisticsPeriod } from './statistics.helpers';
 
 @Component({
   selector: 'app-statistics-filters',
@@ -37,6 +37,7 @@ export class StatisticsFiltersComponent {
   @Output() clear = new EventEmitter<void>();
 
   months = STATISTICS_MONTHS;
+  seasons = STATISTICS_SEASONS;
   competitions = STATISTICS_COMPETITIONS;
 
   toggleMobileFilters(): void {
@@ -49,5 +50,9 @@ export class StatisticsFiltersComponent {
 
   trackByMonth(_index: number, month: { value: string }): string {
     return month.value;
+  }
+
+  trackBySeason(_index: number, season: { value: string }): string {
+    return season.value;
   }
 }
