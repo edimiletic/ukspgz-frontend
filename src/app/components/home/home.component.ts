@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/login.service';
@@ -23,7 +23,8 @@ import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from 
   standalone: true,
   imports: [CommonModule, RouterModule, EditGameModalComponent, AddQuestionModalComponent, TimeAbsentModalComponent, ExpensesModalComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrl: './home.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit {
   currentUser: User | null = null;
@@ -76,8 +77,13 @@ isExpensesModalOpen = false;
     private expenseService: TravelExpenseService,
     private absenceService: AbsenceService,
     private examService: ExamService,
-    private kontrolaService: KontrolaService
+    private kontrolaService: KontrolaService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit(): void {
     this.loadCurrentUser();
@@ -90,6 +96,7 @@ isExpensesModalOpen = false;
         this.isAdmin = isAdminUser(user);
         this.canManageCalendar = canManageCalendar(user);
         this.canSeeAllGames = canSeeAllGames(user);
+        this.refreshView();
         this.loadDashboardData();
       },
       error: (error) => {
@@ -97,6 +104,7 @@ isExpensesModalOpen = false;
         this.showError('Greška pri učitavanju korisničkih podataka.');
         this.hasError = true;
         this.isLoading = false;
+        this.refreshView();
       }
     });
   }
@@ -122,6 +130,7 @@ isExpensesModalOpen = false;
         this.showError('Neki podaci nisu mogli biti učitani. Molimo pokušajte osvježiti stranicu.');
       }
       this.isLoading = false;
+      this.refreshView();
     });
   }
 
@@ -145,6 +154,7 @@ isExpensesModalOpen = false;
       })
       .finally(() => {
         this.isLoading = false;
+        this.refreshView();
       });
   }
 
@@ -167,6 +177,7 @@ isExpensesModalOpen = false;
       })
       .finally(() => {
         this.isLoading = false;
+        this.refreshView();
       });
   }
 
@@ -541,8 +552,10 @@ onQuestionAdded(newQuestion: any): void {
     this.clearMessages();
     this.successMessage = message;
     // Auto-hide after 5 seconds
+    this.refreshView();
     setTimeout(() => {
       this.successMessage = '';
+      this.refreshView();
     }, 5000);
   }
 
@@ -550,14 +563,17 @@ onQuestionAdded(newQuestion: any): void {
     this.clearMessages();
     this.errorMessage = message;
     // Auto-hide after 7 seconds
+    this.refreshView();
     setTimeout(() => {
       this.errorMessage = '';
+      this.refreshView();
     }, 7000);
   }
 
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+    this.refreshView();
   }
 
   openTimeAbsentModal(): void {
@@ -591,6 +607,7 @@ startNewExam(): void {
   this.examService.generateExam().subscribe({
     next: (exam: Exam) => {
       this.isLoading = false;
+      this.refreshView();
       this.showSuccess('Ispit je uspješno generiran! Preusmjeravam vas...');
       
       // Navigate to exam taking page immediately
@@ -598,6 +615,7 @@ startNewExam(): void {
     },
     error: (err) => {
       this.isLoading = false;
+      this.refreshView();
       console.error('Failed to generate exam:', err);
       const errorMsg = err.error?.error || 'Greška prilikom kreiranja ispita. Pokušajte ponovo.';
       this.showError(errorMsg);

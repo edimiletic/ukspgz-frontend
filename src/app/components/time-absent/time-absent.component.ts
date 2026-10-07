@@ -1,6 +1,6 @@
 import { AbsenceService } from './../../services/absence.service';
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostBinding, HostListener } from '@angular/core';
 import { TimeAbsentModalComponent } from './time-absent-modal/time-absent-modal.component';
 import { Absence } from '../../model/absence.model';
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
@@ -20,7 +20,8 @@ interface AbsenceWithUser extends Absence {
   selector: 'app-time-absent',
   imports: [RouterModule, TimeAbsentModalComponent, CommonModule, ConfirmationModalComponent, FormsModule],
   templateUrl: './time-absent.component.html',
-  styleUrl: './time-absent.component.scss'
+  styleUrl: './time-absent.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimeAbsentComponent {
   isAbsenceFormOpen = false;
@@ -88,8 +89,13 @@ isMobileFiltersOpen: boolean = false;
   constructor(
     private absenceService: AbsenceService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     this.checkUserRole();
@@ -102,6 +108,7 @@ isMobileFiltersOpen: boolean = false;
       this.isAdmin = isAdminUser(user);
       this.seesSupervisedAbsences = !this.isAdmin && canSeeAllGames(user);
       this.filterValues.role = (this.isAdmin || this.seesSupervisedAbsences) ? this.defaultRoleFilter : '';
+      this.refreshView();
       this.loadAbsences();
     },
     error: (error) => {
@@ -139,11 +146,13 @@ isMobileFiltersOpen: boolean = false;
           this.categorizeAbsences(absences);
           this.applyFilters(); // Apply any existing filters
           this.isLoading = false;
+          this.refreshView();
         },
         error: (error) => {
           console.error('Error loading admin absences:', error);
           this.showError('Greška pri učitavanju odsustva. Molimo pokušajte ponovo.');
           this.isLoading = false;
+          this.refreshView();
         }
       });
     } else {
@@ -155,11 +164,13 @@ isMobileFiltersOpen: boolean = false;
           this.categorizeAbsences(absences); // Also categorize user absences
           this.applyFilters(); // Apply any existing filters
           this.isLoading = false;
+          this.refreshView();
         },
         error: (error) => {
           console.error('Error loading user absences:', error);
           this.showError('Greška pri učitavanju odsustva. Molimo pokušajte ponovo.');
           this.isLoading = false;
+          this.refreshView();
         }
       });
     }
@@ -471,9 +482,11 @@ if (window.innerWidth <= 693) {
       next: () => {
         this.onAbsenceDeleted();
         this.closeDeleteModal();
+        this.refreshView();
       },
       error: (error) => {
         this.isConfirmBusy = false;
+        this.refreshView();
         this.onModalError(this.getDeleteErrorMessage(error));
       }
     });
@@ -526,24 +539,27 @@ if (window.innerWidth <= 693) {
   private showSuccess(message: string): void {
     this.clearMessages();
     this.successMessage = message;
-    // Auto-hide after 5 seconds
+    this.refreshView();
     setTimeout(() => {
       this.successMessage = '';
+      this.refreshView();
     }, 5000);
   }
 
   private showError(message: string): void {
     this.clearMessages();
     this.errorMessage = message;
-    // Auto-hide after 7 seconds
+    this.refreshView();
     setTimeout(() => {
       this.errorMessage = '';
+      this.refreshView();
     }, 7000);
   }
 
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+    this.refreshView();
   }
 
   trackByAbsenceId(_index: number, absence: Absence): string {

@@ -1,5 +1,5 @@
 import { BasketballGameService } from './../../services/basketballGame.service';
-import { Component, OnInit, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { BasketballGame, BasketballGameUtils, RefereeAssignment, RefereeGroups, RefereeInfo } from '../../model/basketballGame.model';
@@ -18,7 +18,8 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
   templateUrl: './games-assigned.component.html',
-  styleUrl: './games-assigned.component.scss'
+  styleUrl: './games-assigned.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GamesAssignedComponent implements OnInit {
  // Game arrays
@@ -103,8 +104,13 @@ isMobileFiltersOpen: boolean = false;
   constructor(
     private basketballGameService: BasketballGameService,
     private authService: AuthService,
-    private kontrolaService: KontrolaService
+    private kontrolaService: KontrolaService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     this.getCurrentUser();
@@ -115,12 +121,14 @@ isMobileFiltersOpen: boolean = false;
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
                 this.currentUser = user;
+        this.refreshView();
         // Load games after we have user data
         this.loadMyGames();
       },
       error: (error) => {
         console.error('Error getting current user:', error);
         this.isLoading = false;
+        this.refreshView();
       }
     });
   }
@@ -216,9 +224,11 @@ checkGameKontrolaStatus(gameId: string): void {
   this.kontrolaService.hasKontrola(gameId).subscribe({
     next: (response) => {
       this.kontrolaStatusMap.set(gameId, response.exists);
+      this.refreshView();
     },
     error: () => {
       this.kontrolaStatusMap.set(gameId, false);
+      this.refreshView();
     }
   });
 }
@@ -307,11 +317,13 @@ onGameCreated(result: any) {
         next: (response) => {
                     this.categorizeGames(response.games);
           this.isLoading = false;
+          this.refreshView();
         },
         error: (error) => {
           console.error('Error loading games:', error);
           this.showError('Greška pri učitavanju utakmica.');
           this.isLoading = false;
+          this.refreshView();
         }
       });
     } else {
@@ -320,11 +332,13 @@ onGameCreated(result: any) {
         next: (games) => {
                     this.categorizeGames(games);
           this.isLoading = false;
+          this.refreshView();
         },
         error: (error) => {
           console.error('Error loading games:', error);
           this.showError('Greška pri učitavanju utakmica.');
           this.isLoading = false;
+          this.refreshView();
         }
       });
     }
@@ -481,6 +495,7 @@ onGameCreated(result: any) {
     this.basketballGameService.respondToAssignment(gameId, requestBody).subscribe({
       next: () => {
         this.isResponding = false;
+        this.refreshView();
         if (response === 'Accepted') {
           this.showSuccess('Nominacija je uspješno prihvaćena! Povjerenik je obaviješten.');
           this.isAcceptModalOpen = false;
@@ -495,6 +510,7 @@ onGameCreated(result: any) {
       error: () => {
         this.isResponding = false;
         this.isRejectBusy = false;
+        this.refreshView();
         this.showError('Greška pri odgovaranju na nominaciju.');
       }
     });
@@ -704,22 +720,27 @@ onGameCreated(result: any) {
   private showSuccess(message: string): void {
     this.clearMessages();
     this.successMessage = message;
+    this.refreshView();
     setTimeout(() => {
       this.successMessage = '';
+      this.refreshView();
     }, 5000);
   }
 
   private showError(message: string): void {
     this.clearMessages();
     this.errorMessage = message;
+    this.refreshView();
     setTimeout(() => {
       this.errorMessage = '';
+      this.refreshView();
     }, 7000);
   }
 
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+    this.refreshView();
   }
 
 
@@ -851,11 +872,13 @@ if (window.innerWidth <= 693) {
         this.showSuccess(`Utakmica ${game.homeTeam} vs ${game.awayTeam} je uspješno obrisana.`);
         this.loadMyGames();
         this.closeConfirmationModal();
+        this.refreshView();
       },
       error: (error) => {
         console.error('Error deleting game:', error);
         this.showError('Greška pri brisanju utakmice. Molimo pokušajte ponovo.');
         this.closeConfirmationModal();
+        this.refreshView();
       }
     });
   }
@@ -905,17 +928,21 @@ async openKontrolaModal(game: BasketballGame): Promise<void> {
         
     // Set edit mode first
     this.isKontrolaEditMode = response.exists;
+    this.refreshView();
     
     // Use setTimeout to ensure change detection picks up the edit mode change
     setTimeout(() => {
       this.isKontrolaModalOpen = true;
+      this.refreshView();
           }, 10);
     
   } catch (error) {
     console.error('❌ Error checking kontrola existence:', error);
     this.isKontrolaEditMode = false;
+    this.refreshView();
     setTimeout(() => {
       this.isKontrolaModalOpen = true;
+      this.refreshView();
     }, 10);
   }
 }

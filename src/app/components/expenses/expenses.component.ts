@@ -1,7 +1,7 @@
 // src/app/components/expenses/expenses.component.ts
 // SIMPLIFIED VERSION - Single view for admin
 
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ExpensesModalComponent } from './expenses-modal/expenses-modal.component';
 import { NewTravelExpense, TravelExpense } from '../../model/travel-expense.model';
 import { TravelExpenseService } from '../../services/travel-expense.service';
@@ -27,6 +27,7 @@ type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
   ],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpensesComponent implements OnInit {
   isModalOpen = false;
@@ -74,8 +75,13 @@ export class ExpensesComponent implements OnInit {
     private travelExpenseService: TravelExpenseService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -92,11 +98,13 @@ export class ExpensesComponent implements OnInit {
       }
         this.currentUser = user;
         this.isAdmin = isAdminUser(user);
+        this.refreshView();
         this.loadTravelExpenses();
       },
       error: (error) => {
         console.error('Error loading user:', error);
         this.errorMessage = 'Greška pri učitavanju korisničkih podataka.';
+        this.refreshView();
       }
     });
   }
@@ -110,10 +118,12 @@ export class ExpensesComponent implements OnInit {
       next: (expenses) => {
         this.allTravelExpenses = expenses;
         this.applyFilters(false);
+        this.refreshView();
       },
       error: (error) => {
         console.error('Error loading travel expenses:', error);
         this.errorMessage = 'Greška pri učitavanju izvješća.';
+        this.refreshView();
       }
     });
   }
@@ -284,6 +294,7 @@ export class ExpensesComponent implements OnInit {
   onReportCreated(event: { reportData: NewTravelExpense; reportId: string }) {
     this.closeModal();
     this.successMessage = 'Izvješće je uspješno kreirano!';
+    this.refreshView();
     this.loadTravelExpenses();
     setTimeout(() => this.clearMessages(), 4000);
     
@@ -334,11 +345,13 @@ export class ExpensesComponent implements OnInit {
         this.successMessage = 'Izvješće je uspješno obrisano!';
         this.loadTravelExpenses();
         this.closeDeleteModal();
+        this.refreshView();
         setTimeout(() => this.clearMessages(), 4000);
       },
       error: (error) => {
         this.isConfirmBusy = false;
         this.errorMessage = this.getDeleteErrorMessage(error);
+        this.refreshView();
         setTimeout(() => this.clearMessages(), 6000);
       }
     });
@@ -400,6 +413,7 @@ export class ExpensesComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['message'] === 'deleted') {
         this.successMessage = 'Izvješće je uspješno obrisano!';
+        this.refreshView();
         setTimeout(() => this.clearMessages(), 4000);
         
         // Clean URL
@@ -414,5 +428,6 @@ export class ExpensesComponent implements OnInit {
   clearMessages() {
     this.successMessage = '';
     this.errorMessage = '';
+    this.refreshView();
   }
 }
