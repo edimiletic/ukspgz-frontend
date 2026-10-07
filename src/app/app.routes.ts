@@ -1,23 +1,9 @@
 import { Routes } from '@angular/router';
 import { AuthComponent } from './components/auth/auth.component';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
-import { HomeComponent } from './components/home/home.component';
-import { GamesAssignedComponent } from './components/games-assigned/games-assigned.component';
-import { TimeAbsentComponent } from './components/time-absent/time-absent.component';
-import { ExpensesComponent } from './components/expenses/expenses.component';
-import { BasketRulesComponent } from './components/basket-rules/basket-rules.component';
 import { AuthGuard } from './guards/auth.guard';
-import { ExpenseReportDetailsComponent } from './components/expense-report-details/expense-report-details.component';
-import { ExamsComponent } from './components/exams/exams.component';
-import { TakeExamComponent } from './components/take-exam/take-exam.component';
-import { ExamResultComponent } from './components/exam-result/exam-result.component';
-import { ExamReviewComponent } from './components/exam-review/exam-review.component';
-import { StatisticsComponent } from './components/statistics/statistics.component';
-import { NotificationsComponent } from './components/notifications/notifications.component';
-import { EligibleOfficialsComponent } from './components/eligible-officials/eligible-officials.component';
 import { EligibleOfficialsGuard } from './guards/eligible-officials.guard';
 import { StatisticsGuard } from './guards/statistics.guard';
-import { NotFoundComponent } from './components/not-found/not-found.component';
 
 export const routes: Routes = [
   { path: 'login', component: AuthComponent },
@@ -27,21 +13,86 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
-      { path: 'home', component: HomeComponent },
-      { path: 'assigned', component: GamesAssignedComponent },
-      { path: 'absence', component: TimeAbsentComponent },
-      { path: 'expenses', component: ExpensesComponent },
-      { path: 'expenses/:id', component: ExpenseReportDetailsComponent },
-      { path: 'documents', component: BasketRulesComponent },
-      { path: 'exams', component: ExamsComponent },
-      { path: 'exams/take/:id', component: TakeExamComponent, data: { hideSidebar: true } },
-      { path: 'exams/result/:id', component: ExamResultComponent, data: { hideSidebar: true } },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./components/home/home.component').then((m) => m.HomeComponent)
+      },
+      {
+        path: 'assigned',
+        loadComponent: () =>
+          import('./components/games-assigned/games-assigned.component').then((m) => m.GamesAssignedComponent)
+      },
+      {
+        path: 'absence',
+        loadComponent: () =>
+          import('./components/time-absent/time-absent.component').then((m) => m.TimeAbsentComponent)
+      },
+      {
+        path: 'expenses',
+        loadComponent: () =>
+          import('./components/expenses/expenses.component').then((m) => m.ExpensesComponent)
+      },
+      {
+        path: 'expenses/:id',
+        loadComponent: () =>
+          import('./components/expense-report-details/expense-report-details.component').then(
+            (m) => m.ExpenseReportDetailsComponent
+          )
+      },
+      {
+        path: 'documents',
+        loadComponent: () =>
+          import('./components/basket-rules/basket-rules.component').then((m) => m.BasketRulesComponent)
+      },
+      {
+        path: 'exams',
+        loadComponent: () =>
+          import('./components/exams/exams.component').then((m) => m.ExamsComponent)
+      },
+      {
+        path: 'exams/take/:id',
+        loadComponent: () =>
+          import('./components/take-exam/take-exam.component').then((m) => m.TakeExamComponent),
+        data: { hideSidebar: true }
+      },
+      {
+        path: 'exams/result/:id',
+        loadComponent: () =>
+          import('./components/exam-result/exam-result.component').then((m) => m.ExamResultComponent),
+        data: { hideSidebar: true }
+      },
       { path: 'exams/result', redirectTo: 'exams', pathMatch: 'full' },
-      { path: 'exams/review/:id', component: ExamReviewComponent, data: { hideSidebar: true } },
-      { path: 'statistics', component: StatisticsComponent, canActivate: [StatisticsGuard] },
-      { path: 'eligible-officials', component: EligibleOfficialsComponent, canActivate: [EligibleOfficialsGuard] },
-      { path: 'notifications', component: NotificationsComponent },
-      { path: '**', component: NotFoundComponent }
+      {
+        path: 'exams/review/:id',
+        loadComponent: () =>
+          import('./components/exam-review/exam-review.component').then((m) => m.ExamReviewComponent),
+        data: { hideSidebar: true }
+      },
+      {
+        path: 'statistics',
+        loadComponent: () =>
+          import('./components/statistics/statistics.component').then((m) => m.StatisticsComponent),
+        canActivate: [StatisticsGuard]
+      },
+      {
+        path: 'eligible-officials',
+        loadComponent: () =>
+          import('./components/eligible-officials/eligible-officials.component').then(
+            (m) => m.EligibleOfficialsComponent
+          ),
+        canActivate: [EligibleOfficialsGuard]
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./components/notifications/notifications.component').then((m) => m.NotificationsComponent)
+      },
+      {
+        path: '**',
+        loadComponent: () =>
+          import('./components/not-found/not-found.component').then((m) => m.NotFoundComponent)
+      }
     ]
   }
 ];
