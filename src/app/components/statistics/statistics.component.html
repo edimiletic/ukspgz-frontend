@@ -1,10 +1,10 @@
 <div class="statistika-container">
-  <div class="header">
-    <h1>
-      <i class="fas fa-chart-bar"></i>
-      Statistike
-    </h1>
-  </div>
+    <div class="header">
+        <h1>
+            <i class="fas fa-chart-bar"></i>
+            Statistike
+        </h1>
+    </div>
 
   <app-statistics-filters
     [(selectedRole)]="selectedRole"
@@ -23,10 +23,10 @@
     (clear)="clearAllFilters()">
   </app-statistics-filters>
 
-  <div class="loading-section" *ngIf="isLoading">
-    <div class="loading-spinner"></div>
-    <p>Učitavanje statistika...</p>
-  </div>
+    <div class="loading-section" *ngIf="isLoading">
+        <div class="loading-spinner"></div>
+        <p>Učitavanje statistika...</p>
+    </div>
 
   <app-statistics-results
     *ngIf="!isLoading"

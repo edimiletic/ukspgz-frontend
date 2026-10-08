@@ -17,9 +17,11 @@
       <strong>{{ isAdmin ? 'Admin:' : (seesSupervisedExpenses ? 'Nadzor:' : 'Napomena:') }}</strong>
       {{ isAdmin
         ? 'Pregled putnih troškova svih službenih osoba. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru.'
-        : (seesSupervisedExpenses
-          ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.'
-          : 'Ovdje kreirate i predajete vlastita putna izvješća.')
+        : (canReviewExpenses
+          ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Predana izvješća možete odobriti ili odbiti. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati.'
+          : (seesSupervisedExpenses
+            ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.'
+            : 'Ovdje kreirate i predajete vlastita putna izvješća.'))
       }}
     </div>
 

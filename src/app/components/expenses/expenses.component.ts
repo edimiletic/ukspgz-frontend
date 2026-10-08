@@ -12,7 +12,7 @@ import { ConfirmationData, ConfirmationModalComponent } from '../shared/confirma
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
-import { canSeeAllGames, isAdminUser } from '../../model/roles';
+import { canSeeAllGames, isAdminUser, userHasRole } from '../../model/roles';
 
 type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
 
@@ -70,6 +70,7 @@ export class ExpensesComponent implements OnInit {
   expenseToDelete: TravelExpense | null = null;
   isAdmin = false;
   seesSupervisedExpenses = false;
+  canReviewExpenses = false;
   currentUser: any = null;
   readonly defaultTypeFilter = 'Troškovno izvješće suca';
 
@@ -101,6 +102,7 @@ export class ExpensesComponent implements OnInit {
         this.currentUser = user;
         this.isAdmin = isAdminUser(user);
         this.seesSupervisedExpenses = !this.isAdmin && canSeeAllGames(user);
+        this.canReviewExpenses = this.isAdmin || userHasRole(user, 'Povjerenik natjecanja');
         this.filterValues.type = this.showNamedOverview ? this.defaultTypeFilter : '';
         this.refreshView();
         this.loadTravelExpenses();

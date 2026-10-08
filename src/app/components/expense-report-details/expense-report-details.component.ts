@@ -10,7 +10,7 @@ import { PLATFORM_ID, inject } from '@angular/core';
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-details/modal-expense-report-details.component";
 import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
-import { isAdminUser } from '../../model/roles';
+import { isAdminUser, userHasRole } from '../../model/roles';
 
 type ReportConfirm =
   | { kind: 'delete-report' }
@@ -43,6 +43,7 @@ export class ExpenseReportDetailsComponent implements OnInit {
 
   // Add these properties
   isAdmin = false;
+  canReviewExpenses = false;
   currentUser: any = null;
   isOwner = false;
   isReviewing = false;
@@ -68,6 +69,7 @@ private loadCurrentUser() {
       }
       this.currentUser = user;
       this.isAdmin = isAdminUser(user);
+      this.canReviewExpenses = this.isAdmin || userHasRole(user, 'Povjerenik natjecanja');
       this.route.params.subscribe(params => {
         const reportId = params['id'];
         if (reportId) {
@@ -108,7 +110,13 @@ private loadCurrentUser() {
   }
 
   shouldShowAdminReview(): boolean {
-    return this.isAdmin && this.report?.state === 'Predano';
+    if (this.report?.state !== 'Predano') {
+      return false;
+    }
+    if (this.isAdmin) {
+      return true;
+    }
+    return this.canReviewExpenses && !this.isOwner;
   }
 
   canEditItems(): boolean {
