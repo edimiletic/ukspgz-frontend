@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { NotificationService } from '../../services/notification.service';
 import { SidebarNavService } from '../../services/sidebar-nav.service';
-import { Notification } from '../../model/notification.model';
+import { Notification, notificationTargetRoute } from '../../model/notification.model';
 import { Router } from '@angular/router';
 import { Subscription, interval, forkJoin } from 'rxjs';
 
@@ -162,19 +162,21 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.notificationService.markAsRead(notification._id).subscribe({
         next: () => {
           this.loadNotifications();
-          
-          // Navigate to relevant page if notification has gameId
-          if (notification.gameId) {
-            this.router.navigate(['/assigned']);
-          }
+          this.openNotificationTarget(notification);
         },
         error: (error) => {
           console.error('Error marking notification as read:', error);
         }
       });
-    } else if (notification.gameId) {
-      // If already read, just navigate
-      this.router.navigate(['/assigned']);
+    } else {
+      this.openNotificationTarget(notification);
+    }
+  }
+
+  private openNotificationTarget(notification: Notification): void {
+    const route = notificationTargetRoute(notification);
+    if (route) {
+      this.router.navigate(route);
     }
   }
 

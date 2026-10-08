@@ -15,7 +15,9 @@
             {{ isAdmin
               ? 'Pregled odsustva svih službenih osoba. Po zadanom su prikazani suci; ulogu možete promijeniti u filteru.'
               : (seesSupervisedAbsences
-                ? 'Pregled odsustva službenih osoba na vašim natjecanjima. Po zadanom su prikazani suci; ulogu možete promijeniti u filteru. Vlastito odsustvo i dalje možete kreirati, urediti i obrisati.'
+                ? (usesAssistantDefault
+                  ? 'Pregled odsustva pomoćnih sudaca. Vlastito odsustvo i dalje možete kreirati, urediti i obrisati.'
+                  : 'Pregled odsustva službenih osoba na vašim natjecanjima. Po zadanom su prikazani ' + defaultRoleHint + '; ulogu možete promijeniti u filteru. Vlastito odsustvo i dalje možete kreirati, urediti i obrisati.')
                 : 'Možete odrediti kada ne možete biti na utakmici. Za ta razdoblja nećete biti nominirani.')
             }}
         </div>
@@ -41,7 +43,7 @@
                         <input type="text" class="form-control" placeholder="Pretraži po imenu"
                             [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
                     </div>
-                    <div class="filter-group" *ngIf="showNamedOverview">
+                    <div class="filter-group" *ngIf="canChangeRoleFilter">
                         <label>Uloga</label>
                         <select class="form-control" [(ngModel)]="filterValues.role" (change)="onFilterChange()">
                             <option value="">Sve uloge</option>

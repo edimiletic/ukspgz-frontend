@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
-import { Notification, NotificationResponse } from '../../model/notification.model';
+import { Notification, NotificationResponse, notificationTargetRoute } from '../../model/notification.model';
 import { AuthService } from '../../services/login.service';
 import { isAdminUser, userHasRole } from '../../model/roles';
 
@@ -154,6 +154,10 @@ export class NotificationsComponent implements OnInit {
         return 'Zamjena kolege';
       case 'NOMINATION_EXPIRED':
         return 'Nominacija istekla';
+      case 'EXPENSE_APPROVED':
+        return 'Izvješće odobreno';
+      case 'EXPENSE_REJECTED':
+        return 'Izvješće odbijeno';
       default:
         return type;
     }
@@ -177,6 +181,10 @@ export class NotificationsComponent implements OnInit {
         return 'fas fa-exchange-alt';
       case 'NOMINATION_EXPIRED':
         return 'fas fa-hourglass-end';
+      case 'EXPENSE_APPROVED':
+        return 'fas fa-check-circle';
+      case 'EXPENSE_REJECTED':
+        return 'fas fa-times-circle';
       default:
         return 'fas fa-bell';
     }
@@ -188,20 +196,22 @@ export class NotificationsComponent implements OnInit {
         next: () => {
           notification.isRead = true;
           this.showSuccess('Obavještenje je označeno kao pročitano.');
-          
-          // Navigate to relevant page if notification has gameId
-          if (notification.gameId) {
-            this.router.navigate(['/assigned']);
-          }
+          this.openNotificationTarget(notification);
         },
         error: (error) => {
           console.error('Error marking notification as read:', error);
           this.showError('Greška pri označavanju obavještenja.');
         }
       });
-    } else if (notification.gameId) {
-      // If already read, just navigate
-      this.router.navigate(['/assigned']);
+    } else {
+      this.openNotificationTarget(notification);
+    }
+  }
+
+  private openNotificationTarget(notification: Notification): void {
+    const route = notificationTargetRoute(notification);
+    if (route) {
+      this.router.navigate(route);
     }
   }
 

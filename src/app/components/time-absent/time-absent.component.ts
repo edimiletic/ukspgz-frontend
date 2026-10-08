@@ -9,7 +9,7 @@ import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser } from '../../model/roles';
+import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser, userHasRole } from '../../model/roles';
 
 
 interface AbsenceWithUser extends Absence {
@@ -70,8 +70,28 @@ export class TimeAbsentComponent {
 
 isMobileFiltersOpen: boolean = false;
 
-  readonly roleFilterOptions = GAME_ASSIGNMENT_ROLES;
-  readonly defaultRoleFilter = 'Sudac';
+  get roleFilterOptions(): string[] {
+    return this.usesAssistantDefault ? ['Pomoćni Sudac'] : GAME_ASSIGNMENT_ROLES;
+  }
+
+  get canChangeRoleFilter(): boolean {
+    return this.showNamedOverview && !this.usesAssistantDefault;
+  }
+
+  get usesAssistantDefault(): boolean {
+    return !this.isAdmin
+      && userHasRole(this.currentUser, 'Povjerenik za pomoćne suce')
+      && !userHasRole(this.currentUser, 'Povjerenik natjecanja')
+      && !userHasRole(this.currentUser, 'Povjerenik za službene osobe');
+  }
+
+  get defaultRoleFilter(): string {
+    return this.usesAssistantDefault ? 'Pomoćni Sudac' : 'Sudac';
+  }
+
+  get defaultRoleHint(): string {
+    return this.usesAssistantDefault ? 'pomoćni suci' : 'suci';
+  }
 
   // Filter properties
   filterValues = {
@@ -358,7 +378,7 @@ isMobileFiltersOpen: boolean = false;
         return false;
       }
 
-      if (this.showNamedOverview && this.filterValues.role) {
+      if (this.showNamedOverview && this.filterValues.role && !this.isOwnAbsence(absence)) {
         const roles = (absence.userRole || '')
           .split(',')
           .map((role) => role.trim())

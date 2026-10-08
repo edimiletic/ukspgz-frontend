@@ -72,7 +72,23 @@ export class ExpensesComponent implements OnInit {
   seesSupervisedExpenses = false;
   canReviewExpenses = false;
   currentUser: any = null;
-  readonly defaultTypeFilter = 'Troškovno izvješće suca';
+
+  get usesAssistantDefault(): boolean {
+    return !this.isAdmin
+      && userHasRole(this.currentUser, 'Povjerenik za pomoćne suce')
+      && !userHasRole(this.currentUser, 'Povjerenik natjecanja')
+      && !userHasRole(this.currentUser, 'Povjerenik za službene osobe');
+  }
+
+  get defaultTypeFilter(): string {
+    return this.usesAssistantDefault
+      ? 'Troškovno izvješće pomoćnog suca'
+      : 'Troškovno izvješće suca';
+  }
+
+  get defaultTypeHint(): string {
+    return this.usesAssistantDefault ? 'pomoćnih sudaca' : 'sudaca';
+  }
 
   constructor(
     private travelExpenseService: TravelExpenseService,
@@ -258,7 +274,8 @@ export class ExpensesComponent implements OnInit {
       const matchesId = !this.filterValues.id ||
         displayId.includes(this.filterValues.id.trim());
       
-      const matchesType = !this.filterValues.type || 
+      const matchesType = this.isOwnExpense(expense) ||
+        !this.filterValues.type ||
         expense.type.toLowerCase().includes(this.filterValues.type.toLowerCase());
       
       const matchesUserName = !this.filterValues.userName || 

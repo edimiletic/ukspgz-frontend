@@ -1,11 +1,24 @@
+export type NotificationType =
+  | 'GAME_ASSIGNMENT'
+  | 'ASSIGNMENT_RESPONSE'
+  | 'KONTROLA_RECEIVED'
+  | 'ASSIGNMENT_RELEASED'
+  | 'GAME_SCHEDULE_CHANGED'
+  | 'ASSIGNMENT_REMOVED'
+  | 'COLLEAGUE_REPLACED'
+  | 'NOMINATION_EXPIRED'
+  | 'EXPENSE_APPROVED'
+  | 'EXPENSE_REJECTED';
+
 export interface Notification {
   _id: string;
   userId: string;
-  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED' | 'ASSIGNMENT_RELEASED' | 'GAME_SCHEDULE_CHANGED' | 'ASSIGNMENT_REMOVED' | 'COLLEAGUE_REPLACED' | 'NOMINATION_EXPIRED';
+  type: NotificationType;
   message: string;
   gameId?: string;
   assignmentId?: string;
   kontrolaId?: string; // Add this for kontrola notifications
+  travelExpenseId?: string;
   isRead: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -13,14 +26,37 @@ export interface Notification {
 
 export interface CreateNotificationRequest {
   userId: string;
-  type: 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED' | 'ASSIGNMENT_RELEASED' | 'GAME_SCHEDULE_CHANGED' | 'ASSIGNMENT_REMOVED' | 'COLLEAGUE_REPLACED' | 'NOMINATION_EXPIRED';
+  type: NotificationType;
   message: string;
   gameId?: string;
   assignmentId?: string;
   kontrolaId?: string; // Add this
+  travelExpenseId?: string;
 }
 
-export type NotificationType = 'GAME_ASSIGNMENT' | 'ASSIGNMENT_RESPONSE' | 'KONTROLA_RECEIVED' | 'ASSIGNMENT_RELEASED' | 'GAME_SCHEDULE_CHANGED' | 'ASSIGNMENT_REMOVED' | 'COLLEAGUE_REPLACED' | 'NOMINATION_EXPIRED';
+export function notificationTargetRoute(notification: Notification): string[] | null {
+  const expenseId = extractRelatedId(notification.travelExpenseId);
+  if (expenseId) {
+    return ['/expenses', expenseId];
+  }
+  if (extractRelatedId(notification.gameId)) {
+    return ['/assigned'];
+  }
+  return null;
+}
+
+function extractRelatedId(value: unknown): string {
+  if (!value) {
+    return '';
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value);
+  }
+  const nested = (value as { _id?: unknown; id?: unknown })._id
+    || (value as { id?: unknown }).id;
+  return nested ? String(nested) : '';
+}
+
 export interface NotificationResponse {
   notifications: Notification[];
   totalPages: number;

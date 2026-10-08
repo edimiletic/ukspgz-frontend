@@ -18,9 +18,11 @@
       {{ isAdmin
         ? 'Pregled putnih troškova svih službenih osoba. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru.'
         : (canReviewExpenses
-          ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Predana izvješća možete odobriti ili odbiti. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati.'
+          ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Predana izvješća možete odobriti ili odbiti. Po zadanom su prikazana izvješća ' + defaultTypeHint + '; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati.'
           : (seesSupervisedExpenses
-            ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.'
+            ? (usesAssistantDefault
+              ? 'Pregled putnih troškova pomoćnih sudaca. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.'
+              : 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Po zadanom su prikazana izvješća ' + defaultTypeHint + '; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.')
             : 'Ovdje kreirate i predajete vlastita putna izvješća.'))
       }}
     </div>
@@ -40,7 +42,7 @@
                [(ngModel)]="filterValues.id" (input)="applyFilters()" />
       </div>
 
-      <div class="filter-group">
+      <div class="filter-group" *ngIf="!usesAssistantDefault">
         <label>Vrsta</label>
         <select class="form-control" [(ngModel)]="filterValues.type" (change)="applyFilters()">
           <option value="">Sve vrste</option>
