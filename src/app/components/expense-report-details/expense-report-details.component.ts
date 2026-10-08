@@ -1,6 +1,6 @@
 // Add to expense-report-details.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ExpenseItem, TravelExpense } from '../../model/travel-expense.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TravelExpenseService } from '../../services/travel-expense.service';
@@ -21,7 +21,8 @@ type ReportConfirm =
   selector: 'app-expense-report-details',
   imports: [RouterModule, CommonModule, ConfirmationModalComponent, ModalExpenseReportDetailsComponent, ReasonModalComponent],
   templateUrl: './expense-report-details.component.html',
-  styleUrl: './expense-report-details.component.scss'
+  styleUrl: './expense-report-details.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpenseReportDetailsComponent implements OnInit {
  report: TravelExpense | null = null;
@@ -52,8 +53,13 @@ export class ExpenseReportDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private travelExpenseService: TravelExpenseService,
-    private authService: AuthService // Remove HttpClient
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
 ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -70,6 +76,7 @@ private loadCurrentUser() {
       this.currentUser = user;
       this.isAdmin = isAdminUser(user);
       this.canReviewExpenses = this.isAdmin || userHasRole(user, 'Povjerenik natjecanja');
+      this.refreshView();
       this.route.params.subscribe(params => {
         const reportId = params['id'];
         if (reportId) {
@@ -91,11 +98,13 @@ private loadCurrentUser() {
         this.report = report;
         this.isLoading = false;
         this.isOwner = this.resolveIsOwner(report);
+        this.refreshView();
       },
       error: (error) => {
         console.error('Error loading report:', error);
         this.showError('Greška pri učitavanju izvješća.');
         this.isLoading = false;
+        this.refreshView();
       }
     });
   }
@@ -575,24 +584,27 @@ const expenseItem = {
   private showSuccess(message: string): void {
     this.clearMessages();
     this.successMessage = message;
-    // Auto-hide after 5 seconds
+    this.refreshView();
     setTimeout(() => {
       this.successMessage = '';
+      this.refreshView();
     }, 5000);
   }
 
   private showError(message: string): void {
     this.clearMessages();
     this.errorMessage = message;
-    // Auto-hide after 7 seconds
+    this.refreshView();
     setTimeout(() => {
       this.errorMessage = '';
+      this.refreshView();
     }, 7000);
   }
 
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
+    this.refreshView();
   }
 
   reviewReport(action: 'approve' | 'reject', notes = ''): void {

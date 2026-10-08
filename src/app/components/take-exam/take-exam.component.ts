@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy} from '@angular/core';
 import { Exam, ExamAnswer, ExamQuestion, ExamSubmission } from '../../model/exam.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
@@ -9,7 +9,8 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-take-exam',
   imports: [CommonModule, FormsModule],
   templateUrl: './take-exam.component.html',
-  styleUrl: './take-exam.component.scss'
+  styleUrl: './take-exam.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TakeExamComponent implements OnInit, OnDestroy {
 exam: Exam | null = null;
@@ -34,8 +35,13 @@ exam: Exam | null = null;
   constructor(
     private route: ActivatedRoute,
     public router: Router, // Make router public
-    private examService: ExamService
+    private examService: ExamService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit(): void {
     const examId = this.route.snapshot.paramMap.get('id');
@@ -67,11 +73,13 @@ exam: Exam | null = null;
           this.error = 'Ispit nije pronađen ili je istekao.';
         }
         this.isLoading = false;
+        this.refreshView();
       },
       error: (err) => {
         console.error('Failed to load exam:', err);
         this.error = 'Greška prilikom učitavanja ispita.';
         this.isLoading = false;
+        this.refreshView();
       }
     });
   }
@@ -140,7 +148,7 @@ exam: Exam | null = null;
   startTimer(): void {
     this.timerInterval = setInterval(() => {
       this.timeRemaining--;
-      
+      this.refreshView();
       if (this.timeRemaining <= 0) {
         this.timeUp();
       }

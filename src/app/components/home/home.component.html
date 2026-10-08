@@ -100,6 +100,32 @@
           </button>
         </div>
 
+        <div class="stat-card kontrola">
+          <div class="stat-icon">
+            <i class="fas fa-clipboard-check"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ dashboardStats.kontrolaCount }}</h3>
+            <p>{{ isAdmin || canSeeAllGames ? 'Kontrole' : 'Vaše kontrole' }}</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/assigned')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div *ngIf="isAdmin" class="stat-card users">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ adminStats.totalUsers }}</h3>
+            <p>Korisnici</p>
+          </div>
+          <button class="stat-action" (click)="navigateTo('/eligible-officials')">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
         <!-- Admin specific stats -->
         <div *ngIf="isAdmin" class="stat-card completed">
           <div class="stat-icon">

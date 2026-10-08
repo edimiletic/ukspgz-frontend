@@ -156,6 +156,16 @@
     border-color: #27ae60;
     .stat-icon { background: linear-gradient(135deg, #27ae60, #229954); }
   }
+
+  &.kontrola {
+    border-color: #16a085;
+    .stat-icon { background: linear-gradient(135deg, #16a085, #1abc9c); }
+  }
+
+  &.users {
+    border-color: #2c3e50;
+    .stat-icon { background: linear-gradient(135deg, #2c3e50, #34495e); }
+  }
 }
 
 // Activity Section

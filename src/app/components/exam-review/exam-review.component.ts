@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { AttemptReview, ReviewQuestion } from '../../model/exam.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
@@ -8,7 +8,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-exam-review',
   imports: [CommonModule, RouterModule],
   templateUrl: './exam-review.component.html',
-  styleUrl: './exam-review.component.scss'
+  styleUrl: './exam-review.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExamReviewComponent {
   reviewData: AttemptReview | null = null;
@@ -22,8 +23,13 @@ export class ExamReviewComponent {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private examService: ExamService
+    private examService: ExamService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit(): void {
     const attemptId = this.route.snapshot.paramMap.get('id');
@@ -41,11 +47,13 @@ export class ExamReviewComponent {
         this.reviewData = data;
         this.processReviewData();
         this.loading = false;
+        this.refreshView();
       },
       error: (err) => {
         console.error('Failed to load attempt review:', err);
         this.error = 'Greška prilikom učitavanja pregleda pokušaja.';
         this.loading = false;
+        this.refreshView();
       }
     });
   }

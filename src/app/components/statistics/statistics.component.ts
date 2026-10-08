@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
 import { AuthService } from '../../services/login.service';
@@ -33,7 +33,8 @@ import {
   imports: [CommonModule, StatisticsFiltersComponent, StatisticsResultsComponent],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.scss',
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StatisticsComponent implements OnInit {
   currentUser: any = null;
@@ -68,8 +69,13 @@ export class StatisticsComponent implements OnInit {
     private basketballGameService: BasketballGameService,
     private absenceService: AbsenceService,
     private router: Router,
-    private kontrolaService: KontrolaService
+    private kontrolaService: KontrolaService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     this.checkStatisticsAccess();
@@ -112,6 +118,7 @@ export class StatisticsComponent implements OnInit {
     ])).finally(() => {
       this.isLoading = false;
       this.mostActiveReferee = this.refereeStats[0] || null;
+      this.refreshView();
     });
   }
 

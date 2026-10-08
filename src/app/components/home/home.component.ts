@@ -7,6 +7,7 @@ import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AbsenceService } from '../../services/absence.service';
 import { ExamService } from '../../services/exam.service';
 import { KontrolaService } from '../../services/kontrola.service';
+import { UserService } from '../../services/user.service';
 import { User } from '../../model/user.model';
 import { BasketballGame } from '../../model/basketballGame.model';
 import { TravelExpense } from '../../model/travel-expense.model';
@@ -78,6 +79,7 @@ isExpensesModalOpen = false;
     private absenceService: AbsenceService,
     private examService: ExamService,
     private kontrolaService: KontrolaService,
+    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -123,7 +125,8 @@ isExpensesModalOpen = false;
     Promise.allSettled([
       this.loadAdminGames(),
       this.loadAdminExpenses(),
-      this.loadUserAbsences()
+      this.loadUserAbsences(),
+      this.loadUserKontrola()
     ]).then((results) => {
       const failures = results.filter(result => result.status === 'rejected');
       if (failures.length > 0) {
@@ -163,7 +166,8 @@ isExpensesModalOpen = false;
       this.loadAdminGames(),
       this.loadAdminExpenses(),
       this.loadAdminAbsences(),
-      this.loadAdminStats()
+      this.loadAdminStats(),
+      this.loadUserKontrola()
     ];
 
     Promise.allSettled(loadPromises)
@@ -299,10 +303,13 @@ private loadUserExams(): Promise<void> {
 
   private loadUserKontrola(): Promise<void> {
     return new Promise((resolve, reject) => {
-      // This would need a service method to get user's kontrola count
-      // For now, we'll just resolve
-      this.dashboardStats.kontrolaCount = 0;
-      resolve();
+      this.kontrolaService.getKontrolaCount().subscribe({
+        next: (response) => {
+          this.dashboardStats.kontrolaCount = response?.count || 0;
+          resolve();
+        },
+        error: reject
+      });
     });
   }
 
@@ -375,10 +382,14 @@ private loadAdminAbsences(): Promise<void> {
   });
 }
   private loadAdminStats(): Promise<void> {
-    return new Promise((resolve) => {
-      // This would need additional service calls for user count, etc.
-      this.adminStats.totalUsers = 0; // Would need UserService.getAllUsers()
-      resolve();
+    return new Promise((resolve, reject) => {
+      this.userService.getAllUsers().subscribe({
+        next: (users) => {
+          this.adminStats.totalUsers = users?.length || 0;
+          resolve();
+        },
+        error: reject
+      });
     });
   }
 

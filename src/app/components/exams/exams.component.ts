@@ -1,7 +1,7 @@
 import { User } from './../../model/user.model';
 import { Exam, ExamStats, ExamAttempt, QuestionBank } from './../../model/exam.model';
 // src/app/components/exams/exams.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ExamService } from '../../services/exam.service';
@@ -15,7 +15,8 @@ import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirma
   standalone: true,
   imports: [CommonModule, AddQuestionModalComponent, RouterModule, ConfirmationModalComponent],
   templateUrl: './exams.component.html',
-  styleUrl: './exams.component.scss'
+  styleUrl: './exams.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExamsComponent implements OnInit {
   currentUser: User | null = null;
@@ -42,8 +43,13 @@ export class ExamsComponent implements OnInit {
   constructor(
     private examService: ExamService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   ngOnInit(): void {
     this.loadCurrentUser();
@@ -55,6 +61,7 @@ loadCurrentUser(): void {
   this.authService.getCurrentUser().subscribe({
     next: (user: User | null) => {
       this.currentUser = user;
+      this.refreshView();
       this.loadExamStats();
     },
     error: (err) => {
@@ -69,6 +76,7 @@ loadCurrentUser(): void {
     this.examService.getCurrentExam().subscribe({
       next: (exam: Exam) => {
         this.currentExam = exam;
+        this.refreshView();
       },
       error: (err) => {
         if (err.status !== 404) {
@@ -87,11 +95,13 @@ loadCurrentUser(): void {
          // Debug log
         this.userAttempts = attempts;
         this.loading = false;
+        this.refreshView();
       },
       error: (err) => {
         console.error('Failed to load user attempts:', err);
         this.loading = false;
         this.showErrorToast('Greška prilikom učitavanja vaših pokušaja.');
+        this.refreshView();
       }
     });
   }
@@ -103,6 +113,7 @@ loadCurrentUser(): void {
     this.examService.getExamStats().subscribe({
       next: (stats: ExamStats) => {
         this.examStats = stats;
+        this.refreshView();
       },
       error: (err) => {
         console.error('Failed to load exam stats:', err);
@@ -120,6 +131,7 @@ loadCurrentUser(): void {
       next: (exam: Exam) => {
         this.generatingExam = false;
         this.currentExam = exam;
+        this.refreshView();
         this.showSuccessToast('Ispit je uspješno generiran! Preusmjeravam vas...');
         
         // Navigate to exam taking page immediately
@@ -162,26 +174,27 @@ loadCurrentUser(): void {
   showSuccessToast(message: string): void {
     this.clearMessages();
     this.successMessage = message;
-    
-    // Auto-hide after 5 seconds
+    this.refreshView();
     setTimeout(() => {
       this.successMessage = null;
+      this.refreshView();
     }, 5000);
   }
 
   showErrorToast(message: string): void {
     this.clearMessages();
     this.errorMessage = message;
-    
-    // Auto-hide after 7 seconds (longer for errors)
+    this.refreshView();
     setTimeout(() => {
       this.errorMessage = null;
+      this.refreshView();
     }, 7000);
   }
 
   clearMessages(): void {
     this.successMessage = null;
     this.errorMessage = null;
+    this.refreshView();
   }
 
   getAttemptStatusClass(attempt: ExamAttempt): string {

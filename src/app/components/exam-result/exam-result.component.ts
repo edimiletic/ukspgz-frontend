@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ExamAttempt, AttemptReview } from '../../model/exam.model';
@@ -8,7 +8,8 @@ import { ExamService } from '../../services/exam.service';
   selector: 'app-exam-result',
   imports: [CommonModule, RouterModule],
   templateUrl: './exam-result.component.html',
-  styleUrl: './exam-result.component.scss'
+  styleUrl: './exam-result.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExamResultComponent implements OnInit {
   result: ExamAttempt & { message: string } | null = null;
@@ -20,13 +21,18 @@ export class ExamResultComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private examService: ExamService
+    private examService: ExamService,
+    private cdr: ChangeDetectorRef
   ) {
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.result = navigation.extras.state['result'];
       this.autoSubmit = navigation.extras.state['autoSubmit'] || false;
     }
+  }
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
   }
 
   ngOnInit(): void {
@@ -58,6 +64,7 @@ export class ExamResultComponent implements OnInit {
             : 'Nažalost, niste položili ispit. Pokušajte ponovo.'
         };
         this.isLoading = false;
+        this.refreshView();
         this.showPassAnimation();
       },
       error: () => {
@@ -69,8 +76,10 @@ export class ExamResultComponent implements OnInit {
   private showPassAnimation(): void {
     if (this.result?.passed) {
       this.showConfetti = true;
+      this.refreshView();
       setTimeout(() => {
         this.showConfetti = false;
+        this.refreshView();
       }, 3000);
     }
   }

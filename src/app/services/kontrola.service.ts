@@ -63,6 +63,11 @@ export class KontrolaService {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  getKontrolaCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/kontrola/count`)
+      .pipe(catchError(() => of({ count: 0 })));
+  }
+
   getAllKontrolaData(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/kontrola/statistics/all`)
       .pipe(catchError(() => of([])));
