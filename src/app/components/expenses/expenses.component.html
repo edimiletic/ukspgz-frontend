@@ -5,13 +5,22 @@
   <section class="content">
     <!-- Page Header -->
     <div class="page-header">
-      <h1>Putni Troškovi</h1>
+      <h1>{{ showNamedOverview ? (isAdmin ? 'Putni Troškovi - Svi korisnici' : 'Putni Troškovi - Nadzirane osobe') : 'Putni Troškovi' }}</h1>
       <div class="page-actions">
         <button class="btn btn-create" (click)="openModal()">
           <i class="fas fa-plus"></i>
           Kreiraj izvješće
         </button>
       </div>
+    </div>
+    <div class="alert alert-success">
+      <strong>{{ isAdmin ? 'Admin:' : (seesSupervisedExpenses ? 'Nadzor:' : 'Napomena:') }}</strong>
+      {{ isAdmin
+        ? 'Pregled putnih troškova svih službenih osoba. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru.'
+        : (seesSupervisedExpenses
+          ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.'
+          : 'Ovdje kreirate i predajete vlastita putna izvješća.')
+      }}
     </div>
 
 <div class="filter-section">
@@ -40,7 +49,7 @@
         </select>
       </div>
 
-      <div class="filter-group" *ngIf="isAdmin">
+      <div class="filter-group" *ngIf="showNamedOverview">
         <label>Korisnik</label>
         <input type="text" class="form-control" placeholder="Pretraži po korisniku" 
                [(ngModel)]="filterValues.userName" (input)="applyFilters()" />

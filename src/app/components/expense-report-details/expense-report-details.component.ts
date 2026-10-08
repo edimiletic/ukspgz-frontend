@@ -119,17 +119,13 @@ private loadCurrentUser() {
     if (!editable) {
       return false;
     }
-    // Officials who can open the report are the owner. Admins may also own their own reports.
-    return this.isOwner || !this.isAdmin;
+    return this.isOwner;
   }
 
   private resolveIsOwner(report: TravelExpense): boolean {
     const currentId = this.extractId(this.currentUser) || this.authService.getCurrentUserId();
     const reportUserId = this.extractId(report.userId) || this.extractId((report as any).user);
-    if (currentId && reportUserId && currentId === reportUserId) {
-      return true;
-    }
-    return !this.isAdmin;
+    return !!currentId && !!reportUserId && currentId === reportUserId;
   }
 
   private extractId(value: any): string {
@@ -371,10 +367,14 @@ const expenseItem = {
     if (!this.report) return '';
     
     if (this.report.state === 'Skica') {
-      return 'Upozorenje: Ovo izvješće nije predano. Dodajte troškove u izvješće.';
+      return this.isOwner
+        ? 'Upozorenje: Ovo izvješće nije predano. Dodajte troškove u izvješće.'
+        : 'Ovo izvješće je još u skici i nije predano.';
     }
     if (this.report.state === 'Odbijeno') {
-      return 'Ovo izvješće je odbijeno. Ispravite ga prema napomeni administratora i predajte ponovo.';
+      return this.isOwner
+        ? 'Ovo izvješće je odbijeno. Ispravite ga prema napomeni administratora i predajte ponovo.'
+        : 'Ovo izvješće je odbijeno.';
     }
     return '';
   }

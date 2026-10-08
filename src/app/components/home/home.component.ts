@@ -122,7 +122,7 @@ isExpensesModalOpen = false;
   private loadCommissionerDashboard(): void {
     Promise.allSettled([
       this.loadAdminGames(),
-      this.loadUserExpenses(),
+      this.loadAdminExpenses(),
       this.loadUserAbsences()
     ]).then((results) => {
       const failures = results.filter(result => result.status === 'rejected');

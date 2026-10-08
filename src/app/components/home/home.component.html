@@ -67,7 +67,7 @@
           </div>
           <div class="stat-content">
             <h3>{{ dashboardStats.pendingExpenses }}</h3>
-            <p>{{ isAdmin ? 'Izvješća za pregled' : 'Skice izvješća' }}</p>
+            <p>{{ isAdmin || canSeeAllGames ? 'Izvješća za pregled' : 'Skice izvješća' }}</p>
           </div>
           <button class="stat-action" (click)="navigateTo('/expenses')">
             <i class="fas fa-arrow-right"></i>

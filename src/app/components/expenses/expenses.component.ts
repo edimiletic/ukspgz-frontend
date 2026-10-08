@@ -12,7 +12,7 @@ import { ConfirmationData, ConfirmationModalComponent } from '../shared/confirma
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
-import { isAdminUser } from '../../model/roles';
+import { canSeeAllGames, isAdminUser } from '../../model/roles';
 
 type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
 
@@ -69,7 +69,9 @@ export class ExpensesComponent implements OnInit {
   errorMessage = '';
   expenseToDelete: TravelExpense | null = null;
   isAdmin = false;
+  seesSupervisedExpenses = false;
   currentUser: any = null;
+  readonly defaultTypeFilter = 'Troškovno izvješće suca';
 
   constructor(
     private travelExpenseService: TravelExpenseService,
@@ -98,6 +100,8 @@ export class ExpensesComponent implements OnInit {
       }
         this.currentUser = user;
         this.isAdmin = isAdminUser(user);
+        this.seesSupervisedExpenses = !this.isAdmin && canSeeAllGames(user);
+        this.filterValues.type = this.showNamedOverview ? this.defaultTypeFilter : '';
         this.refreshView();
         this.loadTravelExpenses();
       },
@@ -109,8 +113,12 @@ export class ExpensesComponent implements OnInit {
     });
   }
 
+  get showNamedOverview(): boolean {
+    return this.isAdmin || this.seesSupervisedExpenses;
+  }
+
   loadTravelExpenses() {
-    const request = this.isAdmin
+    const request = this.showNamedOverview
       ? this.travelExpenseService.getAllTravelExpenses()
       : this.travelExpenseService.getCurrentUserTravelExpenses();
 
@@ -221,9 +229,12 @@ export class ExpensesComponent implements OnInit {
   }
 
   get hasActiveFilters(): boolean {
+    const typeActive = this.showNamedOverview
+      ? this.filterValues.type !== this.defaultTypeFilter
+      : !!this.filterValues.type;
     return !!(
       this.filterValues.id ||
-      this.filterValues.type ||
+      typeActive ||
       this.filterValues.userName ||
       this.filterValues.year ||
       this.filterValues.month ||
@@ -269,7 +280,7 @@ export class ExpensesComponent implements OnInit {
   clearFilters() {
     this.filterValues = {
       id: '',
-      type: '',
+      type: this.showNamedOverview ? this.defaultTypeFilter : '',
       userName: '',
       year: '',
       month: '',
@@ -306,8 +317,33 @@ export class ExpensesComponent implements OnInit {
     this.router.navigate(['/expenses', expense.id]);
   }
 
+  isOwnExpense(expense: TravelExpense): boolean {
+    const currentId = this.extractId(this.currentUser);
+    const reportUserId = this.extractId(expense.userId);
+    return !!currentId && !!reportUserId && currentId === reportUserId;
+  }
+
   canDeleteExpense(expense: TravelExpense): boolean {
-    return expense.state === 'Skica' || expense.state === 'Odbijeno';
+    if (expense.state !== 'Skica' && expense.state !== 'Odbijeno') {
+      return false;
+    }
+    return this.isAdmin || this.isOwnExpense(expense);
+  }
+
+  private extractId(value: any): string {
+    if (!value) {
+      return '';
+    }
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    if (value._id) {
+      return String(value._id);
+    }
+    if (value.id) {
+      return String(value.id);
+    }
+    return '';
   }
 
   openDeleteModal(expense: TravelExpense) {
