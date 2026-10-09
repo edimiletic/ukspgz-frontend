@@ -22,7 +22,13 @@ import {
   UserRole
 } from '../../../model/roles';
 import { User } from '../../../model/user.model';
-import { buildRoleAssignments, OFFICIAL_CAP_ROLES, toDateInputValue } from '../users.helpers';
+import {
+  buildRoleAssignments,
+  commissionerHolders,
+  remainingRolesAfterCommissionerTake,
+  OFFICIAL_CAP_ROLES,
+  toDateInputValue
+} from '../users.helpers';
 
 export interface UserFormSave {
   username: string;
@@ -49,6 +55,7 @@ export class UserFormModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() isBusy = false;
   @Input() user: User | null = null;
+  @Input() users: User[] = [];
   @Input() serverError = '';
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<UserFormSave>();
@@ -84,6 +91,10 @@ export class UserFormModalComponent implements OnChanges {
 
   get needsOfficialCap(): boolean {
     return OFFICIAL_CAP_ROLES.some((role) => this.selectedRoles.has(role));
+  }
+
+  get needsRank(): boolean {
+    return this.selectedRoles.has('Sudac');
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -123,6 +134,53 @@ export class UserFormModalComponent implements OnChanges {
     return (this.competitionsByRole[role] || []).includes(competition);
   }
 
+  holderLabel(role: UserRole, competition: string): string {
+    return this.occupancy[role]?.[competition]?.label || '';
+  }
+
+  holderNote(role: UserRole, competition: string): string {
+    const holder = this.occupancy[role]?.[competition];
+    if (!holder) {
+      return '';
+    }
+    if (!this.hasCompetition(role, competition)) {
+      return `sada vodi ${holder.label}`;
+    }
+    const remaining = remainingRolesAfterCommissionerTake(
+      holder,
+      role,
+      this.competitionsByRole[role] || []
+    );
+    if (!remaining.length) {
+      return `zadnje natjecanje od ${holder.label} — ostaje u sustavu, ali bi ostao/la bez uloge`;
+    }
+    if (!remaining.includes(role)) {
+      return `preuzima se od ${holder.label} (ostaje ${remaining.join(', ')})`;
+    }
+    return `preuzima se od ${holder.label}`;
+  }
+
+  private blockedLastRoleHolders(): string[] {
+    const names = new Set<string>();
+    COMMISSIONER_ROLES.forEach((role) => {
+      const taken = this.competitionsByRole[role] || [];
+      taken.forEach((competition) => {
+        const holder = this.occupancy[role]?.[competition];
+        if (!holder) {
+          return;
+        }
+        if (!remainingRolesAfterCommissionerTake(holder, role, taken).length) {
+          names.add(holder.label);
+        }
+      });
+    });
+    return [...names];
+  }
+
+  private get occupancy() {
+    return commissionerHolders(this.users, this.user?._id);
+  }
+
   toggleCompetition(role: UserRole, competition: string): void {
     const current = new Set(this.competitionsByRole[role] || []);
     if (current.has(competition)) {
@@ -131,22 +189,6 @@ export class UserFormModalComponent implements OnChanges {
       current.add(competition);
     }
     this.competitionsByRole = { ...this.competitionsByRole, [role]: [...current] };
-  }
-
-  coversAllCompetitions(role: UserRole): boolean {
-    return (this.competitionsByRole[role] || []).length === 0;
-  }
-
-  setAllCompetitions(role: UserRole, all: boolean): void {
-    this.competitionsByRole = {
-      ...this.competitionsByRole,
-      [role]: all ? [] : [...ALL_COMPETITIONS]
-    };
-  }
-
-  onAllCompetitionsChange(role: UserRole, event: Event): void {
-    const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
-    this.setAllCompetitions(role, checked);
   }
 
   onOverlayClick(event: Event): void {
@@ -159,7 +201,7 @@ export class UserFormModalComponent implements OnChanges {
     this.formError = '';
     this.form.markAllAsTouched();
     if (this.form.invalid) {
-      this.formError = 'Popunite obavezna polja.';
+      this.formError = this.formInvalidMessage();
       return;
     }
     if (!this.selectedRoles.size) {
@@ -182,6 +224,32 @@ export class UserFormModalComponent implements OnChanges {
       return;
     }
 
+    const missingCommissionerLeagues = COMMISSIONER_ROLES.filter(
+      (role) => this.selectedRoles.has(role) && !(this.competitionsByRole[role] || []).length
+    );
+    if (missingCommissionerLeagues.length) {
+      this.formError =
+        'Povjereniku odaberi barem jedno natjecanje. Sve postojeće lige već imaju povjerenika — dodijeli novo natjecanje ili preuzmi natjecanje s postojećeg povjerenika.';
+      return;
+    }
+    const blockedHolders = this.blockedLastRoleHolders();
+    if (blockedHolders.length) {
+      this.formError =
+        `${blockedHolders.join(', ')} ostaje u sustavu, ali ovo im je jedina uloga. ` +
+        'Prvo im u Uredi dodijeli drugu ulogu ili ostavi barem jedno natjecanje, pa tek onda preuzmi ligu.';
+      return;
+    }
+    if (this.needsRank && !raw.rang.trim()) {
+      this.formError = 'Za suca obavezno odaberi rang.';
+      return;
+    }
+    if (this.needsOfficialCap && !raw.najvisaLiga.trim()) {
+      this.formError = this.needsRank
+        ? 'Za suca obavezno odaberi najvišu ligu.'
+        : 'Za delegata i kontrolora obavezno odaberi najvišu ligu.';
+      return;
+    }
+
     const payload: UserFormSave = {
       username: raw.username.trim(),
       name: raw.name.trim(),
@@ -191,13 +259,39 @@ export class UserFormModalComponent implements OnChanges {
       personalCode: raw.personalCode.trim(),
       address: raw.address.trim(),
       roles: buildRoleAssignments([...this.selectedRoles], this.competitionsByRole),
-      rang: this.needsOfficialCap ? raw.rang : '',
+      rang: this.needsRank ? raw.rang : '',
       najvisaLiga: this.needsOfficialCap ? raw.najvisaLiga : ''
     };
     if (raw.password.trim()) {
       payload.password = raw.password.trim();
     }
     this.save.emit(payload);
+  }
+
+  private formInvalidMessage(): string {
+    const email = this.form.controls.email;
+    if (email.hasError('required')) {
+      return 'E-pošta je obavezna.';
+    }
+    if (email.hasError('email')) {
+      return 'E-pošta mora biti ispravna, npr. ime.prezime@domena.hr.';
+    }
+
+    const labels: Record<string, string> = {
+      username: 'korisničko ime',
+      email: 'e-pošta',
+      name: 'ime',
+      surname: 'prezime',
+      personalCode: 'osobni broj',
+      birthdate: 'datum rođenja',
+      address: 'adresa',
+      password: 'lozinka'
+    };
+    const missing = Object.keys(labels).filter((key) => this.form.get(key)?.hasError('required'));
+    if (missing.length) {
+      return `Popuni obavezna polja: ${missing.map((key) => labels[key]).join(', ')}.`;
+    }
+    return 'Provjeri unesene podatke.';
   }
 
   private hydrateForm(): void {

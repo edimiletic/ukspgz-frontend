@@ -171,6 +171,7 @@ export class UsersComponent implements OnInit {
       data: user._id
     };
     this.isDeleteOpen = true;
+    this.cdr.markForCheck();
   }
 
   closeDelete(): void {
@@ -201,8 +202,9 @@ export class UsersComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           this.isDeleteBusy = false;
-          this.isDeleteOpen = false;
-          this.showError(apiErrorMessage(error, 'Brisanje nije uspjelo.'));
+          const message = apiErrorMessage(error, 'Brisanje nije uspjelo.');
+          this.confirmationData = { ...this.confirmationData, message };
+          this.showError(message);
           this.cdr.markForCheck();
         }
       });

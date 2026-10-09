@@ -1,7 +1,9 @@
 import {
+  ALL_COMPETITIONS,
   COMMISSIONER_ROLES,
   getManagedCompetitions,
   getRoleNames,
+  normalizeRoleAssignments,
   USER_ROLES,
   UserRole
 } from '../../model/roles';
@@ -32,6 +34,53 @@ export function userMatchesFilters(user: User, search: string, role: string): bo
     .join(' ')
     .toLowerCase();
   return haystack.includes(query);
+}
+
+export interface CommissionerHolder {
+  _id: string;
+  label: string;
+  competitions: string[];
+  roleNames: UserRole[];
+}
+
+export function commissionerHolders(
+  users: User[],
+  excludeUserId?: string
+): Partial<Record<UserRole, Record<string, CommissionerHolder>>> {
+  const occupancy: Partial<Record<UserRole, Record<string, CommissionerHolder>>> = {};
+  users.forEach((user) => {
+    if (excludeUserId && user._id === excludeUserId) {
+      return;
+    }
+    const label = `${user.name || ''} ${user.surname || ''}`.trim() || user.username;
+    const roleNames = getRoleNames(user) as UserRole[];
+    normalizeRoleAssignments(user).forEach((assignment) => {
+      if (!COMMISSIONER_ROLES.includes(assignment.name as UserRole)) {
+        return;
+      }
+      const competitions = assignment.competitions.length ? assignment.competitions : ALL_COMPETITIONS;
+      const role = assignment.name as UserRole;
+      occupancy[role] = occupancy[role] || {};
+      const holder: CommissionerHolder = { _id: user._id, label, competitions, roleNames };
+      competitions.forEach((competition) => {
+        if (!occupancy[role]![competition]) {
+          occupancy[role]![competition] = holder;
+        }
+      });
+    });
+  });
+  return occupancy;
+}
+
+export function remainingRolesAfterCommissionerTake(
+  holder: CommissionerHolder,
+  role: UserRole,
+  takenCompetitions: string[]
+): UserRole[] {
+  const keepsCommissioner = holder.competitions.some(
+    (competition) => !takenCompetitions.includes(competition)
+  );
+  return holder.roleNames.filter((name) => name !== role || keepsCommissioner);
 }
 
 export function buildRoleAssignments(

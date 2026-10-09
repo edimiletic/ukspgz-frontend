@@ -1,5 +1,14 @@
 import { User } from '../../model/user.model';
-import { apiErrorMessage, buildRoleAssignments, leagueColumnLabel, leagueColumnParts, userMatchesFilters } from './users.helpers';
+import {
+  apiErrorMessage,
+  buildRoleAssignments,
+  commissionerHolders,
+  remainingRolesAfterCommissionerTake,
+  leagueColumnLabel,
+  leagueColumnParts,
+  userMatchesFilters,
+  CommissionerHolder
+} from './users.helpers';
 
 const sudac: User = {
   _id: '1',
@@ -66,6 +75,41 @@ describe('users.helpers', () => {
       nadzor: 'PRVA MUŠKA LIGA'
     });
     expect(leagueColumnLabel(dual)).toBe('Teren: SuperSport Premijer liga · Nadzor: PRVA MUŠKA LIGA');
+  });
+
+  it('pokazuje tko već vodi ligu za istu ulogu povjerenika', () => {
+    const petra: User = {
+      ...sudac,
+      _id: 'p1',
+      name: 'Petra',
+      surname: 'Babić',
+      role: 'Povjerenik za službene osobe',
+      roles: [{ name: 'Povjerenik za službene osobe', competitions: ['PRVA MUŠKA LIGA'] }]
+    };
+    const holders = commissionerHolders([petra, sudac], 'new');
+    expect(holders['Povjerenik za službene osobe']?.['PRVA MUŠKA LIGA']?.label).toBe('Petra Babić');
+    expect(commissionerHolders([petra], 'p1')['Povjerenik za službene osobe']?.['PRVA MUŠKA LIGA']).toBeUndefined();
+  });
+
+  it('preuzimanjem zadnje lige ostavlja suca u sustavu, a čistog povjerenika bez uloge', () => {
+    const petra: CommissionerHolder = {
+      _id: 'p1',
+      label: 'Petra Babić',
+      competitions: ['PRVA MUŠKA LIGA'],
+      roleNames: ['Povjerenik za službene osobe']
+    };
+    const dual: CommissionerHolder = {
+      _id: 'd1',
+      label: 'Josip Perić',
+      competitions: ['PRVA MUŠKA LIGA'],
+      roleNames: ['Sudac', 'Povjerenik za službene osobe']
+    };
+    expect(remainingRolesAfterCommissionerTake(petra, 'Povjerenik za službene osobe', ['PRVA MUŠKA LIGA'])).toEqual(
+      []
+    );
+    expect(remainingRolesAfterCommissionerTake(dual, 'Povjerenik za službene osobe', ['PRVA MUŠKA LIGA'])).toEqual([
+      'Sudac'
+    ]);
   });
 
   it('čita poruku greške iz HTTP tijela umjesto sirovog objekta', () => {

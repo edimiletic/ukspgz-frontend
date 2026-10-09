@@ -16,6 +16,9 @@
         <div class="form-group">
           <label for="user-email">E-pošta *</label>
           <input id="user-email" type="email" formControlName="email" autocomplete="off" />
+          <p class="field-error" *ngIf="form.controls.email.touched && form.controls.email.hasError('email')">
+            Unesi e-poštu s @, npr. ime.prezime@domena.hr.
+          </p>
         </div>
         <div class="form-group">
           <label for="user-name">Ime *</label>
@@ -49,7 +52,11 @@
           Jedna osoba može imati više uloga (npr. Sudac i Povjerenik za službene osobe).
           Terenske uloge Sudac, Delegat i Kontrolor međusobno se isključuju.
           Sudac se ne može kombinirati ni s Povjerenikom natjecanja.
-          Povjereniku odaberi natjecanja; prazan odabir znači sva natjecanja.
+          Povjereniku moraš odabrati konkretna natjecanja — prazan odabir više ne znači sve lige.
+          Svaka liga ima jednog povjerenika po ulozi. Ako označiš ligu koja već ima povjerenika,
+          ta liga prelazi na ovog korisnika. Prethodni povjerenik ostaje u sustavu:
+          ako ima drugu ulogu, nastavlja s njom; ako mu je to jedina uloga, prijenos se ne može
+          napraviti dok mu ne dodijeliš drugu ulogu.
         </p>
         <div class="role-chips">
           <label
@@ -70,40 +77,36 @@
         <div class="competition-block" *ngFor="let role of commissionerRoles">
           <ng-container *ngIf="isRoleSelected(role)">
             <h4>{{ role }} — natjecanja</h4>
-            <label class="all-comps">
-              <input
-                type="checkbox"
-                [checked]="coversAllCompetitions(role)"
-                (change)="onAllCompetitionsChange(role, $event)"
-              />
-              Sva natjecanja
-            </label>
-            <div class="comp-chips" *ngIf="!coversAllCompetitions(role)">
-              <label *ngFor="let competition of competitions">
+            <div class="comp-chips">
+              <label
+                *ngFor="let competition of competitions"
+                [class.taken]="!!holderLabel(role, competition)"
+                [class.active]="hasCompetition(role, competition)">
                 <input
                   type="checkbox"
                   [checked]="hasCompetition(role, competition)"
                   (change)="toggleCompetition(role, competition)"
                 />
-                {{ competition }}
+                <span>{{ competition }}</span>
+                <span class="holder" *ngIf="holderNote(role, competition) as note">{{ note }}</span>
               </label>
             </div>
           </ng-container>
         </div>
       </fieldset>
 
-      <div class="form-grid" *ngIf="needsOfficialCap">
-        <div class="form-group">
-          <label for="user-rang">Rang</label>
+      <div class="form-grid" *ngIf="needsRank || needsOfficialCap">
+        <div class="form-group" *ngIf="needsRank">
+          <label for="user-rang">Rang *</label>
           <select id="user-rang" formControlName="rang">
-            <option value="">Nije uneseno</option>
+            <option value="">Odaberi</option>
             <option *ngFor="let rank of ranks" [value]="rank">{{ rank }}</option>
           </select>
         </div>
-        <div class="form-group">
-          <label for="user-liga">Najviša liga</label>
+        <div class="form-group" *ngIf="needsOfficialCap" [class.form-group-wide]="!needsRank">
+          <label for="user-liga">Najviša liga *</label>
           <select id="user-liga" formControlName="najvisaLiga">
-            <option value="">Nije uneseno</option>
+            <option value="">Odaberi</option>
             <option *ngFor="let competition of competitions" [value]="competition">{{ competition }}</option>
           </select>
         </div>

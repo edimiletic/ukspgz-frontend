@@ -78,6 +78,17 @@
     border-radius: 6px;
     font-size: 0.95rem;
   }
+
+  input.ng-invalid.ng-touched,
+  select.ng-invalid.ng-touched {
+    border-color: #c62828;
+  }
+}
+
+.field-error {
+  margin: 0.3rem 0 0;
+  color: #c62828;
+  font-size: 0.8rem;
 }
 
 .roles-block {
@@ -147,11 +158,29 @@
 .comp-chips label {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
   font-size: 0.85rem;
   background: #f8f9fa;
   padding: 0.35rem 0.6rem;
   border-radius: 6px;
+  border: 1px solid transparent;
+
+  &.taken {
+    background: #fff7ed;
+    border-color: #fdba74;
+  }
+
+  &.active {
+    background: #e3f2fd;
+    border-color: #1976d2;
+  }
+
+  .holder {
+    width: 100%;
+    font-size: 0.75rem;
+    color: #9a3412;
+  }
 }
 
 .form-error {
