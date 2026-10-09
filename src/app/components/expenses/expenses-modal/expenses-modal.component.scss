@@ -62,8 +62,198 @@
   padding: 2rem;
 }
 
+.hint {
+  margin: 0 0 1rem;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.btn-template {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid #3498db;
+  background: #eaf4fb;
+  color: #1f6f9f;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.highway {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+}
+
+.cancel-btn,
+.save-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+}
+
+.save-btn {
+  background: #3498db;
+  color: white;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.85rem;
+  border: 1px dashed #b9d7ea;
+  border-radius: 8px;
+  background: #f7fbfe;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover:not(.disabled) {
+    border-color: #3498db;
+    background: #eef7fc;
+  }
+
+  &:focus-within {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  &.has-file {
+    border-style: solid;
+    border-color: #9fd0a8;
+    background: #f4fbf5;
+  }
+
+  &.disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.file-badge {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #eaf4fb;
+  color: #1f6f9f;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+
+  i {
+    font-size: 0.95rem;
+    font-weight: 900;
+  }
+}
+
+.has-file .file-badge {
+  background: #e4f6e8;
+  color: #1f6f43;
+}
+
+.file-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  small {
+    color: #6c7a89;
+    font-size: 0.75rem;
+  }
+}
+
+.file-action {
+  flex-shrink: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #3498db;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.file-clear {
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: none;
+  border-radius: 50%;
+  background: #eef1f3;
+  color: #5d6d7e;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background: #e74c3c;
+    color: white;
+  }
+}
+
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+
+  label.file-picker {
+    display: flex;
+    margin-bottom: 0;
+    font-weight: inherit;
+    color: inherit;
+    font-size: inherit;
+  }
   
   label {
     display: block;

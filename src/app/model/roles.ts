@@ -2,13 +2,11 @@ export type UserRole =
   | 'Admin'
   | 'Sudac'
   | 'Delegat'
-  | 'Pomoćni Sudac'
   | 'Kontrolor'
   | 'Povjerenik natjecanja'
-  | 'Povjerenik za službene osobe'
-  | 'Povjerenik za pomoćne suce';
+  | 'Povjerenik za službene osobe';
 
-export type GameAssignmentRole = 'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor';
+export type GameAssignmentRole = 'Sudac' | 'Delegat' | 'Kontrolor';
 
 export interface RoleAssignment {
   name: UserRole;
@@ -24,19 +22,23 @@ export const USER_ROLES: UserRole[] = [
   'Admin',
   'Sudac',
   'Delegat',
-  'Pomoćni Sudac',
   'Kontrolor',
   'Povjerenik natjecanja',
-  'Povjerenik za službene osobe',
-  'Povjerenik za pomoćne suce'
+  'Povjerenik za službene osobe'
 ];
 
-export const GAME_ASSIGNMENT_ROLES: GameAssignmentRole[] = ['Sudac', 'Delegat', 'Pomoćni Sudac', 'Kontrolor'];
+export const GAME_ASSIGNMENT_ROLES: GameAssignmentRole[] = ['Sudac', 'Delegat', 'Kontrolor'];
 
 export const COMMISSIONER_ROLES: UserRole[] = [
   'Povjerenik natjecanja',
-  'Povjerenik za službene osobe',
-  'Povjerenik za pomoćne suce'
+  'Povjerenik za službene osobe'
+];
+
+export const INCOMPATIBLE_ROLE_PAIRS: ReadonlyArray<readonly [UserRole, UserRole]> = [
+  ['Sudac', 'Delegat'],
+  ['Sudac', 'Kontrolor'],
+  ['Delegat', 'Kontrolor'],
+  ['Sudac', 'Povjerenik natjecanja']
 ];
 
 export const ALL_COMPETITIONS = [
@@ -75,8 +77,65 @@ export const COMPETITION_RANK: Record<string, number> = {
 export const REFEREE_RANKS = ['Državni sudac', 'Županijski sudac'] as const;
 export type RefereeRank = typeof REFEREE_RANKS[number];
 
+export const CUP_COSIC = 'KUP «K. ĆOSIĆ»';
+export const CUP_MEGLAJ = 'KUP «R. MEGLAJ-RIMAC»';
+export const SUPERSPORT_PREMIJER = 'SuperSport Premijer liga';
+export const MEN_LEAGUE_COMPETITIONS = [
+  'SuperSport Premijer liga',
+  'FAVBET PREMIJER LIGA',
+  'PRVA MUŠKA LIGA'
+];
+export const WOMEN_LEAGUE_COMPETITIONS = ['PREMIJER ŽENSKA LIGA'];
+
 export const canonicalCompetition = (competition?: string | null): string =>
   competition === 'FAVBET PREMIJER LIGA' ? 'SuperSport Premijer liga' : (competition || '');
+
+export const isSuperSportPremijer = (competition?: string | null): boolean =>
+  canonicalCompetition(competition) === SUPERSPORT_PREMIJER;
+
+export const isCupCosic = (competition?: string | null): boolean =>
+  competition === CUP_COSIC;
+
+export const teamHasAnyCompetition = (
+  teamCompetitions: string[] | null | undefined,
+  names: string[]
+): boolean =>
+  (teamCompetitions || []).some(
+    (competition) => names.includes(competition) || names.includes(canonicalCompetition(competition))
+  );
+
+export const isMenPremierClub = (teamCompetitions?: string[] | null): boolean =>
+  teamHasAnyCompetition(teamCompetitions, [SUPERSPORT_PREMIJER, 'FAVBET PREMIJER LIGA']);
+
+export const teamEligibleForCompetition = (
+  teamCompetitions: string[] | null | undefined,
+  competition?: string | null
+): boolean => {
+  if (!competition) return false;
+  const comps = teamCompetitions || [];
+  if (comps.includes(competition) || comps.map(canonicalCompetition).includes(canonicalCompetition(competition))) {
+    return true;
+  }
+  if (competition === CUP_COSIC) {
+    return teamHasAnyCompetition(comps, MEN_LEAGUE_COMPETITIONS);
+  }
+  if (competition === CUP_MEGLAJ) {
+    return teamHasAnyCompetition(comps, WOMEN_LEAGUE_COMPETITIONS);
+  }
+  return false;
+};
+
+export const isKontrolorRequired = (
+  competition?: string | null,
+  homeTeamCompetitions?: string[] | null,
+  awayTeamCompetitions?: string[] | null
+): boolean => {
+  if (isSuperSportPremijer(competition)) return true;
+  if (isCupCosic(competition)) {
+    return isMenPremierClub(homeTeamCompetitions) && isMenPremierClub(awayTeamCompetitions);
+  }
+  return false;
+};
 
 export const getCompetitionRank = (competition?: string | null): number =>
   (competition && COMPETITION_RANK[canonicalCompetition(competition)]) ||
@@ -87,7 +146,6 @@ export const isWithinNominationCap = (
   competition?: string | null,
   assignmentRole?: string | null
 ): boolean => {
-  if (assignmentRole === 'Pomoćni Sudac') return true;
   const cap = user?.najvisaLiga;
   if (!cap || !competition) return true;
   return getCompetitionRank(competition) <= getCompetitionRank(cap);
@@ -208,19 +266,8 @@ export const canManageCalendar = (userOrRole?: RoleSource | string | null, compe
 export const canNominateOfficials = (userOrRole?: RoleSource | string | null, competition?: string | null): boolean =>
   userHasRoleForCompetition(userOrRole, 'Povjerenik za službene osobe', competition) || isAdminUser(userOrRole);
 
-export const canNominateAssistants = (userOrRole?: RoleSource | string | null, competition?: string | null): boolean =>
-  userHasRoleForCompetition(userOrRole, 'Povjerenik za pomoćne suce', competition) || isAdminUser(userOrRole);
-
 export const canSeeAllGames = (userOrRole?: RoleSource | string | null): boolean =>
   isAdminUser(userOrRole) || getRoleNames(userOrRole).some((role) => COMMISSIONER_ROLES.includes(role));
-
-export const canViewFullKontrola = (
-  userOrRole?: RoleSource | string | null,
-  competition?: string | null
-): boolean =>
-  isAdminUser(userOrRole) ||
-  canManageCalendar(userOrRole, competition) ||
-  canNominateOfficials(userOrRole, competition);
 
 export const isTopProfessionalCompetition = (competition?: string | null): boolean =>
   !!competition && TOP_PROFESSIONAL_COMPETITIONS.includes(competition);
@@ -256,7 +303,7 @@ export const getStatisticsRoles = (userOrRole?: RoleSource | string | null): Gam
   ) {
     return [...GAME_ASSIGNMENT_ROLES];
   }
-  return ['Pomoćni Sudac'];
+  return [];
 };
 
 export const canAssignGameRole = (
@@ -270,13 +317,47 @@ export const canAssignGameRole = (
   if (canNominateOfficials(userOrRole, competition) && ['Sudac', 'Delegat', 'Kontrolor'].includes(assignmentRole)) {
     return true;
   }
-  if (canNominateAssistants(userOrRole, competition) && assignmentRole === 'Pomoćni Sudac') {
-    return true;
-  }
   return false;
 };
 
 export const formatRoleLabel = (userOrRole?: RoleSource | string | null): string => {
   const names = getRoleNames(userOrRole);
   return names.length ? names.join(', ') : 'Korisnik';
+};
+
+const roleNameList = (userOrRoles?: RoleSource | string | string[] | null): UserRole[] => {
+  if (Array.isArray(userOrRoles) && (userOrRoles.length === 0 || typeof userOrRoles[0] === 'string')) {
+    return [...new Set(userOrRoles as UserRole[])];
+  }
+  return getRoleNames(userOrRoles as RoleSource | string | null);
+};
+
+export const incompatibleRolesMessage = (
+  userOrRoles?: RoleSource | string | string[] | null
+): string | null => {
+  const names = roleNameList(userOrRoles);
+  for (const [left, right] of INCOMPATIBLE_ROLE_PAIRS) {
+    if (names.includes(left) && names.includes(right)) {
+      return `Korisnik ne može istovremeno imati uloge ${left} i ${right}.`;
+    }
+  }
+  return null;
+};
+
+export const isRoleCompatibleWithSelection = (role: UserRole, selected: UserRole[]): boolean => {
+  if (selected.includes(role)) {
+    return true;
+  }
+  return !incompatibleRolesMessage([...selected, role]);
+};
+
+export const cannotNominateSelf = (
+  actor?: RoleSource & { _id?: string; id?: string } | null,
+  assigneeId?: string | null
+): boolean => {
+  if (!actor || !assigneeId || isAdminUser(actor)) {
+    return false;
+  }
+  const actorId = String(actor._id || actor.id || '');
+  return !!actorId && actorId === String(assigneeId);
 };

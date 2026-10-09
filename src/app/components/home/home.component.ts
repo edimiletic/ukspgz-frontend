@@ -6,18 +6,25 @@ import { BasketballGameService } from '../../services/basketballGame.service';
 import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AbsenceService } from '../../services/absence.service';
 import { ExamService } from '../../services/exam.service';
-import { KontrolaService } from '../../services/kontrola.service';
 import { UserService } from '../../services/user.service';
 import { User } from '../../model/user.model';
 import { BasketballGame } from '../../model/basketballGame.model';
-import { TravelExpense } from '../../model/travel-expense.model';
+import { TravelExpense, travelExpenseGameLabel, travelExpenseId, travelExpensePersonName } from '../../model/travel-expense.model';
 import { Absence } from '../../model/absence.model';
 import { Exam, ExamAttempt } from '../../model/exam.model';
 import { EditGameModalComponent } from "../games-assigned/edit-game-modal/edit-game-modal.component";
 import { AddQuestionModalComponent } from "../exams/add-question-modal/add-question-modal.component";
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
-import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from '../../model/roles';
+import {
+  GAME_ASSIGNMENT_ROLES,
+  canManageCalendar,
+  canNominateOfficials,
+  canSeeAllGames,
+  formatRoleLabel,
+  isAdminUser,
+  userHasRole
+} from '../../model/roles';
 
 @Component({
   selector: 'app-home',
@@ -32,6 +39,8 @@ export class HomeComponent implements OnInit {
   isAdmin = false;
   canManageCalendar = false;
   canSeeAllGames = false;
+  isFieldOfficial = false;
+  canNominateOfficials = false;
 
     successMessage: string = '';
   errorMessage: string = '';
@@ -49,8 +58,7 @@ isExpensesModalOpen = false;
     completedGames: 0,
     pendingExpenses: 0,
     activeAbsences: 0,
-    lastExamScore: 0,
-    kontrolaCount: 0
+    lastExamScore: 0
   };
 
   // Recent activity data
@@ -78,7 +86,6 @@ isExpensesModalOpen = false;
     private expenseService: TravelExpenseService,
     private absenceService: AbsenceService,
     private examService: ExamService,
-    private kontrolaService: KontrolaService,
     private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -98,6 +105,8 @@ isExpensesModalOpen = false;
         this.isAdmin = isAdminUser(user);
         this.canManageCalendar = canManageCalendar(user);
         this.canSeeAllGames = canSeeAllGames(user);
+        this.canNominateOfficials = canNominateOfficials(user);
+        this.isFieldOfficial = GAME_ASSIGNMENT_ROLES.some((role) => userHasRole(user, role));
         this.refreshView();
         this.loadDashboardData();
       },
@@ -122,12 +131,15 @@ isExpensesModalOpen = false;
   }
 
   private loadCommissionerDashboard(): void {
-    Promise.allSettled([
+    const tasks: Promise<void>[] = [
       this.loadAdminGames(),
       this.loadAdminExpenses(),
-      this.loadUserAbsences(),
-      this.loadUserKontrola()
-    ]).then((results) => {
+      this.loadUserAbsences()
+    ];
+    if (this.isFieldOfficial) {
+      tasks.push(this.loadOwnPendingNominations(), this.loadUserExams());
+    }
+    Promise.allSettled(tasks).then((results) => {
       const failures = results.filter(result => result.status === 'rejected');
       if (failures.length > 0) {
         this.showError('Neki podaci nisu mogli biti učitani. Molimo pokušajte osvježiti stranicu.');
@@ -142,8 +154,7 @@ isExpensesModalOpen = false;
       this.loadUserGames(),
       this.loadUserExpenses(),
       this.loadUserAbsences(),
-      this.loadUserExams(),
-      this.loadUserKontrola()
+      this.loadUserExams()
     ];
 
     Promise.allSettled(loadPromises)
@@ -166,8 +177,7 @@ isExpensesModalOpen = false;
       this.loadAdminGames(),
       this.loadAdminExpenses(),
       this.loadAdminAbsences(),
-      this.loadAdminStats(),
-      this.loadUserKontrola()
+      this.loadAdminStats()
     ];
 
     Promise.allSettled(loadPromises)
@@ -194,6 +204,25 @@ isExpensesModalOpen = false;
   }
 
 
+private countOwnPendingNominations(games: BasketballGame[]): number {
+  return games.filter((game) => {
+    const assignment = game.refereeAssignments.find((a) => this.isCurrentUserAssignment(a));
+    return assignment?.assignmentStatus === 'Pending';
+  }).length;
+}
+
+private loadOwnPendingNominations(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.gameService.getMyAssignments().subscribe({
+      next: (games) => {
+        this.dashboardStats.pendingGames = this.countOwnPendingNominations(games);
+        resolve();
+      },
+      error: reject
+    });
+  });
+}
+
 private loadUserGames(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.gameService.getMyAssignments().subscribe({
@@ -201,12 +230,7 @@ private loadUserGames(): Promise<void> {
         const now = new Date();
         
         // Count pending games (assignments waiting for response)
-        this.dashboardStats.pendingGames = games.filter(game => {
-          const assignment = game.refereeAssignments.find(
-            a => this.isCurrentUserAssignment(a)
-          );
-          return assignment?.assignmentStatus === 'Pending';
-        }).length;
+        this.dashboardStats.pendingGames = this.countOwnPendingNominations(games);
 
         // Count upcoming games (accepted and future)
         this.dashboardStats.upcomingGames = games.filter(game => {
@@ -243,7 +267,7 @@ private loadUserExpenses(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.expenseService.getCurrentUserTravelExpenses().subscribe({
       next: (expenses) => {
-        this.dashboardStats.pendingExpenses = expenses.filter(e => e.state === 'Skica').length;
+        this.dashboardStats.pendingExpenses = expenses.filter(e => e.state === 'Predano' || e.state === 'Odbijeno').length;
         this.recentExpenses = expenses
           .sort((a, b) => {
             const dateA = this.getSafeDate(a.updatedAt || a.createdAt).getTime();
@@ -300,18 +324,6 @@ private loadUserExams(): Promise<void> {
     });
   });
 }
-
-  private loadUserKontrola(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.kontrolaService.getKontrolaCount().subscribe({
-        next: (response) => {
-          this.dashboardStats.kontrolaCount = response?.count || 0;
-          resolve();
-        },
-        error: reject
-      });
-    });
-  }
 
 private loadAdminGames(): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -452,13 +464,24 @@ formatDateTime(dateString: string | undefined): string {
     if (this.isAdmin) {
       return 'Dobrodošli u administratorski panel. Ovdje možete upravljati svim aspektima sustava.';
     }
+    const hats: string[] = [];
     if (this.canManageCalendar) {
-      return 'Ovdje možete dogovarati kalendar natjecanja i utakmice.';
+      hats.push('dogovarati kalendar natjecanja');
     }
-    if (this.canSeeAllGames) {
-      return 'Ovdje možete slati nominacije službenim osobama na utakmicama.';
+    if (this.canNominateOfficials) {
+      hats.push('slati nominacije službenim osobama');
     }
-    return 'Dobrodošli u vaš sudački portal. Ovdje možete pratiti svoje utakmice, troškove i ostale aktivnosti.';
+    if (this.isFieldOfficial) {
+      hats.push('pratiti svoje utakmice, troškove i ispite');
+    }
+    if (!hats.length) {
+      return 'Dobrodošli u portal.';
+    }
+    if (hats.length === 1) {
+      return `Ovdje možete ${hats[0]}.`;
+    }
+    const last = hats.pop() as string;
+    return `Ovdje možete ${hats.join(', ')} i ${last}.`;
   }
 
 // Add this method to your HomeComponent class
@@ -647,20 +670,26 @@ closeExpensesModal(): void {
   }
 
   trackByExpenseId(_index: number, expense: TravelExpense): string {
-    return expense.id;
+    return travelExpenseId(expense);
+  }
+
+  expenseTitle(expense: TravelExpense): string {
+    const game = travelExpenseGameLabel(expense);
+    const role = expense.assignmentRole || '';
+    return role ? `${role} — ${game}` : game;
+  }
+
+  expensePerson(expense: TravelExpense): string {
+    return travelExpensePersonName(expense);
   }
 
   trackByAbsenceId(_index: number, absence: Absence): string {
     return absence._id;
   }
 
-onExpenseReportCreated(event: { reportData: any; reportId: string }): void {
-    this.closeExpensesModal();
-  
-  // Show success toast
-  this.showSuccess('Izvješće je uspješno kreirano!');
-  
-  // Optionally refresh dashboard data
+onExpenseReportCreated(_event: { reportId: string }): void {
+  this.closeExpensesModal();
+  this.showSuccess('Putni nalog je predan.');
   this.loadDashboardData();
 }
 

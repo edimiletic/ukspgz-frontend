@@ -1,29 +1,23 @@
-<!-- src/app/components/expenses/expenses.component.html -->
-<!-- SIMPLIFIED VERSION - Single table view -->
-
 <div class="main-layout">
   <section class="content">
-    <!-- Page Header -->
     <div class="page-header">
-      <h1>{{ showNamedOverview ? (isAdmin ? 'Putni Troškovi - Svi korisnici' : 'Putni Troškovi - Nadzirane osobe') : 'Putni Troškovi' }}</h1>
+      <h1>{{ showNamedOverview ? (isAdmin ? 'Putni nalozi - Svi korisnici' : 'Putni nalozi - Nadzirane osobe') : 'Putni nalozi' }}</h1>
       <div class="page-actions">
         <button class="btn btn-create" (click)="openModal()">
           <i class="fas fa-plus"></i>
-          Kreiraj izvješće
+          Novi putni nalog
         </button>
       </div>
     </div>
     <div class="alert alert-success">
       <strong>{{ isAdmin ? 'Admin:' : (seesSupervisedExpenses ? 'Nadzor:' : 'Napomena:') }}</strong>
       {{ isAdmin
-        ? 'Pregled putnih troškova svih službenih osoba. Po zadanom su prikazana izvješća sudaca; vrstu možete promijeniti u filteru.'
+        ? 'Pregled putnih naloga svih službenih osoba. Jedan nalog vrijedi za jednu utakmicu. Po zadanom su prikazani nalozi sudaca.'
         : (canReviewExpenses
-          ? 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Predana izvješća možete odobriti ili odbiti. Po zadanom su prikazana izvješća ' + defaultTypeHint + '; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati.'
+          ? 'Pregled putnih naloga na vašim natjecanjima. Predane naloge možete odobriti ili odbiti. Po zadanom su prikazani nalozi sudaca. Vlastiti nalog i dalje možete predati.'
           : (seesSupervisedExpenses
-            ? (usesAssistantDefault
-              ? 'Pregled putnih troškova pomoćnih sudaca. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.'
-              : 'Pregled putnih troškova službenih osoba na vašim natjecanjima. Po zadanom su prikazana izvješća ' + defaultTypeHint + '; vrstu možete promijeniti u filteru. Vlastito izvješće i dalje možete kreirati, urediti i obrisati. Pregled tuđih izvješća je samo za čitanje.')
-            : 'Ovdje kreirate i predajete vlastita putna izvješća.'))
+            ? 'Pregled putnih naloga na vašim natjecanjima. Pregled tuđih naloga je samo za čitanje. Vlastiti nalog i dalje možete predati.'
+            : 'Ovdje predajete putni nalog za utakmicu na kojoj imate prihvaćenu nominaciju.'))
       }}
     </div>
 
@@ -38,24 +32,23 @@
     <div class="filter-row">
       <div class="filter-group">
         <label>ID</label>
-        <input type="text" class="form-control" placeholder="Pretraži po ID-u" 
+        <input type="text" class="form-control" placeholder="Pretraži po ID-u"
                [(ngModel)]="filterValues.id" (input)="applyFilters()" />
       </div>
 
-      <div class="filter-group" *ngIf="!usesAssistantDefault">
-        <label>Vrsta</label>
-        <select class="form-control" [(ngModel)]="filterValues.type" (change)="applyFilters()">
-          <option value="">Sve vrste</option>
-          <option value="Troškovno izvješće suca">Troškovno izvješće suca</option>
-          <option value="Troškovno izvješće delegata">Troškovno izvješće delegata</option>
-          <option value="Troškovno izvješće pomoćnog suca">Troškovno izvješće pomoćnog suca</option>
-          <option value="Troškovno izvješće kontrolora">Troškovno izvješće kontrolora</option>
+      <div class="filter-group" *ngIf="showNamedOverview">
+        <label>Uloga</label>
+        <select class="form-control" [(ngModel)]="filterValues.assignmentRole" (change)="applyFilters()">
+          <option value="">Sve uloge</option>
+          <option value="Sudac">Sudac</option>
+          <option value="Delegat">Delegat</option>
+          <option value="Kontrolor">Kontrolor</option>
         </select>
       </div>
 
       <div class="filter-group" *ngIf="showNamedOverview">
         <label>Korisnik</label>
-        <input type="text" class="form-control" placeholder="Pretraži po korisniku" 
+        <input type="text" class="form-control" placeholder="Pretraži po korisniku"
                [(ngModel)]="filterValues.userName" (input)="applyFilters()" />
       </div>
 
@@ -74,18 +67,7 @@
         <label>Mjesec</label>
         <select class="form-control" [(ngModel)]="filterValues.month" (change)="applyFilters()">
           <option value="">Svi mjeseci</option>
-          <option value="Siječanj">Siječanj</option>
-          <option value="Veljača">Veljača</option>
-          <option value="Ožujak">Ožujak</option>
-          <option value="Travanj">Travanj</option>
-          <option value="Svibanj">Svibanj</option>
-          <option value="Lipanj">Lipanj</option>
-          <option value="Srpanj">Srpanj</option>
-          <option value="Kolovoz">Kolovoz</option>
-          <option value="Rujan">Rujan</option>
-          <option value="Listopad">Listopad</option>
-          <option value="Studeni">Studeni</option>
-          <option value="Prosinac">Prosinac</option>
+          <option *ngFor="let month of months" [value]="month">{{ month }}</option>
         </select>
       </div>
 
@@ -93,7 +75,6 @@
         <label>Status</label>
         <select class="form-control" [(ngModel)]="filterValues.state" (change)="applyFilters()">
           <option value="">Svi statusi</option>
-          <option value="Skica">Skica</option>
           <option value="Predano">Predano</option>
           <option value="Potvrđeno">Potvrđeno</option>
           <option value="Odbijeno">Odbijeno</option>
@@ -111,8 +92,8 @@
 
     <div class="empty-state" *ngIf="!hasAnySection">
       {{ hasActiveFilters
-         ? 'Nema izvješća koja odgovaraju odabranim filterima.'
-         : 'Nema kreiranih izvješća.' }}
+         ? 'Nema naloga koji odgovaraju odabranim filterima.'
+         : 'Nema predanih putnih naloga.' }}
     </div>
 
     <div class="expense-section" *ngIf="pendingExpenses.length">
@@ -146,30 +127,26 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Vrsta</th>
+                <th>Utakmica</th>
+                <th>Uloga</th>
                 <th>Korisnik</th>
-                <th>Godina</th>
-                <th>Mjesec</th>
                 <th>Status</th>
-                <th>Iznos</th>
-                <th>Datum kreiranja</th>
+                <th>Predano</th>
                 <th>Opcije</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let expense of getPagedExpenses(section); trackBy: trackByExpenseId">
                 <td>{{ expense.displayId }}</td>
-                <td>{{ expense.type }}</td>
-                <td>{{ expense.userName }} {{ expense.userSurname }}</td>
-                <td>{{ expense.year }}</td>
-                <td>{{ expense.month }}</td>
+                <td>{{ gameLabel(expense) }}</td>
+                <td>{{ expense.assignmentRole }}</td>
+                <td>{{ personName(expense) }}</td>
                 <td>
                   <span class="status-badge" [ngClass]="getStatusClass(expense.state)">
                     {{ expense.state }}
                   </span>
                 </td>
-                <td class="amount-cell">{{ formatAmount(expense.totalAmount) }}</td>
-                <td>{{ formatDate(expense.createdAt!) }}</td>
+                <td>{{ formatDate(expense.submittedAt || expense.createdAt!) }}</td>
                 <td>
                   <div class="action-buttons">
                     <button class="btn-icon btn-view" title="Pregled" (click)="editTravelExpense(expense)">
@@ -219,7 +196,6 @@
   </section>
 </div>
 
-<!-- Toast Notifications -->
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">
     <span class="toast-emoji">✅</span>
@@ -238,7 +214,6 @@
   </div>
 </div>
 
-<!-- Modals -->
 <app-expenses-modal
   [isOpen]="isModalOpen"
   (close)="closeModal()"

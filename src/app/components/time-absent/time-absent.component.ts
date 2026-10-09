@@ -71,26 +71,19 @@ export class TimeAbsentComponent {
 isMobileFiltersOpen: boolean = false;
 
   get roleFilterOptions(): string[] {
-    return this.usesAssistantDefault ? ['Pomoćni Sudac'] : GAME_ASSIGNMENT_ROLES;
+    return GAME_ASSIGNMENT_ROLES;
   }
 
   get canChangeRoleFilter(): boolean {
-    return this.showNamedOverview && !this.usesAssistantDefault;
-  }
-
-  get usesAssistantDefault(): boolean {
-    return !this.isAdmin
-      && userHasRole(this.currentUser, 'Povjerenik za pomoćne suce')
-      && !userHasRole(this.currentUser, 'Povjerenik natjecanja')
-      && !userHasRole(this.currentUser, 'Povjerenik za službene osobe');
+    return this.showNamedOverview;
   }
 
   get defaultRoleFilter(): string {
-    return this.usesAssistantDefault ? 'Pomoćni Sudac' : 'Sudac';
+    return 'Sudac';
   }
 
   get defaultRoleHint(): string {
-    return this.usesAssistantDefault ? 'pomoćni suci' : 'suci';
+    return 'suci';
   }
 
   // Filter properties

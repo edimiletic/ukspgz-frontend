@@ -7,16 +7,12 @@ import { FormsModule } from '@angular/forms';
 import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
-import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewFullKontrola, isAdminUser, userHasRole } from '../../model/roles';
-import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.component";
-import { KontrolaService } from '../../services/kontrola.service';
-import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
-import { firstValueFrom } from 'rxjs';
+import { canManageCalendar, canNominateOfficials, canSeeAllGames, isAdminUser } from '../../model/roles';
 
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent, KontrolaModalComponent, ViewKontrolaModalComponent],
+  imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -76,9 +72,6 @@ isMobileFiltersOpen: boolean = false;
     date: ''
   };
     
- isKontrolaModalOpen = false;
-  gameForKontrola: BasketballGame | null = null;
-
   // Rejection modal
   isRejectionModalOpen = false;
   isRejectBusy = false;
@@ -104,7 +97,6 @@ isMobileFiltersOpen: boolean = false;
   constructor(
     private basketballGameService: BasketballGameService,
     private authService: AuthService,
-    private kontrolaService: KontrolaService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -146,23 +138,8 @@ isMobileFiltersOpen: boolean = false;
     return canNominateOfficials(this.currentUser, competition);
   }
 
-  canNominateAssistants(competition?: string): boolean {
-    return canNominateAssistants(this.currentUser, competition);
-  }
-
   canSeeAllGames(): boolean {
     return canSeeAllGames(this.currentUser);
-  }
-
-  canViewGameKontrola(game: BasketballGame): boolean {
-    return canViewFullKontrola(this.currentUser, game.competition);
-  }
-
-  showsKontrolaColumn(): boolean {
-    return this.canAccessKontrola() ||
-      userHasRole(this.currentUser, 'Povjerenik natjecanja') ||
-      userHasRole(this.currentUser, 'Povjerenik za službene osobe') ||
-      userHasRole(this.currentUser, 'Povjerenik za pomoćne suce');
   }
 
   canEditGame(game: BasketballGame): boolean {
@@ -170,8 +147,7 @@ isMobileFiltersOpen: boolean = false;
       return false;
     }
     return this.canManageCalendar(game.competition) ||
-      this.canNominateOfficials(game.competition) ||
-      this.canNominateAssistants(game.competition);
+      this.canNominateOfficials(game.competition);
   }
 
   private currentUserId(): string {
@@ -186,97 +162,6 @@ isMobileFiltersOpen: boolean = false;
   private isCurrentUserAssignment(assignment: RefereeAssignment): boolean {
     return this.assignmentUserId(assignment) === this.currentUserId();
   }
-
-  isViewKontrolaModalOpen = false;
-  gameForViewKontrola: BasketballGame | null = null;
-  viewAllKontrola = false;
-
-  // Check if current user can view kontrola (only referees who participated)
-  canViewKontrola(game: BasketballGame): boolean {
-    if (!this.currentUser) return false;
-    
-    // Only referees can view kontrola, and only for games they participated in
-    if (!userHasRole(this.currentUser, 'Sudac')) {
-      return false;
-    }
-
-    // Check if the current user was assigned to this game and accepted
-    const userAssignment = game.refereeAssignments.find(
-      assignment => this.isCurrentUserAssignment(assignment) &&
-                   assignment.assignmentStatus === 'Accepted'
-    );
-
-    return !!userAssignment;
-  }
-
-// Remove the hasKontrola method and add this property
-kontrolaStatusMap = new Map<string, boolean>();
-
-// Add this method to check and cache kontrola status
-
-checkGameKontrolaStatus(gameId: string): void {
-  if (!gameId || this.kontrolaStatusMap.has(gameId)) {
-    return;
-  }
-
-  this.kontrolaStatusMap.set(gameId, false);
-
-  this.kontrolaService.hasKontrola(gameId).subscribe({
-    next: (response) => {
-      this.kontrolaStatusMap.set(gameId, response.exists);
-      this.refreshView();
-    },
-    error: () => {
-      this.kontrolaStatusMap.set(gameId, false);
-      this.refreshView();
-    }
-  });
-}
-
-prefetchKontrolaStatuses(games: BasketballGame[]): void {
-  games.forEach(game => this.checkGameKontrolaStatus(game._id));
-}
-
-getKontrolaStatus(gameId: string): boolean {
-  return this.kontrolaStatusMap.get(gameId) || false;
-}
-
-  // Open view kontrola modal
-  openViewKontrolaModal(game: BasketballGame, viewAll = false): void {
-    this.gameForViewKontrola = game;
-    this.viewAllKontrola = viewAll;
-    this.isViewKontrolaModalOpen = true;
-  }
-
-  // Close view kontrola modal
-  closeViewKontrolaModal(): void {
-    this.isViewKontrolaModalOpen = false;
-    this.gameForViewKontrola = null;
-    this.viewAllKontrola = false;
-  }
-
-  // Close kontrola modal
-  closeKontrolaModal(): void {
-    this.isKontrolaModalOpen = false;
-    this.gameForKontrola = null;
-  }
-
-  // Handle kontrola saved
- 
-onKontrolaSaved(result: any): void {
-    
-  // Check if the result indicates success
-  if (result && result.success) {
-    this.showSuccess(result.message || 'Kontrola je uspješno spremljena!');
-  } else {
-    this.showError(result?.message || 'Greška pri spremanju kontrole.');
-  }
-  
-  // Refresh the games list to update the kontrola nus
-  this.loadMyGames();
-}
-
-
 
   openCreateGameModal() {
     this.gameToEdit = null;
@@ -309,7 +194,6 @@ onGameCreated(result: any) {
 
   loadMyGames() {
     this.isLoading = true;
-    this.kontrolaStatusMap.clear();
 
     if (this.canSeeAllGames()) {
       // If admin, load all games in the system
@@ -375,7 +259,6 @@ onGameCreated(result: any) {
 
           }
     
-    this.prefetchKontrolaStatuses(this.allGameHistory);
     this.applyFilters();
   }
 
@@ -546,7 +429,6 @@ onGameCreated(result: any) {
     const roleTranslation: Record<string, string> = {
       'Sudac': 'Sudac',
       'Delegat': 'Delegat',
-      'Pomoćni Sudac': 'Pomoćni Sudac',
       'Kontrolor': 'Kontrolor'
     };
     
@@ -569,7 +451,6 @@ onGameCreated(result: any) {
     const refereeGroups: RefereeGroups = {
       'Sudac': [],
       'Delegat': [],
-      'Pomoćni Sudac': [],
       Kontrolor: []
     };
 
@@ -594,7 +475,9 @@ onGameCreated(result: any) {
           isCurrentUser: isCurrentUser
         };
 
-        refereeGroups[assignment.role].push(refereeInfo);
+        if (refereeGroups[assignment.role]) {
+          refereeGroups[assignment.role].push(refereeInfo);
+        }
       }
     });
 
@@ -604,8 +487,6 @@ onGameCreated(result: any) {
   // Method to format all referees for display (filtered based on user role)
   getAllRefereesFormatted(game: BasketballGame): { label: string; text: string }[] {
     const refereeGroups = this.getAllReferees(game);
-    const myAssignment = this.getMyAssignment(game);
-    const myRole = myAssignment?.role;
     const parts: { label: string; text: string }[] = [];
 
     if (refereeGroups['Sudac'].length > 0) {
@@ -632,27 +513,16 @@ onGameCreated(result: any) {
       });
     }
 
-    if (refereeGroups['Pomoćni Sudac'].length > 0 && (this.canSeeAllGames() || (myRole !== 'Sudac' && myRole !== 'Delegat' && myRole !== 'Kontrolor'))) {
-      parts.push({
-        label: 'Pomoćni sudci',
-        text: refereeGroups['Pomoćni Sudac']
-          .sort((a, b) => a.position - b.position)
-          .map(ref => `${ref.name} ${ref.statusText}`)
-          .join(', ')
-      });
-    }
-
     return parts;
   }
 
   // Method to get referee summary for cards
-  getRefereesSummaryForCard(game: BasketballGame): { sudci: RefereeInfo[], delegat: RefereeInfo[], pomocni: RefereeInfo[] } {
+  getRefereesSummaryForCard(game: BasketballGame): { sudci: RefereeInfo[], delegat: RefereeInfo[] } {
     const refereeGroups = this.getAllReferees(game);
     
     return {
       sudci: refereeGroups['Sudac'].sort((a, b) => a.position - b.position),
-      delegat: refereeGroups['Delegat'],
-      pomocni: refereeGroups['Pomoćni Sudac'].sort((a, b) => a.position - b.position)
+      delegat: refereeGroups['Delegat']
     };
   }
 
@@ -882,70 +752,6 @@ if (window.innerWidth <= 693) {
       }
     });
   }
-
-
-  // Check if current user can access Kontrola column (Admin or Delegat)
-  canAccessKontrola(): boolean {
-    return isAdminUser(this.currentUser) ||
-      userHasRole(this.currentUser, 'Delegat') ||
-      userHasRole(this.currentUser, 'Kontrolor');
-  }
-
-  canWriteKontrola(game: BasketballGame): boolean {
-    if (!this.currentUser) return false;
-    if (isAdminUser(this.currentUser)) return true;
-
-    const hasKontrolor = game.refereeAssignments.some(
-      assignment => assignment.role === 'Kontrolor' && assignment.assignmentStatus === 'Accepted'
-    );
-    const userId = this.currentUserId();
-
-    if (hasKontrolor) {
-      return game.refereeAssignments.some(
-        assignment => assignment.role === 'Kontrolor' &&
-          this.assignmentUserId(assignment) === userId &&
-          assignment.assignmentStatus === 'Accepted'
-      );
-    }
-
-    return userHasRole(this.currentUser, 'Delegat') && game.refereeAssignments.some(
-      assignment => assignment.role === 'Delegat' &&
-        this.assignmentUserId(assignment) === userId &&
-        assignment.assignmentStatus === 'Accepted'
-    );
-  }
-
-  isKontrolaEditMode = false;
-
-
-
-async openKontrolaModal(game: BasketballGame): Promise<void> {
-    
-  this.gameForKontrola = game;
-  
-  try {
-    const response = await firstValueFrom(this.kontrolaService.hasKontrola(game._id));
-        
-    // Set edit mode first
-    this.isKontrolaEditMode = response.exists;
-    this.refreshView();
-    
-    // Use setTimeout to ensure change detection picks up the edit mode change
-    setTimeout(() => {
-      this.isKontrolaModalOpen = true;
-      this.refreshView();
-          }, 10);
-    
-  } catch (error) {
-    console.error('❌ Error checking kontrola existence:', error);
-    this.isKontrolaEditMode = false;
-    this.refreshView();
-    setTimeout(() => {
-      this.isKontrolaModalOpen = true;
-      this.refreshView();
-    }, 10);
-  }
-}
 
   updatePagination() {
     this.updatePendingPagination();

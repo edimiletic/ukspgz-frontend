@@ -18,4 +18,11 @@ describe('BasketRulesComponent', () => {
   it('prikazuje naslov dokumentacije', () => {
     expect(fixture.nativeElement.textContent).toContain('Dokumenti');
   });
+
+  it('prikazuje HKS pravila za 2026.', () => {
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('FIBA Službena košarkaška pravila 2026');
+    expect(text).toContain('Promjene 2026');
+    expect(text).toContain('Službene interpretacije');
+  });
 });

@@ -19,15 +19,34 @@ describe('TravelExpenseService', () => {
 
   afterEach(() => http.verify());
 
-  it('kreira izvješće', () => {
-    const payload = { userId: 'u1', type: 'Troškovno izvješće suca', season: '2026./2027.', year: 2026, month: 'Siječanj' };
-    service.createTravelExpense(payload).subscribe();
-    const req = http.expectOne(base);
-    expect(req.request.method).toBe('POST');
-    req.flush({ id: 'e1', ...payload });
+  it('preuzima predložak', () => {
+    service.downloadTemplate().subscribe();
+    const req = http.expectOne(`${base}/template`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob());
   });
 
-  it('dohvaća moja izvješća u browseru', () => {
+  it('dohvaća utakmice za nalog', () => {
+    service.getEligibleGames().subscribe(list => {
+      expect(list.length).toBe(1);
+    });
+    const req = http.expectOne(`${base}/eligible-games`);
+    expect(req.request.method).toBe('GET');
+    req.flush([{ _id: 'g1', assignmentRole: 'Sudac' }]);
+  });
+
+  it('predaje nalog kao FormData', () => {
+    const form = new FormData();
+    form.append('gameId', 'g1');
+    service.submitTravelOrder(form).subscribe();
+    const req = http.expectOne(base);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toBe(form);
+    req.flush({ id: 'e1', state: 'Predano' });
+  });
+
+  it('dohvaća moje naloge u browseru', () => {
     service.getCurrentUserTravelExpenses().subscribe(list => {
       expect(list.length).toBe(1);
     });
@@ -36,24 +55,7 @@ describe('TravelExpenseService', () => {
     req.flush([{ id: 'e1' }]);
   });
 
-  it('dodaje i briše stavku, predaje izvješće', () => {
-    service.addExpenseItem('e1', { type: 'Prijevoz automobilom', amount: 10 }).subscribe();
-    const add = http.expectOne(`${base}/e1/expenses`);
-    expect(add.request.method).toBe('PATCH');
-    add.flush({ id: 'e1' });
-
-    service.removeExpenseItem('e1', 'item1').subscribe();
-    const remove = http.expectOne(`${base}/e1/expenses/item1`);
-    expect(remove.request.method).toBe('DELETE');
-    remove.flush({ id: 'e1' });
-
-    service.submitTravelExpense('e1').subscribe();
-    const submit = http.expectOne(`${base}/e1/submit`);
-    expect(submit.request.method).toBe('PATCH');
-    submit.flush({ id: 'e1', state: 'Predano' });
-  });
-
-  it('odbija izvješće s napomenom', () => {
+  it('odbija nalog s napomenom', () => {
     service.reviewTravelExpense('e1', 'reject', 'Nedostaju računi').subscribe();
     const req = http.expectOne(`${base}/e1/review`);
     expect(req.request.method).toBe('PATCH');
@@ -61,7 +63,7 @@ describe('TravelExpenseService', () => {
     req.flush({ id: 'e1', state: 'Odbijeno' });
   });
 
-  it('briše izvješće po id', () => {
+  it('briše nalog po id', () => {
     service.deleteTravelExpense('e1').subscribe();
     const req = http.expectOne(`${base}/e1`);
     expect(req.request.method).toBe('DELETE');

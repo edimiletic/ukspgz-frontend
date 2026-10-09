@@ -1,36 +1,32 @@
-// Add to expense-report-details.component.ts
-
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { ExpenseItem, TravelExpense } from '../../model/travel-expense.model';
+import {
+  TravelExpense,
+  travelExpenseGame,
+  travelExpenseGameLabel,
+  travelExpenseId,
+  travelExpensePersonName
+} from '../../model/travel-expense.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AuthService } from '../../services/login.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, inject } from '@angular/core';
-import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
-import { ModalExpenseReportDetailsComponent } from "./modal-expense-report-details/modal-expense-report-details.component";
-import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
+import { ConfirmationData, ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
+import { ReasonModalComponent } from '../shared/reason-modal/reason-modal.component';
 import { isAdminUser, userHasRole } from '../../model/roles';
-
-type ReportConfirm =
-  | { kind: 'delete-report' }
-  | { kind: 'submit-report' }
-  | { kind: 'delete-item'; itemId: string };
 
 @Component({
   selector: 'app-expense-report-details',
-  imports: [RouterModule, CommonModule, ConfirmationModalComponent, ModalExpenseReportDetailsComponent, ReasonModalComponent],
+  imports: [RouterModule, CommonModule, ConfirmationModalComponent, ReasonModalComponent],
   templateUrl: './expense-report-details.component.html',
   styleUrl: './expense-report-details.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpenseReportDetailsComponent implements OnInit {
- report: TravelExpense | null = null;
+  report: TravelExpense | null = null;
   isLoading = true;
   errorMessage = '';
   successMessage = '';
-  isAddExpenseModalOpen = false;
-  isAddItemBusy = false;
   isConfirmOpen = false;
   isConfirmBusy = false;
   confirmationData: ConfirmationData = {
@@ -38,11 +34,9 @@ export class ExpenseReportDetailsComponent implements OnInit {
     message: 'Jeste li sigurni?'
   };
   isRejectModalOpen = false;
-  
+
   private platformId = inject(PLATFORM_ID);
 
-
-  // Add these properties
   isAdmin = false;
   canReviewExpenses = false;
   currentUser: any = null;
@@ -61,35 +55,35 @@ export class ExpenseReportDetailsComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-ngOnInit() {
+  ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadCurrentUser();
     }
   }
 
-private loadCurrentUser() {
-  this.authService.getCurrentUser().subscribe({
-    next: (user) =>{
-       if (!user) {
-                return; // Stop execution on server-side
-      }
-      this.currentUser = user;
-      this.isAdmin = isAdminUser(user);
-      this.canReviewExpenses = this.isAdmin || userHasRole(user, 'Povjerenik natjecanja');
-      this.refreshView();
-      this.route.params.subscribe(params => {
-        const reportId = params['id'];
-        if (reportId) {
-          this.loadReport(reportId);
+  private loadCurrentUser() {
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        if (!user) {
+          return;
         }
-      });
-    },
-    error:(error) =>{
-      console.error('Error loading user:', error);
-      this.router.navigate(['/login']);
-    }
-  })
-}
+        this.currentUser = user;
+        this.isAdmin = isAdminUser(user);
+        this.canReviewExpenses = this.isAdmin || userHasRole(user, 'Povjerenik natjecanja');
+        this.refreshView();
+        this.route.params.subscribe(params => {
+          const reportId = params['id'];
+          if (reportId) {
+            this.loadReport(reportId);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading user:', error);
+        this.router.navigate(['/login']);
+      }
+    });
+  }
 
   private loadReport(reportId: string) {
     this.isLoading = true;
@@ -102,46 +96,36 @@ private loadCurrentUser() {
       },
       error: (error) => {
         console.error('Error loading report:', error);
-        this.showError('Greška pri učitavanju izvješća.');
+        this.showError('Greška pri učitavanju putnog naloga.');
         this.isLoading = false;
         this.refreshView();
       }
     });
   }
 
-  // Add method to check if submit button should be shown
-  shouldShowSubmitButton(): boolean {
-    return this.canEditItems();
-  }
-
   shouldShowDeleteButton(): boolean {
-    return this.canEditItems();
+    if (!this.report) {
+      return false;
+    }
+    if (this.isAdmin) {
+      return true;
+    }
+    return this.isOwner && this.report.state === 'Odbijeno';
   }
 
   shouldShowAdminReview(): boolean {
     if (this.report?.state !== 'Predano') {
       return false;
     }
-    if (this.isAdmin) {
-      return true;
-    }
-    return this.canReviewExpenses && !this.isOwner;
-  }
-
-  canEditItems(): boolean {
-    if (!this.report) {
+    if (this.isOwner) {
       return false;
     }
-    const editable = this.report.state === 'Skica' || this.report.state === 'Odbijeno';
-    if (!editable) {
-      return false;
-    }
-    return this.isOwner;
+    return this.isAdmin || this.canReviewExpenses;
   }
 
   private resolveIsOwner(report: TravelExpense): boolean {
     const currentId = this.extractId(this.currentUser) || this.authService.getCurrentUserId();
-    const reportUserId = this.extractId(report.userId) || this.extractId((report as any).user);
+    const reportUserId = this.extractId(report.userId);
     return !!currentId && !!reportUserId && currentId === reportUserId;
   }
 
@@ -160,40 +144,7 @@ private loadCurrentUser() {
   }
 
   getReportId(): string {
-    if (!this.report) return '';
-    return (this.report as any)._id || this.report.id;
-  }
-
-  // Helper method to get current user role from wherever you store it
-  private getCurrentUserRole(): string {
-    if (this.currentUser) {
-      return this.currentUser.role;
-    }
-    
-    // Fallback to localStorage if needed
-    const userData = localStorage.getItem('currentUser');
-    if (userData) {
-      const user = JSON.parse(userData);
-      return user.role;
-    }
-    
-    return '';
-  }
-
-  onSubmitReport() {
-    if (!this.shouldShowSubmitButton()) {
-      this.showError('Možete predati samo skice ili odbijena izvješća.');
-      return;
-    }
-    this.confirmationData = {
-      title: 'Potvrdi predaju',
-      message: 'Jeste li sigurni da želite predati ovo izvješće?',
-      confirmText: 'Predaj',
-      loadingText: 'Predavanje...',
-      confirmButtonClass: 'btn-primary',
-      data: { kind: 'submit-report' } satisfies ReportConfirm
-    };
-    this.isConfirmOpen = true;
+    return travelExpenseId(this.report);
   }
 
   closeConfirmModal() {
@@ -202,19 +153,8 @@ private loadCurrentUser() {
   }
 
   onConfirm(payload: unknown) {
-    const data = payload as ReportConfirm | undefined;
-    if (!data || this.isConfirmBusy) return;
-
-    if (data.kind === 'delete-report') {
+    if (payload === 'delete-report' && !this.isConfirmBusy) {
       this.confirmDeleteReport();
-      return;
-    }
-    if (data.kind === 'submit-report') {
-      this.confirmSubmitReport();
-      return;
-    }
-    if (data.kind === 'delete-item') {
-      this.confirmDeleteItem(data.itemId);
     }
   }
 
@@ -225,37 +165,12 @@ private loadCurrentUser() {
       next: () => {
         this.closeConfirmModal();
         this.router.navigate(['/expenses'], {
-          queryParams: { message: 'deleted', reportId: this.report?.id }
+          queryParams: { message: 'deleted' }
         });
       },
       error: (error) => {
         this.isConfirmBusy = false;
-        this.showError(this.getReportDeleteErrorMessage(error));
-      }
-    });
-  }
-
-  private confirmSubmitReport() {
-    if (!this.report) return;
-    if (this.report.state !== 'Skica' && this.report.state !== 'Odbijeno') {
-      this.showError('Samo skice i odbijena izvješća mogu biti predana.');
-      return;
-    }
-    if (!this.report.expenses || this.report.expenses.length === 0) {
-      this.showError('Ne možete predati izvješće bez stavki troškova.');
-      return;
-    }
-
-    this.isConfirmBusy = true;
-    this.travelExpenseService.submitTravelExpense(this.getReportId()).subscribe({
-      next: (updatedReport) => {
-        this.report = updatedReport;
-        this.closeConfirmModal();
-        this.showSuccess('Izvješće je uspješno predano!');
-      },
-      error: (error) => {
-        this.isConfirmBusy = false;
-        this.showError(this.getSubmitErrorMessage(error));
+        this.showError(error.error?.error || 'Greška pri brisanju naloga.');
       }
     });
   }
@@ -264,311 +179,81 @@ private loadCurrentUser() {
     if (!this.shouldShowDeleteButton()) return;
     this.confirmationData = {
       title: 'Potvrdi brisanje',
-      message: 'Jeste li sigurni da želite obrisati ovo izvješće?',
-      details: this.report
-        ? [`${this.report.type} — ${this.report.month} ${this.report.year}`, 'Ova akcija se ne može poništiti.']
-        : ['Ova akcija se ne može poništiti.'],
+      message: 'Jeste li sigurni da želite obrisati ovaj putni nalog?',
+      details: [this.gameLabel(), 'Ova akcija se ne može poništiti.'],
       confirmText: 'Obriši',
       loadingText: 'Brisanje...',
-      data: { kind: 'delete-report' } satisfies ReportConfirm
+      data: 'delete-report'
     };
     this.isConfirmOpen = true;
-  }
-
-  // Updated onAddExpense method with role-based check
-  onAddExpense() {
-    // Check if user can add expense items
-    if (!this.canAddExpenseItem()) {
-      this.showError('Ne možete dodati stavke u predana, odobrena ili odbijena izvješća. Samo Admin može izvršiti ovu akciju.');
-      return;
-    }
-    
-    this.isAddExpenseModalOpen = true;
-  }
-
-  closeAddExpenseModal() {
-    this.isAddExpenseModalOpen = false;
-  }
-
-  onExpenseSaved(expenseData: ExpenseItem) {
-    if (this.isAddItemBusy) {
-      return;
-    }
-    if (!this.report) {
-      this.showError('Greška: Izvješće nije učitano.');
-      return;
-    }
-    
-    // Convert NewExpenseItem to the format expected by the API
-const expenseItem = {
-    type: expenseData.type || '',
-    date: expenseData.date || '',
-    description: expenseData.description || '',
-    unit: expenseData.unit || '',
-    quantity: expenseData.quantity || 1,  // ✅ Changed from 0 to 1
-    unitPrice: expenseData.unitPrice || expenseData.amount || 1,  // ✅ Use amount if unitPrice is 0
-    competition: expenseData.competition || '',
-    amount: expenseData.amount,  // ✅ Use the actual amount from expenseData
-    gameId: expenseData.gameId || undefined,
-    homeTeam: expenseData.homeTeam || undefined,
-    awayTeam: expenseData.awayTeam || undefined
-  };
-
-    this.isAddItemBusy = true;
-    this.travelExpenseService.addExpenseItem(this.getReportId(), expenseItem).subscribe({
-      next: (updatedReport) => {
-        this.report = updatedReport;
-        this.isAddItemBusy = false;
-        this.closeAddExpenseModal();
-        this.showSuccess('Stavka je uspješno dodana!');
-      },
-      error: (error) => {
-        console.error('Error adding expense item:', error);
-        this.isAddItemBusy = false;
-        this.showError(this.getExpenseErrorMessage(error));
-      }
-    });
-  }
-
-  private getExpenseErrorMessage(error: any): string {
-    if (error.error?.error) {
-      const backendError = error.error.error;
-      
-      if (backendError.includes('Cannot add expense items to submitted')) {
-        return 'Ne možete dodati stavke u predana, odobrena ili odbijena izvješća.';
-      } else if (backendError.includes('Cannot modify approved')) {
-        return 'Ne možete modificirati odobreno izvješće.';
-      } else if (backendError.includes('Access denied')) {
-        return 'Nemate dozvolu za dodavanje stavki.';
-      } else if (backendError.includes('not found')) {
-        return 'Izvješće nije pronađeno.';
-      } else if (backendError.includes('validation')) {
-        return 'Neispravni podaci. Molimo provjerite unos.';
-      } else {
-        return backendError;
-      }
-    }
-    
-    return 'Greška pri dodavanju stavke. Molimo pokušajte ponovo.';
-  }
-
-  onPrint() {
-    window.print();
   }
 
   goBack() {
     this.router.navigate(['/expenses']);
   }
 
-  // Helper methods
-  getPageTitle(): string {
-    if (!this.report) return 'Izvješće putnih troškova';
-    return `Izvješće putnih troškova | ${this.report.userName || 'Nepoznato'} ${this.report.userSurname || ''} | ${this.report.month} ${this.report.year}`;
+  personName(): string {
+    return travelExpensePersonName(this.report);
   }
 
-  getFormattedAmount(): string {
-    if (!this.report) return '0.00 €';
-    return `${this.report.totalAmount?.toFixed(2) || '0.00'} €`;
+  gameLabel(): string {
+    return travelExpenseGameLabel(this.report);
+  }
+
+  venue(): string {
+    return travelExpenseGame(this.report)?.venue || '—';
+  }
+
+  competition(): string {
+    return travelExpenseGame(this.report)?.competition || '—';
+  }
+
+  getPageTitle(): string {
+    if (!this.report) return 'Putni nalog';
+    return `Putni nalog | ${this.personName()}`;
   }
 
   getFormattedDate(): string {
     if (!this.report?.createdAt) return 'Nepoznato';
     const date = new Date(this.report.createdAt);
-    return `${date.toLocaleDateString('hr-HR')} ${date.toLocaleTimeString('hr-HR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })}, ${this.report.userName || 'Nepoznato'} ${this.report.userSurname || ''}`;
+    return `${date.toLocaleDateString('hr-HR')} ${date.toLocaleTimeString('hr-HR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })}`;
   }
 
   getWarningMessage(): string {
-    if (!this.report) return '';
-    
-    if (this.report.state === 'Skica') {
-      return this.isOwner
-        ? 'Upozorenje: Ovo izvješće nije predano. Dodajte troškove u izvješće.'
-        : 'Ovo izvješće je još u skici i nije predano.';
+    if (this.report?.state !== 'Odbijeno') {
+      return '';
     }
-    if (this.report.state === 'Odbijeno') {
-      return this.isOwner
-        ? 'Ovo izvješće je odbijeno. Ispravite ga prema napomeni administratora i predajte ponovo.'
-        : 'Ovo izvješće je odbijeno.';
-    }
-    return '';
+    return this.isOwner
+      ? 'Ovaj nalog je odbijen. Predajte ga ponovo s ispravcima (isti obrazac Novi putni nalog).'
+      : 'Ovaj nalog je odbijen.';
   }
 
   showWarning(): boolean {
-    return this.report?.state === 'Skica' || this.report?.state === 'Odbijeno';
+    return this.report?.state === 'Odbijeno';
   }
 
-  getConditionText(): string {
-    if (!this.report) return 'Nepoznato';
-    return this.report.state;
-  }
-
-  // Helper methods for expense items display
-  formatExpenseDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('hr-HR');
-  }
-
-  getExpenseTypeDisplay(expense: any): string {
-    if (expense.type) {
-      return expense.type;
-    }
-    return expense.type || 'Nepoznato';
-  }
-
-  getGameDisplay(expense: ExpenseItem): string {
-    if (expense.homeTeam && expense.awayTeam) {
-      return `${expense.homeTeam} vs ${expense.awayTeam}`;
-    }
-    return '—';
-  }
-
-  formatAmount(amount: number | undefined | null): string {
-    if (amount === undefined || amount === null || isNaN(amount)) {
-      console.warn('Invalid amount value:', amount);
-      return '0.00 €';
-    }
-    return `${amount.toFixed(2)} €`;
-  }
-
-  getTotalExpensesAmount(): string {
-    if (!this.report?.expenses || this.report.expenses.length === 0) {
-      return '0.00 €';
-    }
-    
-    const total = this.report.expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
-    return `${total.toFixed(2)} €`;
-  }
-
-  // Updated deleteExpenseItem method to open confirmation modal
-  deleteExpenseItem(expenseItemId: string) {
-    if (!this.report || !expenseItemId) {
-      return;
-    }
-
-    // Check if deletion is allowed based on report state and user role
-    if (!this.canDeleteExpenseItem()) {
-      this.showError('Ne možete obrisati stavke iz predanih, odobrenih ili odbijenih izvješća. Samo Admin može izvršiti ovu akciju.');
-      return;
-    }
-
-    // Open confirmation modal instead of browser confirm
-    this.confirmationData = {
-      title: 'Potvrdi brisanje',
-      message: 'Jeste li sigurni da želite obrisati ovu stavku troška?',
-      details: ['Ova akcija se ne može poništiti.'],
-      confirmText: 'Obriši',
-      loadingText: 'Brisanje...',
-      data: { kind: 'delete-item', itemId: expenseItemId } satisfies ReportConfirm
-    };
-    this.isConfirmOpen = true;
-  }
-
-  private confirmDeleteItem(expenseItemId: string) {
-    if (!this.report || !expenseItemId) {
-      this.closeConfirmModal();
-      return;
-    }
-
-    this.isConfirmBusy = true;
-    this.travelExpenseService.removeExpenseItem(this.getReportId(), expenseItemId).subscribe({
-      next: (updatedReport) => {
-        this.report = updatedReport;
-        this.closeConfirmModal();
-        this.showSuccess('Stavka je uspješno obrisana!');
+  downloadFile(kind: 'nalog' | 'fuel' | 'toll', fallbackName: string): void {
+    const id = this.getReportId();
+    if (!id) return;
+    this.travelExpenseService.downloadFile(id, kind).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fallbackName;
+        link.click();
+        URL.revokeObjectURL(url);
       },
-      error: (error) => {
-        this.isConfirmBusy = false;
-        this.showError(this.getDeleteErrorMessage(error));
-      }
+      error: () => this.showError('Preuzimanje datoteke nije uspjelo.')
     });
-  }
-
-  // Helper method to check if current user can add expense items
-  canAddExpenseItem(): boolean {
-    return this.canEditItems();
-  }
-
-  canDeleteExpenseItem(): boolean {
-    return this.canEditItems();
-  }
-
-  // Helper method to check if delete button should be shown
-  showDeleteButton(): boolean {
-    return this.canDeleteExpenseItem();
-  }
-
-  // Helper method to get appropriate error message for deletion
-  private getDeleteErrorMessage(error: any): string {
-    if (error.error?.error) {
-      const backendError = error.error.error;
-      
-      if (backendError.includes('Cannot delete expense items from submitted')) {
-        return 'Ne možete obrisati stavke iz predanih, odobrenih ili odbijenih izvješća.';
-      } else if (backendError.includes('Access denied')) {
-        return 'Nemate dozvolu za brisanje stavki.';
-      } else if (backendError.includes('not found')) {
-        return 'Stavka troška nije pronađena.';
-      } else {
-        return backendError;
-      }
-    }
-    
-    return 'Greška pri brisanju stavke troška.';
-  }
-
-  private getReportDeleteErrorMessage(error: any): string {
-    const backendError = error.error?.error;
-    if (backendError) {
-      if (backendError.includes('Cannot delete submitted')) {
-        return 'Ne možete obrisati podneseno izvješće.';
-      }
-      if (backendError.includes('Access denied')) {
-        return 'Nemate dozvolu za brisanje ovog izvješća.';
-      }
-      if (backendError.includes('not found')) {
-        return 'Izvješće nije pronađeno.';
-      }
-      return backendError;
-    }
-    return 'Greška pri brisanju izvješća. Molimo pokušajte ponovo.';
-  }
-
-  private getSubmitErrorMessage(error: any): string {
-    const backendError = error.error?.error;
-    if (backendError) {
-      if (backendError.includes('Cannot submit approved')) {
-        return 'Ne možete predati odobreno izvješće.';
-      }
-      if (backendError.includes('Cannot submit submitted')) {
-        return 'Izvješće je već predano.';
-      }
-      if (backendError.includes('Access denied')) {
-        return 'Nemate dozvolu za predaju izvješća.';
-      }
-      if (backendError.includes('not found')) {
-        return 'Izvješće nije pronađeno.';
-      }
-      if (backendError.includes('no expenses')) {
-        return 'Ne možete predati izvješće bez stavki troškova.';
-      }
-      return backendError;
-    }
-    return 'Greška pri predaji izvješća. Molimo pokušajte ponovo.';
-  }
-
-  trackByExpenseItemId(index: number, expense: any): string {
-    return expense._id || index.toString();
   }
 
   getConditionClass(): string {
     if (!this.report) return '';
-    
     switch (this.report.state) {
-      case 'Skica':
-        return 'condition-draft';
       case 'Predano':
         return 'condition-submitted';
       case 'Potvrđeno':
@@ -580,7 +265,6 @@ const expenseItem = {
     }
   }
 
-  // Toast notification methods
   private showSuccess(message: string): void {
     this.clearMessages();
     this.successMessage = message;
@@ -623,12 +307,12 @@ const expenseItem = {
         this.isReviewing = false;
         this.closeRejectModal();
         this.showSuccess(action === 'approve'
-          ? 'Izvješće je odobreno.'
-          : 'Izvješće je vraćeno korisniku na ispravak.');
+          ? 'Nalog je odobren.'
+          : 'Nalog je vraćen korisniku na ispravak.');
       },
       error: (error) => {
         this.isReviewing = false;
-        this.showError(error.error?.error || 'Greška pri pregledu izvješća.');
+        this.showError(error.error?.error || 'Greška pri pregledu naloga.');
       }
     });
   }

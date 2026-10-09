@@ -1,13 +1,5 @@
 <div class="main-layout">
   <section class="content">
-    <!-- Back Button Row -->
-    <div class="back-row">
-      <button class="back-button" (click)="goBack()">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-    </div>
-
-    <!-- Page Header -->
     <div class="page-header">
       <div class="header-left">
         <h1>Sve obavijesti</h1>
@@ -15,7 +7,6 @@
       <div class="header-actions">
         <button class="btn btn-primary" (click)="markAllAsRead()" 
                 [disabled]="notifications.length === 0">
-          <i class="fas fa-check-double"></i>
           Označi sve kao pročitano
         </button>
       </div>
@@ -30,9 +21,9 @@
       <select [(ngModel)]="filterType" (change)="onFilterChange()" class="form-control">
         <option value="">Svi tipovi</option>
         <option value="GAME_ASSIGNMENT">Nominacije</option>
+        <option value="GAME_CREATED">Nova utakmica</option>
         <!-- Only show this option for admin users -->
         <option value="ASSIGNMENT_RESPONSE" *ngIf="seesAssignmentResponses">Odgovori na nominacije</option>
-        <option value="KONTROLA_RECEIVED">Kontrole</option>
         <option value="ASSIGNMENT_RELEASED">Povučene nominacije</option>
         <option value="GAME_SCHEDULE_CHANGED">Promjena termina</option>
         <option value="ASSIGNMENT_REMOVED">Skinut s utakmice</option>

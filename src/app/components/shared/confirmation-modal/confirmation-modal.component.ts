@@ -33,6 +33,17 @@ export class ConfirmationModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<unknown>();
 
+  get accentClass(): string {
+    const buttonClass = this.confirmationData.confirmButtonClass;
+    if (buttonClass === 'btn-success') {
+      return 'tone-success';
+    }
+    if (buttonClass === 'btn-primary') {
+      return 'tone-primary';
+    }
+    return 'tone-danger';
+  }
+
   closeModal() {
     if (!this.isBusy) {
       this.close.emit();

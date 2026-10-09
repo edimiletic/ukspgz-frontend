@@ -1,249 +1,226 @@
-// src/app/components/expenses/expenses-modal/expenses-modal.component.ts
-import { NewTravelExpense } from './../../../model/travel-expense.model';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { EligibleTravelGame, TravelExpense, travelExpenseId } from '../../../model/travel-expense.model';
 import { TravelExpenseService } from '../../../services/travel-expense.service';
-import { UserService } from '../../../services/user.service';
-import { User } from '../../../model/user.model';
-import { AuthService } from '../../../services/login.service';
-import { getRoleNames, isAdminUser } from '../../../model/roles';
-import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID, inject } from '@angular/core';
 
+const NALOG_EXTS = ['.xls', '.xlsx', '.pdf'];
+const PDF_EXTS = ['.pdf'];
 
 @Component({
   selector: 'app-expenses-modal',
   imports: [CommonModule, FormsModule],
   templateUrl: './expenses-modal.component.html',
-  styleUrl: './expenses-modal.component.scss'
+  styleUrl: './expenses-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExpensesModalComponent implements OnInit {
+export class ExpensesModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
-  @Output() success = new EventEmitter<{ reportData: NewTravelExpense, reportId: string }>();
+  @Output() success = new EventEmitter<{ reportId: string }>();
 
-  reportData: NewTravelExpense = {
-    type: '',
-    season: '2026./2027.',
-    year: 2026,
-    month: '',
-    userId: '' // For admin to select user
-  };
-
-  // All available report types
-  allReportTypes = [
-    'Troškovno izvješće suca',
-    'Troškovno izvješće delegata',
-    'Troškovno izvješće pomoćnog suca',
-    'Troškovno izvješće kontrolora'
-  ];
-
-  // Role-based mapping for report types
-  private roleToReportTypeMap: { [key: string]: string[] } = {
-    'Sudac': ['Troškovno izvješće suca'],
-    'Delegat': ['Troškovno izvješće delegata'],
-    'Pomoćni Sudac': ['Troškovno izvješće pomoćnog suca'],
-    'Kontrolor': ['Troškovno izvješće kontrolora']
-  };
-
-  // Available report types based on selected user's role
-  reportTypes: string[] = [];
-
-  // List of all users (for admin)
-  allUsers: User[] = [];
-  filteredUsers: User[] = [];
-
-  seasons = ['2026./2027.'];
-
-  months = [
-    'Siječanj',
-    'Veljača',
-    'Ožujak',
-    'Travanj',
-    'Svibanj',
-    'Lipanj',
-    'Srpanj',
-    'Kolovoz',
-    'Rujan',
-    'Listopad',
-    'Studeni',
-    'Prosinac'
-  ];
-
-  years = [2026, 2027];
-
-  // Modal-specific states
+  eligibleGames: EligibleTravelGame[] = [];
+  gameId = '';
+  usedHighway = false;
+  nalogFile: File | null = null;
+  fuelFile: File | null = null;
+  tollFile: File | null = null;
   isLoading = false;
+  isLoadingGames = false;
   errorMessage = '';
-  currentUser: User | null = null;
-  isLoadingUser = false;
-  isAdmin = false;
-
-  private platformId = inject(PLATFORM_ID);
-
 
   constructor(
     private travelExpenseService: TravelExpenseService,
-    private authService: AuthService,
-    private userService: UserService,
-    private router: Router
+    private cdr: ChangeDetectorRef
   ) {}
 
-ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.loadCurrentUser();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && this.isOpen) {
+      this.resetForm();
+      this.loadEligibleGames();
     }
   }
 
-  private loadCurrentUser() {
-    this.isLoadingUser = true;
-    this.authService.getCurrentUser().subscribe({
-      next: (user) => {
-         if (!user) {
-                return; // Stop execution on server-side
-      }
-        this.currentUser = user;
-        this.isAdmin = isAdminUser(user);
-        
-        if (this.isAdmin) {
-          // Admin can create reports for any user
-          this.loadAllUsers();
-          this.reportTypes = this.allReportTypes; // Show all types initially
-        } else {
-          this.setAvailableReportTypes(user);
-        }
-        
-        this.isLoadingUser = false;
-              },
-      error: (error) => {
-        console.error('Error loading current user:', error);
-        this.errorMessage = 'Greška pri učitavanju korisničkih podataka.';
-        this.isLoadingUser = false;
-      }
-    });
-  }
-
-  private loadAllUsers() {
-    this.userService.getReferees().subscribe({
-      next: (users) => {
-        // Get only referees (Sudac, Delegat, Pomoćni Sudac)
-        this.allUsers = users;
-        this.filteredUsers = users;
-              },
-      error: (error) => {
-        console.error('Error loading users:', error);
-        this.errorMessage = 'Greška pri učitavanju korisnika.';
-      }
-    });
-  }
-
-  onUserSelected() {
-    if (!this.reportData.userId) {
-      this.reportTypes = this.allReportTypes;
-      this.reportData.type = '';
-      return;
-    }
-
-    // Find selected user and set available report types
-    const selectedUser = this.allUsers.find(u => u._id === this.reportData.userId);
-    if (selectedUser) {
-      this.setAvailableReportTypes(selectedUser);
-      // Auto-select if only one type available
-      if (this.reportTypes.length === 1) {
-        this.reportData.type = this.reportTypes[0];
-      } else {
-        this.reportData.type = '';
-      }
-    }
-  }
-
-  private setAvailableReportTypes(userOrRole: User | string) {
-    const roles = typeof userOrRole === 'string' ? [userOrRole] : getRoleNames(userOrRole);
-    const types = [...new Set(roles.flatMap(role => this.roleToReportTypeMap[role] || []))];
-    this.reportTypes = types.length ? types : this.allReportTypes;
-
-    if (this.reportTypes.length === 1) {
-      this.reportData.type = this.reportTypes[0];
-    }
-  }
-
-  isFormValid(): boolean {
-    const basicValidation = !!(this.reportData.type && 
-           this.reportData.season && 
-           this.reportData.year && 
-           this.reportData.month);
-    
-    // For admin, also check if user is selected
-    if (this.isAdmin) {
-      return basicValidation && !!this.reportData.userId;
-    }
-    
-    return !!basicValidation;
-  }
-
-  onSave() {
-    if (!this.isFormValid()) {
-      this.errorMessage = 'Molimo popunite sva obavezna polja.';
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.travelExpenseService.createTravelExpense(this.reportData).subscribe({
-      next: (createdExpense) => {
-                this.isLoading = false;
-        this.success.emit({
-          reportData: this.reportData,
-          reportId: createdExpense.id
-        });
-        this.resetForm();
-        this.onClose();
+  downloadTemplate(): void {
+    this.travelExpenseService.downloadTemplate().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Putni nalog HKS.xls';
+        link.click();
+        URL.revokeObjectURL(url);
       },
-      error: (error) => {
-        console.error('Error creating travel expense:', error);
-        this.isLoading = false;
-        
-        if (error.error?.error) {
-          if (error.error.error.includes('already have a report')) {
-            this.errorMessage = 'Već postoji izvješće za odabranu kombinaciju tipa, godine i mjeseca.';
-          } else {
-            this.errorMessage = error.error.error;
-          }
-        } else {
-          this.errorMessage = 'Greška pri kreiranju izvješća. Pokušajte ponovo.';
-        }
+      error: () => {
+        this.errorMessage = 'Preuzimanje predloška nije uspjelo.';
+        this.cdr.markForCheck();
       }
     });
   }
 
-  onClose() {
-    this.resetForm();
-    this.errorMessage = '';
-    this.close.emit();
+  onNalogSelected(event: Event): void {
+    this.nalogFile = this.pickAllowedFile(
+      event,
+      NALOG_EXTS,
+      'Putni nalog mora biti .xls, .xlsx ili PDF.'
+    );
   }
 
-  onBackdropClick(event: Event) {
+  onFuelSelected(event: Event): void {
+    this.fuelFile = this.pickAllowedFile(event, PDF_EXTS, 'Račun goriva mora biti PDF.');
+  }
+
+  onTollSelected(event: Event): void {
+    this.tollFile = this.pickAllowedFile(event, PDF_EXTS, 'Račun cestarine mora biti PDF.');
+  }
+
+  onHighwayChange(used: boolean): void {
+    if (!used) {
+      this.tollFile = null;
+      this.cdr.markForCheck();
+    }
+  }
+
+  fileBadge(file: File): string {
+    const ext = this.extensionOf(file);
+    if (ext === '.xlsx') return 'XLSX';
+    if (ext === '.xls') return 'XLS';
+    if (ext === '.pdf') return 'PDF';
+    return ext.replace('.', '').toUpperCase() || 'FILE';
+  }
+
+  clearFile(kind: 'nalog' | 'fuel' | 'toll', input: HTMLInputElement, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    input.value = '';
+    if (kind === 'nalog') this.nalogFile = null;
+    if (kind === 'fuel') this.fuelFile = null;
+    if (kind === 'toll') this.tollFile = null;
+    this.cdr.markForCheck();
+  }
+
+  onBackdropClick(event: Event): void {
     if (event.target === event.currentTarget && !this.isLoading) {
       this.onClose();
     }
   }
 
-  private resetForm() {
-    this.reportData = {
-      type: '',
-      season: '2026./2027.',
-      year: 2026,
-      month: '',
-      userId: ''
-    };
-    this.errorMessage = '';
+  onClose(): void {
+    if (!this.isLoading) {
+      this.close.emit();
+    }
   }
 
-  // Helper to display user name
-  getUserDisplayName(user: User): string {
-    return `${user.name} ${user.surname} (${user.role})`;
+  submit(): void {
+    this.errorMessage = '';
+    if (!this.gameId) {
+      this.errorMessage = 'Odaberite utakmicu.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (!this.nalogFile || !this.fuelFile) {
+      this.errorMessage = 'Priložite putni nalog i PDF računa goriva.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (!this.hasAllowedExtension(this.nalogFile, NALOG_EXTS)) {
+      this.errorMessage = 'Putni nalog mora biti .xls, .xlsx ili PDF.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (!this.hasAllowedExtension(this.fuelFile, PDF_EXTS)) {
+      this.errorMessage = 'Račun goriva mora biti PDF.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (this.usedHighway && !this.tollFile) {
+      this.errorMessage = 'Za autocestu priložite PDF računa cestarine.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (this.usedHighway && this.tollFile && !this.hasAllowedExtension(this.tollFile, PDF_EXTS)) {
+      this.errorMessage = 'Račun cestarine mora biti PDF.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('gameId', this.gameId);
+    formData.append('usedHighway', String(this.usedHighway));
+    formData.append('nalog', this.nalogFile);
+    formData.append('fuelReceipt', this.fuelFile);
+    if (this.usedHighway && this.tollFile) {
+      formData.append('tollReceipt', this.tollFile);
+    }
+
+    this.isLoading = true;
+    this.travelExpenseService.submitTravelOrder(formData).subscribe({
+      next: (created: TravelExpense) => {
+        this.isLoading = false;
+        this.success.emit({ reportId: travelExpenseId(created) });
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error?.error?.error || 'Predaja putnog naloga nije uspjela.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  gameLabel(game: EligibleTravelGame): string {
+    const date = game.date ? new Date(game.date).toLocaleDateString('hr-HR') : '';
+    return `${date} ${game.time} — ${game.homeTeam} vs ${game.awayTeam} (${game.assignmentRole})`;
+  }
+
+  private loadEligibleGames(): void {
+    this.isLoadingGames = true;
+    this.travelExpenseService.getEligibleGames().subscribe({
+      next: (games) => {
+        this.eligibleGames = games;
+        this.isLoadingGames = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.eligibleGames = [];
+        this.isLoadingGames = false;
+        this.errorMessage = 'Nije moguće učitati utakmice za nalog.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private resetForm(): void {
+    this.gameId = '';
+    this.usedHighway = false;
+    this.nalogFile = null;
+    this.fuelFile = null;
+    this.tollFile = null;
+    this.errorMessage = '';
+    this.isLoading = false;
+  }
+
+  private pickAllowedFile(event: Event, allowed: string[], invalidMessage: string): File | null {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0] || null;
+    if (!file) return null;
+    if (!this.hasAllowedExtension(file, allowed)) {
+      this.errorMessage = invalidMessage;
+      if (input) input.value = '';
+      this.cdr.markForCheck();
+      return null;
+    }
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+    return file;
+  }
+
+  private hasAllowedExtension(file: File, allowed: string[]): boolean {
+    return allowed.includes(this.extensionOf(file));
+  }
+
+  private extensionOf(file: File): string {
+    const name = file.name || '';
+    const dot = name.lastIndexOf('.');
+    return dot >= 0 ? name.slice(dot).toLowerCase() : '';
   }
 }

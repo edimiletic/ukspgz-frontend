@@ -1,55 +1,100 @@
-// src/app/models/expense.model.ts
-export interface TravelExpense {
-  id: string;                 // MongoDB ObjectId (API / routing)
-  displayId?: number;         // Sequential number shown in UI
-  type: string;
-  season: string;
-  year: number;
-  month: string;
-  state: string;
-  userId?: string;    
-  userName?: string;     // Reference to User
-  userSurname?: string;   // Derived from User.surname
-  totalAmount?: number;   // Total amount of all expenses
-  createdAt?: string;     // ISO date string
-  updatedAt?: string;     // ISO date string
-  submittedAt?: string;   // ISO date string
-  reviewedAt?: string;    // ISO date string
-  reviewedBy?: string;    // User ID who reviewed
-  reviewComments?: string; // Comments from reviewer
-  expenses?: ExpenseItem[]; // Array of individual expense items
+export interface TravelExpenseFile {
+  originalName: string;
+  mimeType?: string;
+  size: number;
 }
 
-
-
-export interface ExpenseItem {
+export interface TravelExpenseGame {
   _id: string;
-  type: string;           // Vrsta troškova
-  date: string;          // Datum
-  description: string;   // Kratki Opis
-  unit: string;          // Mjerna Jedinica
-  quantity: number;      // Količina
-  unitPrice: number;     // Cijena Jedinice
-  competition: string; //natjecanje
-  amount: number;
-  gameId?: string;
-  homeTeam?: string;
-  awayTeam?: string;
+  homeTeam: string;
+  awayTeam: string;
+  date: string;
+  time: string;
+  venue: string;
+  competition: string;
+  assignmentRole?: string;
 }
 
-export interface NewTravelExpense {
-  userId: string;
-  type: string;
-  season: string;
-  year: number;
-  month: string;
+export interface TravelExpense {
+  id: string;
+  _id?: string;
+  displayId?: number;
+  userId?: string | { _id?: string; id?: string; name?: string; surname?: string };
+  userName?: string;
+  userSurname?: string;
+  gameId?: string | TravelExpenseGame;
+  assignmentRole?: string;
+  usedHighway: boolean;
+  nalogFile?: TravelExpenseFile | null;
+  fuelReceiptFile?: TravelExpenseFile | null;
+  tollReceiptFile?: TravelExpenseFile | null;
+  state: string;
+  createdAt?: string;
+  updatedAt?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: string | { name?: string; surname?: string };
+  reviewComments?: string;
 }
-// Interface for filtering travel expenses
+
+export interface EligibleTravelGame extends TravelExpenseGame {
+  assignmentRole: string;
+}
+
 export interface TravelExpenseFilters {
   id?: number;
-  type?: string;
+  assignmentRole?: string;
   userName?: string;
-  year?: number;
-  month?: string;
   state?: string;
+}
+
+export function travelExpenseId(expense: Pick<TravelExpense, 'id' | '_id'> | null | undefined): string {
+  if (!expense) return '';
+  return String(expense.id || expense._id || '');
+}
+
+export function travelExpenseGame(expense: TravelExpense | null | undefined): TravelExpenseGame | null {
+  const game = expense?.gameId;
+  if (!game || typeof game === 'string') {
+    return null;
+  }
+  return game;
+}
+
+export function travelExpensePersonName(expense: TravelExpense | null | undefined): string {
+  if (!expense) return '';
+  const fromFields = `${expense.userName || ''} ${expense.userSurname || ''}`.trim();
+  if (fromFields) return fromFields;
+  const user = expense.userId;
+  if (user && typeof user === 'object') {
+    return `${user.name || ''} ${user.surname || ''}`.trim();
+  }
+  return '';
+}
+
+export const CROATIAN_MONTHS = [
+  'Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj',
+  'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'
+];
+
+export function travelExpenseGameLabel(expense: TravelExpense | null | undefined): string {
+  const game = travelExpenseGame(expense);
+  if (!game) {
+    return expense?.assignmentRole || '';
+  }
+  const date = game.date ? new Date(game.date).toLocaleDateString('hr-HR') : '';
+  const time = game.time ? ` ${game.time}` : '';
+  return `${date}${time} — ${game.homeTeam} vs ${game.awayTeam}`;
+}
+
+export function travelExpenseGameYear(expense: TravelExpense | null | undefined): string {
+  const game = travelExpenseGame(expense);
+  if (!game?.date) return '';
+  return String(new Date(game.date).getFullYear());
+}
+
+export function travelExpenseGameMonth(expense: TravelExpense | null | undefined): string {
+  const game = travelExpenseGame(expense);
+  if (!game?.date) return '';
+  return CROATIAN_MONTHS[new Date(game.date).getMonth()] || '';
 }

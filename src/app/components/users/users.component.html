@@ -1,0 +1,117 @@
+<div class="main-layout">
+  <section class="content">
+    <div class="page-header">
+      <h1>Korisnici</h1>
+      <div class="page-actions">
+        <button class="btn-create" type="button" (click)="openCreate()">
+          <i class="fas fa-plus"></i>
+          Novi korisnik
+        </button>
+      </div>
+    </div>
+
+    <div class="alert">
+      <strong>Admin:</strong>
+      Ovdje uvodiš osobe u sezonu — uloge, natjecanja, rang i najvišu ligu.
+      Brisanje nije dopušteno ako osoba ima nominacije ili ako bi ostalo natjecanje bez pokrivenog povjerenika.
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="user-search">Pretraga</label>
+          <input
+            id="user-search"
+            type="text"
+            [(ngModel)]="search"
+            (input)="onFilterChange()"
+            placeholder="Ime, prezime, korisničko ime, e-pošta..."
+          />
+        </div>
+        <div class="filter-group">
+          <label for="user-role-filter">Uloga</label>
+          <select id="user-role-filter" [(ngModel)]="roleFilter" (change)="onFilterChange()">
+            <option value="">Sve uloge</option>
+            <option *ngFor="let role of roleOptions" [value]="role">{{ role }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <p class="toast success" *ngIf="successMessage">{{ successMessage }}</p>
+    <p class="toast error" *ngIf="errorMessage && !isLoading">{{ errorMessage }}</p>
+
+    <div class="loading" *ngIf="isLoading">Učitavanje korisnika...</div>
+
+    <div class="empty" *ngIf="!isLoading && !filteredUsers.length">
+      Nema korisnika za odabrane filtere.
+    </div>
+
+    <div class="table-container" *ngIf="!isLoading && filteredUsers.length">
+      <p class="table-info">Prikazano {{ pagedUsers.length }} od {{ filteredUsers.length }} korisnika.</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Ime i prezime</th>
+            <th>Korisničko ime</th>
+            <th>Uloge</th>
+            <th>Liga</th>
+            <th class="text-center">Radnje</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of pagedUsers">
+            <td>{{ user.name }} {{ user.surname }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ roleLabel(user) }}</td>
+            <td class="league-cell">
+              <ng-container *ngIf="leagueParts(user) as parts">
+                <div *ngIf="parts.teren"><span class="league-hat">Teren</span> {{ parts.teren }}</div>
+                <div *ngIf="parts.nadzor"><span class="league-hat">Nadzor</span> {{ parts.nadzor }}</div>
+                <span *ngIf="!parts.teren && !parts.nadzor">—</span>
+              </ng-container>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-icon btn-edit" type="button" (click)="openEdit(user)" title="Uredi">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button
+                  class="btn-icon btn-delete"
+                  type="button"
+                  (click)="askDelete(user)"
+                  [disabled]="!canDelete(user)"
+                  title="Obriši">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pager" *ngIf="totalPages > 1">
+        <button type="button" (click)="goToPage(page - 1)" [disabled]="page === 1">Prethodna</button>
+        <span>Stranica {{ page }} / {{ totalPages }}</span>
+        <button type="button" (click)="goToPage(page + 1)" [disabled]="page === totalPages">Sljedeća</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<app-user-form-modal
+  [isOpen]="isFormOpen"
+  [isBusy]="isFormBusy"
+  [user]="editingUser"
+  [serverError]="formError"
+  (close)="closeForm()"
+  (save)="saveUser($event)">
+</app-user-form-modal>
+
+<app-confirmation-modal
+  [isOpen]="isDeleteOpen"
+  [isBusy]="isDeleteBusy"
+  [confirmationData]="confirmationData"
+  (close)="closeDelete()"
+  (confirm)="confirmDelete()">
+</app-confirmation-modal>

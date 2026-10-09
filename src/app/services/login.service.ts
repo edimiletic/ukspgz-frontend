@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
-import { canManageCalendar, canNominateAssistants, canNominateOfficials, canSeeAllGames, canViewEligibleOfficials, canViewStatistics, GAME_ASSIGNMENT_ROLES, getRoleNames, isAdminUser, normalizeRoleAssignments, pickPrimaryRole, userHasRole } from '../model/roles';
+import { canManageCalendar, canNominateOfficials, canSeeAllGames, canViewEligibleOfficials, canViewStatistics, GAME_ASSIGNMENT_ROLES, getRoleNames, isAdminUser, normalizeRoleAssignments, pickPrimaryRole, userHasRole } from '../model/roles';
 import { User } from '../model/user.model';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
@@ -156,10 +156,6 @@ export class AuthService {
 
   canNominateOfficials(competition?: string): boolean {
     return canNominateOfficials(this.currentUserValue, competition);
-  }
-
-  canNominateAssistants(competition?: string): boolean {
-    return canNominateAssistants(this.currentUserValue, competition);
   }
 
   canSeeAllGames(): boolean {

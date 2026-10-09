@@ -78,8 +78,7 @@ export class NotificationsComponent implements OnInit {
         this.isAdmin = isAdminUser(user);
         this.seesAssignmentResponses =
           this.isAdmin ||
-          userHasRole(user, 'Povjerenik za službene osobe') ||
-          userHasRole(user, 'Povjerenik za pomoćne suce');
+          userHasRole(user, 'Povjerenik za službene osobe');
       },
       error: (error) => {
         console.error('Error getting current user:', error);
@@ -140,10 +139,10 @@ export class NotificationsComponent implements OnInit {
     switch (type) {
       case 'GAME_ASSIGNMENT':
         return 'Nominacija';
+      case 'GAME_CREATED':
+        return 'Nova utakmica';
       case 'ASSIGNMENT_RESPONSE':
         return 'Odgovor na nominaciju';
-      case 'KONTROLA_RECEIVED':
-        return 'Kontrola dostupna';
       case 'ASSIGNMENT_RELEASED':
         return 'Nominacija povučena';
       case 'GAME_SCHEDULE_CHANGED':
@@ -167,10 +166,10 @@ export class NotificationsComponent implements OnInit {
     switch (type) {
       case 'GAME_ASSIGNMENT':
         return 'fas fa-basketball-ball';
+      case 'GAME_CREATED':
+        return 'fas fa-calendar-plus';
       case 'ASSIGNMENT_RESPONSE':
         return 'fas fa-reply';
-      case 'KONTROLA_RECEIVED':
-        return 'fas fa-clipboard-check';
       case 'ASSIGNMENT_RELEASED':
         return 'fas fa-undo';
       case 'GAME_SCHEDULE_CHANGED':
@@ -350,10 +349,6 @@ export class NotificationsComponent implements OnInit {
   clearMessages(): void {
     this.successMessage = '';
     this.errorMessage = '';
-  }
-
-  goBack() {
-    this.router.navigate(['/home']);
   }
 
   trackByNotificationId(_index: number, notification: Notification): string {

@@ -1,8 +1,22 @@
 // src/app/components/expense-report-details/modal-expense-report-details/modal-expense-report-details.component.ts
 
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
-import { ExpenseItem } from '../../../model/travel-expense.model';
 import { CommonModule } from '@angular/common';
+
+interface ExpenseItem {
+  _id?: string;
+  type: string;
+  date: string;
+  description: string;
+  unit: string;
+  amount: number;
+  quantity: number;
+  unitPrice: number;
+  competition: string;
+  gameId?: string;
+  homeTeam?: string;
+  awayTeam?: string;
+}
 import { FormsModule } from '@angular/forms';
 import { BasketballGame } from '../../../model/basketballGame.model';
 import { BasketballGameService } from '../../../services/basketballGame.service';

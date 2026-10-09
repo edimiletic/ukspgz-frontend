@@ -1,4 +1,4 @@
-import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
+import { AbsenceStats, CompetitionStats, ExpenseStats, RefereeStats } from '../../model/statistics.model';
 import { ALL_COMPETITIONS, userHasRole } from '../../model/roles';
 
 export type StatisticsPeriod = 'month' | 'year' | 'season' | 'custom';
@@ -15,7 +15,6 @@ export interface DateRangeFilters {
 export interface AvailableReferees {
   sudci: any[];
   delegati: any[];
-  pomocniSudci: any[];
   kontrolori: any[];
 }
 
@@ -43,24 +42,7 @@ export const STATISTICS_MONTHS = [
 ];
 
 export function emptyAvailableReferees(): AvailableReferees {
-  return { sudci: [], delegati: [], pomocniSudci: [], kontrolori: [] };
-}
-
-export function emptyGradeStats(): GradeStats {
-  return {
-    totalEvaluations: 0,
-    averageGrade: 0,
-    gradeDistribution: {},
-    byReferee: {},
-    byCategory: {
-      ocjena: 0,
-      pogreske: 0,
-      prekrsaji: 0,
-      tehnikaMehanika: 0,
-      timskiRad: 0,
-      kontrolaUtakmice: 0
-    }
-  };
+  return { sudci: [], delegati: [], kontrolori: [] };
 }
 
 export function emptyAbsenceStats(): AbsenceStats {
@@ -115,15 +97,12 @@ export function refereesForRole(available: AvailableReferees, role: string): any
       return available.sudci || [];
     case 'Delegat':
       return available.delegati || [];
-    case 'Pomoćni Sudac':
-      return available.pomocniSudci || [];
     case 'Kontrolor':
       return available.kontrolori || [];
     case 'Admin':
       return [
         ...(available.sudci || []),
-        ...(available.delegati || []),
-        ...(available.pomocniSudci || [])
+        ...(available.delegati || [])
       ];
     default:
       return [];
@@ -261,130 +240,40 @@ export function calculateExpenseStats(
   });
 
   const roleFiltered = filtered.filter(expense => {
+    if (expense.assignmentRole && expense.assignmentRole !== selectedRole) {
+      return false;
+    }
     const userId = expense.userId?._id || expense.userId;
-    return refereeMap.has(userId);
+    return refereeMap.has(String(userId));
   });
 
   const stats = emptyExpenseStats();
   stats.totalExpenses = roleFiltered.length;
 
   roleFiltered.forEach(expense => {
-    const expenseAmount = expense.expenses?.reduce((sum: number, item: any) => {
-      return sum + (parseFloat(item.amount) || 0);
-    }, 0) || 0;
-    stats.totalAmount += expenseAmount;
-
     const userId = expense.userId?._id || expense.userId;
-    const refereeName = refereeMap.get(userId) || expense.user?.name || 'Unknown';
+    const refereeName = refereeMap.get(String(userId))
+      || `${expense.userName || ''} ${expense.userSurname || ''}`.trim()
+      || 'Nepoznato';
     if (!stats.byReferee[refereeName]) {
       stats.byReferee[refereeName] = { count: 0, amount: 0 };
     }
     stats.byReferee[refereeName].count++;
-    stats.byReferee[refereeName].amount += expenseAmount;
 
-    const monthKey = new Date(expense.createdAt || expense.dateFrom).toISOString().substring(0, 7);
+    const monthKey = new Date(expense.createdAt || expense.submittedAt).toISOString().substring(0, 7);
     if (!stats.byMonth[monthKey]) {
       stats.byMonth[monthKey] = { count: 0, amount: 0 };
     }
     stats.byMonth[monthKey].count++;
-    stats.byMonth[monthKey].amount += expenseAmount;
 
     const status = expense.state || 'Unknown';
     stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
-    const type = expense.type || 'Unknown';
+    const type = expense.assignmentRole || 'Unknown';
     stats.byType[type] = (stats.byType[type] || 0) + 1;
   });
 
-  stats.avgAmountPerExpense = stats.totalExpenses > 0 ? stats.totalAmount / stats.totalExpenses : 0;
-  return stats;
-}
-
-export function processKontrolaData(kontrolaData: any[], selectedRole: string): GradeStats {
-  const gradeValues: { [key: string]: number } = {
-    Izvrsno: 5,
-    'Iznad Prosjeka': 4,
-    Prosječno: 3,
-    'Ispod Prosjeka': 2,
-    Loše: 1
-  };
-
-  const stats = emptyGradeStats();
-  Object.keys(gradeValues).forEach(grade => {
-    stats.gradeDistribution[grade] = 0;
-  });
-
-  const tempRefereeData: any = {};
-  const categories = ['ocjena', 'pogreske', 'prekrsaji', 'tehnikaMehanika', 'timskiRad', 'kontrolaUtakmice'];
-
-  kontrolaData.forEach(kontrola => {
-    if (!kontrola.refereeGrades) {
-      return;
-    }
-    kontrola.refereeGrades.forEach((grade: any) => {
-      if (selectedRole !== 'Admin' && grade.refereeRole !== selectedRole) {
-        return;
-      }
-      const refereeKey = grade.refereeName;
-      if (!tempRefereeData[refereeKey]) {
-        tempRefereeData[refereeKey] = {
-          refereeId: grade.refereeId,
-          refereeName: grade.refereeName,
-          refereeRole: grade.refereeRole,
-          evaluationCount: 0,
-          gradeSums: {
-            ocjena: 0, pogreske: 0, prekrsaji: 0,
-            tehnikaMehanika: 0, timskiRad: 0, kontrolaUtakmice: 0
-          },
-          totalSum: 0,
-          totalCount: 0
-        };
-      }
-      const tempRef = tempRefereeData[refereeKey];
-      tempRef.evaluationCount++;
-      stats.totalEvaluations++;
-      categories.forEach(category => {
-        const gradeText: string = grade[category];
-        if (gradeText && typeof gradeText === 'string' && gradeValues[gradeText] != null) {
-          const gradeValue = gradeValues[gradeText];
-          tempRef.gradeSums[category] += gradeValue;
-          tempRef.totalSum += gradeValue;
-          tempRef.totalCount++;
-          stats.byCategory[category] += gradeValue;
-          stats.gradeDistribution[gradeText] = (stats.gradeDistribution[gradeText] || 0) + 1;
-        }
-      });
-    });
-  });
-
-  Object.keys(tempRefereeData).forEach(refereeKey => {
-    const tempRef = tempRefereeData[refereeKey];
-    stats.byReferee[refereeKey] = {
-      refereeId: tempRef.refereeId,
-      refereeName: tempRef.refereeName,
-      refereeRole: tempRef.refereeRole,
-      totalEvaluations: tempRef.evaluationCount,
-      averageGrade: tempRef.totalCount > 0 ? tempRef.totalSum / tempRef.totalCount : 0,
-      categoryAverages: {
-        ocjena: tempRef.evaluationCount > 0 ? tempRef.gradeSums.ocjena / tempRef.evaluationCount : 0,
-        pogreske: tempRef.evaluationCount > 0 ? tempRef.gradeSums.pogreske / tempRef.evaluationCount : 0,
-        prekrsaji: tempRef.evaluationCount > 0 ? tempRef.gradeSums.prekrsaji / tempRef.evaluationCount : 0,
-        tehnikaMehanika: tempRef.evaluationCount > 0 ? tempRef.gradeSums.tehnikaMehanika / tempRef.evaluationCount : 0,
-        timskiRad: tempRef.evaluationCount > 0 ? tempRef.gradeSums.timskiRad / tempRef.evaluationCount : 0,
-        kontrolaUtakmice: tempRef.evaluationCount > 0 ? tempRef.gradeSums.kontrolaUtakmice / tempRef.evaluationCount : 0
-      },
-      trend: 'stable'
-    };
-  });
-
-  const totalGradeSum = Object.values(tempRefereeData).reduce((sum: number, ref: any) => sum + ref.totalSum, 0);
-  const totalGradeCount = Object.values(tempRefereeData).reduce((sum: number, ref: any) => sum + ref.totalCount, 0);
-  stats.averageGrade = totalGradeCount > 0 ? totalGradeSum / totalGradeCount : 0;
-  Object.keys(stats.byCategory).forEach(category => {
-    stats.byCategory[category] = stats.totalEvaluations > 0
-      ? stats.byCategory[category] / stats.totalEvaluations
-      : 0;
-  });
-
+  stats.totalAmount = 0;
+  stats.avgAmountPerExpense = 0;
   return stats;
 }
 
@@ -396,22 +285,6 @@ export function objectValues(obj: object): any[] {
   return Object.values(obj || {});
 }
 
-export function getGradeClass(average: number): string {
-  if (average >= 4.5) return 'excellent';
-  if (average >= 4.0) return 'above-average';
-  if (average >= 3.0) return 'average';
-  if (average >= 2.0) return 'below-average';
-  return 'poor';
-}
-
-export function getGradeText(average: number): string {
-  if (average >= 4.5) return 'Izvrsno';
-  if (average >= 4.0) return 'Iznad Prosjeka';
-  if (average >= 3.0) return 'Prosječno';
-  if (average >= 2.0) return 'Ispod Prosjeka';
-  return 'Loše';
-}
-
 export function getRankClass(position: number): string {
   if (position === 1) return 'gold';
   if (position === 2) return 'silver';
@@ -419,23 +292,10 @@ export function getRankClass(position: number): string {
   return '';
 }
 
-export function categoryLabel(category: string): string {
-  switch (category) {
-    case 'ocjena': return 'Ukupna Ocjena';
-    case 'pogreske': return 'Pogreške';
-    case 'prekrsaji': return 'Prekršaji';
-    case 'tehnikaMehanika': return 'Tehnika/Mehanika';
-    case 'timskiRad': return 'Timski Rad';
-    case 'kontrolaUtakmice': return 'Kontrola Utakmice';
-    default: return category;
-  }
-}
-
 export function rolePeopleLabel(role: string): string {
   switch (role) {
     case 'Sudac': return 'sudaca';
     case 'Delegat': return 'delegata';
-    case 'Pomoćni Sudac': return 'pomoćnih sudaca';
     case 'Admin': return 'admina';
     default: return 'korisnika';
   }

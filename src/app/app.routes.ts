@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthComponent } from './components/auth/auth.component';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
+import { AdminGuard } from './guards/admin.guard';
 import { AuthGuard } from './guards/auth.guard';
 import { EligibleOfficialsGuard } from './guards/eligible-officials.guard';
 import { StatisticsGuard } from './guards/statistics.guard';
@@ -82,6 +83,12 @@ export const routes: Routes = [
             (m) => m.EligibleOfficialsComponent
           ),
         canActivate: [EligibleOfficialsGuard]
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./components/users/users.component').then((m) => m.UsersComponent),
+        canActivate: [AdminGuard]
       },
       {
         path: 'notifications',

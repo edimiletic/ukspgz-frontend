@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
+import { AbsenceStats, CompetitionStats, ExpenseStats, RefereeStats } from '../../model/statistics.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { BasketballGameService } from '../../services/basketballGame.service';
@@ -8,7 +8,6 @@ import { AbsenceService } from '../../services/absence.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TravelExpenseService } from '../../services/travel-expense.service';
-import { KontrolaService } from '../../services/kontrola.service';
 import { canViewStatistics, getStatisticsRoles, GameAssignmentRole, userHasRole } from '../../model/roles';
 import { StatisticsFiltersComponent } from './statistics-filters.component';
 import { StatisticsResultsComponent } from './statistics-results.component';
@@ -23,9 +22,7 @@ import {
   emptyAbsenceStats,
   emptyAvailableReferees,
   emptyExpenseStats,
-  emptyGradeStats,
-  getDateRange,
-  processKontrolaData
+  getDateRange
 } from './statistics.helpers';
 
 @Component({
@@ -52,7 +49,6 @@ export class StatisticsComponent implements OnInit {
   selectedCompetition = '';
 
   availableReferees: AvailableReferees = emptyAvailableReferees();
-  gradeStats: GradeStats = emptyGradeStats();
   refereeStats: RefereeStats[] = [];
   competitionStats: CompetitionStats[] = [];
   absenceStats: AbsenceStats = emptyAbsenceStats();
@@ -69,7 +65,6 @@ export class StatisticsComponent implements OnInit {
     private basketballGameService: BasketballGameService,
     private absenceService: AbsenceService,
     private router: Router,
-    private kontrolaService: KontrolaService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -113,32 +108,12 @@ export class StatisticsComponent implements OnInit {
     this.isLoading = true;
     this.loadGameStatistics().then(() => Promise.all([
       this.loadAbsenceStatistics(),
-      this.loadExpenseStatistics(),
-      this.loadGradeStatistics()
+      this.loadExpenseStatistics()
     ])).finally(() => {
       this.isLoading = false;
       this.mostActiveReferee = this.refereeStats[0] || null;
       this.refreshView();
     });
-  }
-
-  async loadGradeStatistics() {
-    try {
-      const dateRange = getDateRange(this.dateFilters());
-      const filters: any = { role: this.selectedRole };
-      if (dateRange.start && dateRange.end) {
-        filters.startDate = dateRange.start;
-        filters.endDate = dateRange.end;
-      }
-      if (this.selectedCompetition) {
-        filters.competition = this.selectedCompetition;
-      }
-      const kontrolaData = await firstValueFrom(this.kontrolaService.getAllKontrolaForStatistics(filters));
-      this.gradeStats = processKontrolaData(kontrolaData || [], this.selectedRole);
-    } catch (error) {
-      console.error('Error loading grade statistics:', error);
-      this.gradeStats = emptyGradeStats();
-    }
   }
 
   async loadGameStatistics() {
@@ -147,7 +122,6 @@ export class StatisticsComponent implements OnInit {
       this.availableReferees = {
         sudci: referees.filter(ref => userHasRole(ref, 'Sudac')),
         delegati: referees.filter(ref => userHasRole(ref, 'Delegat')),
-        pomocniSudci: referees.filter(ref => userHasRole(ref, 'Pomoćni Sudac')),
         kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
       };
 

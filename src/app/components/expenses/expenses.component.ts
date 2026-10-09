@@ -1,9 +1,15 @@
-// src/app/components/expenses/expenses.component.ts
-// SIMPLIFIED VERSION - Single view for admin
-
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ExpensesModalComponent } from './expenses-modal/expenses-modal.component';
-import { NewTravelExpense, TravelExpense } from '../../model/travel-expense.model';
+import {
+  CROATIAN_MONTHS,
+  TravelExpense,
+  travelExpenseGame,
+  travelExpenseGameLabel,
+  travelExpenseGameMonth,
+  travelExpenseGameYear,
+  travelExpenseId,
+  travelExpensePersonName
+} from '../../model/travel-expense.model';
 import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AuthService } from '../../services/login.service';
 import { CommonModule } from '@angular/common';
@@ -35,17 +41,17 @@ export class ExpensesComponent implements OnInit {
   isConfirmBusy = false;
   confirmationData: ConfirmationData = {
     title: 'Potvrdi brisanje',
-    message: 'Jeste li sigurni da želite obrisati ovo izvješće?'
+    message: 'Jeste li sigurni da želite obrisati ovaj putni nalog?'
   };
 
-    private platformId = inject(PLATFORM_ID);
+  private platformId = inject(PLATFORM_ID);
 
-  
   allTravelExpenses: TravelExpense[] = [];
   travelExpenses: TravelExpense[] = [];
   pendingExpenses: TravelExpense[] = [];
   rejectedExpenses: TravelExpense[] = [];
   approvedExpenses: TravelExpense[] = [];
+  months = CROATIAN_MONTHS;
 
   readonly itemsPerPage = 10;
   sectionPages: Record<ExpenseSectionKey, number> = {
@@ -54,10 +60,9 @@ export class ExpensesComponent implements OnInit {
     approved: 1
   };
 
-  // Filter properties
   filterValues = {
     id: '',
-    type: '',
+    assignmentRole: '',
     userName: '',
     year: '',
     month: '',
@@ -73,21 +78,8 @@ export class ExpensesComponent implements OnInit {
   canReviewExpenses = false;
   currentUser: any = null;
 
-  get usesAssistantDefault(): boolean {
-    return !this.isAdmin
-      && userHasRole(this.currentUser, 'Povjerenik za pomoćne suce')
-      && !userHasRole(this.currentUser, 'Povjerenik natjecanja')
-      && !userHasRole(this.currentUser, 'Povjerenik za službene osobe');
-  }
-
-  get defaultTypeFilter(): string {
-    return this.usesAssistantDefault
-      ? 'Troškovno izvješće pomoćnog suca'
-      : 'Troškovno izvješće suca';
-  }
-
-  get defaultTypeHint(): string {
-    return this.usesAssistantDefault ? 'pomoćnih sudaca' : 'sudaca';
+  get defaultRoleFilter(): string {
+    return 'Sudac';
   }
 
   constructor(
@@ -106,20 +98,20 @@ export class ExpensesComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.loadCurrentUser();
     }
-        this.checkQueryParams();
+    this.checkQueryParams();
   }
 
   private loadCurrentUser() {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
-         if (!user) {
-                return; // Stop execution on server-side
-      }
+        if (!user) {
+          return;
+        }
         this.currentUser = user;
         this.isAdmin = isAdminUser(user);
         this.seesSupervisedExpenses = !this.isAdmin && canSeeAllGames(user);
         this.canReviewExpenses = this.isAdmin || userHasRole(user, 'Povjerenik natjecanja');
-        this.filterValues.type = this.showNamedOverview ? this.defaultTypeFilter : '';
+        this.filterValues.assignmentRole = this.showNamedOverview ? this.defaultRoleFilter : '';
         this.refreshView();
         this.loadTravelExpenses();
       },
@@ -148,7 +140,7 @@ export class ExpensesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading travel expenses:', error);
-        this.errorMessage = 'Greška pri učitavanju izvješća.';
+        this.errorMessage = 'Greška pri učitavanju putnih naloga.';
         this.refreshView();
       }
     });
@@ -157,7 +149,7 @@ export class ExpensesComponent implements OnInit {
   applyFilters(resetPages = true) {
     this.travelExpenses = this.filterExpenses(this.allTravelExpenses);
     this.pendingExpenses = this.sortByNewest(
-      this.travelExpenses.filter(e => e.state === 'Skica' || e.state === 'Predano')
+      this.travelExpenses.filter(e => e.state === 'Predano')
     );
     this.rejectedExpenses = this.sortByNewest(
       this.travelExpenses.filter(e => e.state === 'Odbijeno')
@@ -247,12 +239,12 @@ export class ExpensesComponent implements OnInit {
   }
 
   get hasActiveFilters(): boolean {
-    const typeActive = this.showNamedOverview
-      ? this.filterValues.type !== this.defaultTypeFilter
-      : !!this.filterValues.type;
+    const roleActive = this.showNamedOverview
+      ? this.filterValues.assignmentRole !== this.defaultRoleFilter
+      : !!this.filterValues.assignmentRole;
     return !!(
       this.filterValues.id ||
-      typeActive ||
+      roleActive ||
       this.filterValues.userName ||
       this.filterValues.year ||
       this.filterValues.month ||
@@ -273,25 +265,25 @@ export class ExpensesComponent implements OnInit {
       const displayId = expense.displayId != null ? String(expense.displayId) : '';
       const matchesId = !this.filterValues.id ||
         displayId.includes(this.filterValues.id.trim());
-      
-      const matchesType = this.isOwnExpense(expense) ||
-        !this.filterValues.type ||
-        expense.type.toLowerCase().includes(this.filterValues.type.toLowerCase());
-      
-      const matchesUserName = !this.filterValues.userName || 
-        `${expense.userName} ${expense.userSurname}`.toLowerCase()
+
+      const matchesRole = this.isOwnExpense(expense) ||
+        !this.filterValues.assignmentRole ||
+        expense.assignmentRole === this.filterValues.assignmentRole;
+
+      const matchesUserName = !this.filterValues.userName ||
+        travelExpensePersonName(expense).toLowerCase()
           .includes(this.filterValues.userName.toLowerCase());
-      
-      const matchesYear = !this.filterValues.year || 
-        expense.year.toString() === this.filterValues.year;
-      
-      const matchesMonth = !this.filterValues.month || 
-        expense.month === this.filterValues.month;
-      
-      const matchesState = !this.filterValues.state || 
+
+      const matchesYear = !this.filterValues.year ||
+        travelExpenseGameYear(expense) === this.filterValues.year;
+
+      const matchesMonth = !this.filterValues.month ||
+        travelExpenseGameMonth(expense) === this.filterValues.month;
+
+      const matchesState = !this.filterValues.state ||
         expense.state === this.filterValues.state;
 
-      return matchesId && matchesType && matchesUserName && 
+      return matchesId && matchesRole && matchesUserName &&
              matchesYear && matchesMonth && matchesState;
     });
   }
@@ -299,7 +291,7 @@ export class ExpensesComponent implements OnInit {
   clearFilters() {
     this.filterValues = {
       id: '',
-      type: this.showNamedOverview ? this.defaultTypeFilter : '',
+      assignmentRole: this.showNamedOverview ? this.defaultRoleFilter : '',
       userName: '',
       year: '',
       month: '',
@@ -312,7 +304,6 @@ export class ExpensesComponent implements OnInit {
     this.isMobileFiltersOpen = !this.isMobileFiltersOpen;
   }
 
-  // CRUD Operations
   openModal() {
     this.isModalOpen = true;
   }
@@ -321,19 +312,19 @@ export class ExpensesComponent implements OnInit {
     this.isModalOpen = false;
   }
 
-  onReportCreated(event: { reportData: NewTravelExpense; reportId: string }) {
+  onReportCreated(event: { reportId: string }) {
     this.closeModal();
-    this.successMessage = 'Izvješće je uspješno kreirano!';
+    this.successMessage = 'Putni nalog je predan.';
     this.refreshView();
     this.loadTravelExpenses();
     setTimeout(() => this.clearMessages(), 4000);
-    
-    // Navigate to details
-    this.router.navigate(['/expenses', event.reportId]);
+    if (event.reportId) {
+      this.router.navigate(['/expenses', event.reportId]);
+    }
   }
 
   editTravelExpense(expense: TravelExpense) {
-    this.router.navigate(['/expenses', expense.id]);
+    this.router.navigate(['/expenses', travelExpenseId(expense)]);
   }
 
   isOwnExpense(expense: TravelExpense): boolean {
@@ -343,10 +334,22 @@ export class ExpensesComponent implements OnInit {
   }
 
   canDeleteExpense(expense: TravelExpense): boolean {
-    if (expense.state !== 'Skica' && expense.state !== 'Odbijeno') {
-      return false;
+    if (this.isAdmin) {
+      return true;
     }
-    return this.isAdmin || this.isOwnExpense(expense);
+    return expense.state === 'Odbijeno' && this.isOwnExpense(expense);
+  }
+
+  personName(expense: TravelExpense): string {
+    return travelExpensePersonName(expense);
+  }
+
+  gameLabel(expense: TravelExpense): string {
+    return travelExpenseGameLabel(expense);
+  }
+
+  venue(expense: TravelExpense): string {
+    return travelExpenseGame(expense)?.venue || '';
   }
 
   private extractId(value: any): string {
@@ -372,9 +375,9 @@ export class ExpensesComponent implements OnInit {
     this.expenseToDelete = expense;
     this.confirmationData = {
       title: 'Potvrdi brisanje',
-      message: 'Jeste li sigurni da želite obrisati ovo izvješće?',
+      message: 'Jeste li sigurni da želite obrisati ovaj putni nalog?',
       details: [
-        `${expense.type} — ${expense.month} ${expense.year}`,
+        this.gameLabel(expense),
         'Ova akcija se ne može poništiti.'
       ],
       confirmText: 'Obriši',
@@ -392,12 +395,13 @@ export class ExpensesComponent implements OnInit {
 
   onDeleteConfirmed(payload: unknown) {
     const expense = payload as TravelExpense | undefined;
-    if (!expense?.id || this.isConfirmBusy) return;
+    const id = travelExpenseId(expense);
+    if (!id || this.isConfirmBusy) return;
 
     this.isConfirmBusy = true;
-    this.travelExpenseService.deleteTravelExpense(expense.id).subscribe({
+    this.travelExpenseService.deleteTravelExpense(id).subscribe({
       next: () => {
-        this.successMessage = 'Izvješće je uspješno obrisano!';
+        this.successMessage = 'Putni nalog je obrisan.';
         this.loadTravelExpenses();
         this.closeDeleteModal();
         this.refreshView();
@@ -415,44 +419,26 @@ export class ExpensesComponent implements OnInit {
   private getDeleteErrorMessage(error: any): string {
     const backendError = error.error?.error;
     if (backendError) {
-      if (backendError.includes('Cannot delete submitted')) {
-        return 'Ne možete obrisati podneseno izvješće.';
-      }
-      if (backendError.includes('Access denied')) {
-        return 'Nemate dozvolu za brisanje ovog izvješća.';
-      }
-      if (backendError.includes('not found')) {
-        return 'Izvješće nije pronađeno.';
-      }
       return backendError;
     }
-    if (error.status === 400) return 'Ne možete obrisati ovo izvješće.';
-    if (error.status === 403) return 'Nemate dozvolu za brisanje izvješća.';
-    if (error.status === 404) return 'Izvješće nije pronađeno.';
-    return 'Greška pri brisanju izvješća. Molimo pokušajte ponovo.';
-  }  
+    if (error.status === 400) return 'Ne možete obrisati ovaj nalog.';
+    if (error.status === 403) return 'Nemate dozvolu za brisanje naloga.';
+    if (error.status === 404) return 'Nalog nije pronađen.';
+    return 'Greška pri brisanju naloga. Molimo pokušajte ponovo.';
+  }
 
-  // Helper methods
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('hr-HR');
   }
 
-  formatAmount(amount: number | undefined): string {
-    if (amount === undefined || amount === null) return '0.00 €';
-    return `${amount.toFixed(2)} €`;
-  }
-
-
-  trackByExpenseId(index: number, expense: TravelExpense): string {
-    return expense.id;
+  trackByExpenseId(_index: number, expense: TravelExpense): string {
+    return travelExpenseId(expense);
   }
 
   getStatusClass(state: string): string {
     switch (state) {
-      case 'Skica':
-        return 'status-draft';
       case 'Predano':
         return 'status-submitted';
       case 'Potvrđeno':
@@ -467,11 +453,10 @@ export class ExpensesComponent implements OnInit {
   private checkQueryParams() {
     this.route.queryParams.subscribe(params => {
       if (params['message'] === 'deleted') {
-        this.successMessage = 'Izvješće je uspješno obrisano!';
+        this.successMessage = 'Putni nalog je obrisan.';
         this.refreshView();
         setTimeout(() => this.clearMessages(), 4000);
-        
-        // Clean URL
+
         this.router.navigate([], {
           queryParams: {},
           replaceUrl: true

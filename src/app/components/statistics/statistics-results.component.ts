@@ -1,11 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AbsenceStats, CompetitionStats, ExpenseStats, GradeStats, RefereeStats } from '../../model/statistics.model';
+import { AbsenceStats, CompetitionStats, ExpenseStats, RefereeStats } from '../../model/statistics.model';
 import {
-  categoryLabel,
-  getGradeClass,
-  getGradeText,
-  getRankClass,
   objectKeys,
   objectValues,
   rolePeopleLabel
@@ -28,23 +24,14 @@ export class StatisticsResultsComponent {
   @Input() expenseStats: ExpenseStats = {
     totalExpenses: 0, totalAmount: 0, avgAmountPerExpense: 0, byReferee: {}, byMonth: {}, byStatus: {}, byType: {}
   };
-  @Input() gradeStats: GradeStats = {
-    totalEvaluations: 0, averageGrade: 0, gradeDistribution: {}, byReferee: {},
-    byCategory: { ocjena: 0, pogreske: 0, prekrsaji: 0, tehnikaMehanika: 0, timskiRad: 0, kontrolaUtakmice: 0 }
-  };
 
   showAllReferees = false;
   showAllCompetitions = false;
   showAllAbsences = false;
   showAllExpenses = false;
-  showAllGrades = false;
 
   objectKeys = objectKeys;
   objectValues = objectValues;
-  getGradeClass = getGradeClass;
-  getGradeText = getGradeText;
-  getRankClass = getRankClass;
-  categoryLabel = categoryLabel;
   rolePeopleLabel = rolePeopleLabel;
 
   getSortedAbsenceReferees(): string[] {
@@ -54,20 +41,7 @@ export class StatisticsResultsComponent {
 
   getSortedExpenseReferees(): string[] {
     return Object.keys(this.expenseStats.byReferee)
-      .sort((a, b) => this.expenseStats.byReferee[b].amount - this.expenseStats.byReferee[a].amount);
-  }
-
-  getSortedGradeReferees(): string[] {
-    return Object.keys(this.gradeStats.byReferee)
-      .sort((a, b) => this.gradeStats.byReferee[b].averageGrade - this.gradeStats.byReferee[a].averageGrade);
-  }
-
-  getSortedRefereesByCategory(category: string): string[] {
-    return Object.keys(this.gradeStats.byReferee)
-      .sort((a, b) =>
-        (this.gradeStats.byReferee[b].categoryAverages[category] || 0) -
-        (this.gradeStats.byReferee[a].categoryAverages[category] || 0)
-      );
+      .sort((a, b) => this.expenseStats.byReferee[b].count - this.expenseStats.byReferee[a].count);
   }
 
   trackByRefereeStat(_index: number, stat: RefereeStats): string {

@@ -3,17 +3,12 @@ import {
   calculateCompetitionStats,
   calculateExpenseStats,
   calculateRefereeStats,
-  categoryLabel,
   currentSeasonLabel,
   emptyAbsenceStats,
   emptyExpenseStats,
-  emptyGradeStats,
   getDateRange,
-  getGradeClass,
-  getGradeText,
   getRankClass,
   objectKeys,
-  processKontrolaData,
   refereesForRole,
   rolePeopleLabel
 } from './statistics.helpers';
@@ -71,7 +66,6 @@ describe('statistics.helpers', () => {
     const available = {
       sudci: [referee('s1', 'Sudac')],
       delegati: [referee('d1', 'Delegat')],
-      pomocniSudci: [referee('p1', 'Pomoćni Sudac')],
       kontrolori: [referee('k1', 'Kontrolor')]
     };
 
@@ -80,8 +74,8 @@ describe('statistics.helpers', () => {
       expect(refereesForRole(available, 'Kontrolor')).toEqual(available.kontrolori);
     });
 
-    it('Admin spaja suce, delegate i pomoćne, bez kontrolora', () => {
-      expect(refereesForRole(available, 'Admin').map(r => r._id)).toEqual(['s1', 'd1', 'p1']);
+    it('Admin spaja suce i delegate, bez kontrolora', () => {
+      expect(refereesForRole(available, 'Admin').map(r => r._id)).toEqual(['s1', 'd1']);
     });
   });
 
@@ -154,7 +148,6 @@ describe('statistics.helpers', () => {
       const available = {
         sudci: [referee('s1', 'Sudac', { personalCode: '111', name: 'Marko', surname: 'M' })],
         delegati: [referee('d1', 'Delegat', { personalCode: '222' })],
-        pomocniSudci: [],
         kontrolori: []
       };
       const absences = [
@@ -172,11 +165,10 @@ describe('statistics.helpers', () => {
   });
 
   describe('calculateExpenseStats', () => {
-    it('zbraja iznose stavki za korisnike u ulozi', () => {
+    it('broji naloge po ulozi na utakmici, bez iznosa', () => {
       const available = {
         sudci: [referee('s1', 'Sudac', { name: 'Iva', surname: 'I' })],
         delegati: [],
-        pomocniSudci: [],
         kontrolori: []
       };
       const expenses = [
@@ -184,8 +176,7 @@ describe('statistics.helpers', () => {
           userId: 's1',
           createdAt: '2026-01-15T10:00:00.000Z',
           state: 'Predano',
-          type: 'Troškovno izvješće suca',
-          expenses: [{ amount: '10' }, { amount: '5.5' }]
+          assignmentRole: 'Sudac'
         }
       ];
       const stats = calculateExpenseStats(expenses, available, 'Sudac', {
@@ -193,58 +184,22 @@ describe('statistics.helpers', () => {
         end: '2026-01-31'
       });
       expect(stats.totalExpenses).toBe(1);
-      expect(stats.totalAmount).toBe(15.5);
-      expect(stats.byReferee['Iva I'].amount).toBe(15.5);
+      expect(stats.totalAmount).toBe(0);
+      expect(stats.byReferee['Iva I'].count).toBe(1);
       expect(stats.byStatus['Predano']).toBe(1);
-    });
-  });
-
-  describe('processKontrolaData', () => {
-    it('raćuna prosjek ocjena za odabranu ulogu', () => {
-      const stats = processKontrolaData([
-        {
-          refereeGrades: [
-            {
-              refereeName: 'Iva Ivić',
-              refereeId: 'u1',
-              refereeRole: 'Sudac',
-              ocjena: 'Izvrsno',
-              pogreske: 'Prosječno',
-              prekrsaji: 'Prosječno',
-              tehnikaMehanika: 'Prosječno',
-              timskiRad: 'Prosječno',
-              kontrolaUtakmice: 'Prosječno'
-            },
-            {
-              refereeName: 'Delegat X',
-              refereeId: 'd1',
-              refereeRole: 'Delegat',
-              ocjena: 'Loše'
-            }
-          ]
-        }
-      ], 'Sudac');
-
-      expect(stats.totalEvaluations).toBe(1);
-      expect(stats.gradeDistribution['Izvrsno']).toBe(1);
-      expect(stats.byReferee['Iva Ivić'].averageGrade).toBeCloseTo((5 + 3 + 3 + 3 + 3 + 3) / 6);
-      expect(stats.byReferee['Delegat X']).toBeUndefined();
+      expect(stats.byType['Sudac']).toBe(1);
     });
   });
 
   describe('prikaz', () => {
-    it('mapira ocjene, rang i labele', () => {
-      expect(getGradeClass(4.6)).toBe('excellent');
-      expect(getGradeText(3.2)).toBe('Prosječno');
+    it('mapira rang i labele', () => {
       expect(getRankClass(1)).toBe('gold');
       expect(getRankClass(4)).toBe('');
-      expect(categoryLabel('timskiRad')).toBe('Timski Rad');
       expect(rolePeopleLabel('Sudac')).toBe('sudaca');
       expect(objectKeys({ a: 1 })).toEqual(['a']);
     });
 
     it('empty statistike imaju nule', () => {
-      expect(emptyGradeStats().totalEvaluations).toBe(0);
       expect(emptyAbsenceStats().totalDays).toBe(0);
       expect(emptyExpenseStats().totalAmount).toBe(0);
     });

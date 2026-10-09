@@ -1,153 +1,120 @@
-<!-- src/app/components/expenses/expenses-modal/expenses-modal.component.html -->
 <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
   <div class="modal-container">
     <div class="modal-header">
-      <h3>Novo Izvješće</h3>
-      <button class="close-btn" (click)="onClose()"><i class="fa-solid fa-xmark"></i></button>
+      <h3>Novi putni nalog</h3>
+      <button class="close-btn" type="button" (click)="onClose()" [disabled]="isLoading">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
-    
+
     <div class="modal-body">
-      <!-- Error Message in Modal -->
-      <div *ngIf="errorMessage" class="alert alert-error">
-        {{ errorMessage }}
+      <p class="hint">
+        Preuzmite prazan nalog, popunite ga i prenesite ovdje. Obavezno priložite račun goriva, a ako ste putovali autocestom i račun cestarine.
+      </p>
+
+      <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+
+      <button type="button" class="btn-template" (click)="downloadTemplate()">
+        <i class="fas fa-download"></i>
+        Preuzmi prazan putni nalog (HKS)
+      </button>
+
+      <div class="form-group">
+        <label for="travel-game">Utakmica *</label>
+        <select id="travel-game" class="form-control" [(ngModel)]="gameId" [disabled]="isLoading || isLoadingGames">
+          <option value="">Odaberite utakmicu</option>
+          <option *ngFor="let game of eligibleGames" [value]="game._id">{{ gameLabel(game) }}</option>
+        </select>
+        <small *ngIf="!isLoadingGames && !eligibleGames.length">
+          Nema utakmica s prihvaćenom nominacijom bez već predanog naloga.
+        </small>
       </div>
 
-      <!-- Loading State for User Data -->
-      <div *ngIf="isLoadingUser" class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>Učitavanje korisničkih podataka...</p>
+      <label class="highway">
+        <input type="checkbox" [(ngModel)]="usedHighway" (ngModelChange)="onHighwayChange($event)" [disabled]="isLoading" />
+        Putovao/la sam autocestom
+      </label>
+
+      <div class="form-group">
+        <span class="field-label">Popunjeni putni nalog *</span>
+        <label class="file-picker" [class.has-file]="!!nalogFile" [class.disabled]="isLoading" for="nalog-file">
+          <input id="nalog-file" #nalogInput class="file-input" type="file" accept=".xls,.xlsx,.pdf,application/pdf" (change)="onNalogSelected($event)" [disabled]="isLoading" />
+          <span class="file-badge" [class.is-upload]="!nalogFile">
+            <i *ngIf="!nalogFile" class="fa-solid fa-cloud-arrow-up"></i>
+            <ng-container *ngIf="nalogFile">{{ fileBadge(nalogFile) }}</ng-container>
+          </span>
+          <span class="file-copy">
+            <strong>{{ nalogFile ? nalogFile.name : 'Odaberite datoteku' }}</strong>
+            <small>{{ nalogFile ? 'Excel ili PDF' : '.xls, .xlsx ili PDF' }}</small>
+          </span>
+          <span class="file-action">{{ nalogFile ? 'Promijeni' : 'Odaberi' }}</span>
+          <button
+            *ngIf="nalogFile"
+            type="button"
+            class="file-clear"
+            (click)="clearFile('nalog', nalogInput, $event)"
+            [disabled]="isLoading"
+            aria-label="Ukloni putni nalog">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </label>
       </div>
 
-      <!-- Form Content -->
-      <form *ngIf="!isLoadingUser">
-        <!-- User Selection (Admin Only) -->
-        <div class="form-group" *ngIf="isAdmin">
-          <label for="userId">Korisnik<span class="required">*</span></label>
-          <div class="select-wrapper">
-            <select 
-              id="userId" 
-              class="form-control" 
-              [(ngModel)]="reportData.userId"
-              name="userId"
-              (change)="onUserSelected()"
-              required
-              [disabled]="isLoading">
-              <option value="">Odaberite korisnika</option>
-              <option 
-                *ngFor="let user of filteredUsers" 
-                [value]="user._id">
-                {{ getUserDisplayName(user) }}
-              </option>
-            </select>
-            <i class="fas fa-chevron-down select-arrow"></i>
-          </div>
-          <!-- <small class="form-help-text">
-            Odaberite korisnika za kojeg kreirate izvješće
-          </small> -->
-        </div>
+      <div class="form-group">
+        <span class="field-label">Račun goriva *</span>
+        <label class="file-picker" [class.has-file]="!!fuelFile" [class.disabled]="isLoading" for="fuel-file">
+          <input id="fuel-file" #fuelInput class="file-input" type="file" accept="application/pdf,.pdf" (change)="onFuelSelected($event)" [disabled]="isLoading" />
+          <span class="file-badge" [class.is-upload]="!fuelFile">
+            <i *ngIf="!fuelFile" class="fa-solid fa-cloud-arrow-up"></i>
+            <ng-container *ngIf="fuelFile">{{ fileBadge(fuelFile) }}</ng-container>
+          </span>
+          <span class="file-copy">
+            <strong>{{ fuelFile ? fuelFile.name : 'Odaberite datoteku' }}</strong>
+            <small>PDF</small>
+          </span>
+          <span class="file-action">{{ fuelFile ? 'Promijeni' : 'Odaberi' }}</span>
+          <button
+            *ngIf="fuelFile"
+            type="button"
+            class="file-clear"
+            (click)="clearFile('fuel', fuelInput, $event)"
+            [disabled]="isLoading"
+            aria-label="Ukloni račun goriva">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </label>
+      </div>
 
-        <div class="form-group" *ngIf="reportTypes.length !== 1">
-          <label for="reportType">Tip izvješća<span class="required">*</span></label>
-          <div class="select-wrapper">
-            <select
-              id="reportType"
-              class="form-control"
-              [(ngModel)]="reportData.type"
-              name="reportType"
-              required
-              [disabled]="isLoading || (isAdmin && !reportData.userId)">
-              <option value="">Odaberite tip izvješća</option>
-              <option *ngFor="let type of reportTypes" [value]="type">
-                {{ type }}
-              </option>
-              <option value="" disabled *ngIf="reportTypes.length === 0">
-                Nema dostupnih tipova izvješća
-              </option>
-            </select>
-            <i class="fas fa-chevron-down select-arrow"></i>
-          </div>
-        </div>
-
-        <!-- Season -->
-        <div class="form-group">
-          <label for="season">Sezona<span class="required">*</span></label>
-          <div class="select-wrapper">
-            <select 
-              id="season" 
-              class="form-control" 
-              [(ngModel)]="reportData.season"
-              name="season"
-              required
-              [disabled]="isLoading">
-              <option 
-                *ngFor="let season of seasons" 
-                [value]="season">
-                {{ season }}
-              </option>
-            </select>
-            <i class="fas fa-chevron-down select-arrow"></i>
-          </div>
-        </div>
-
-        <!-- Year and Month Row -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="year">Godina<span class="required">*</span></label>
-            <div class="select-wrapper">
-              <select 
-                id="year" 
-                class="form-control" 
-                [(ngModel)]="reportData.year"
-                name="year"
-                required
-                [disabled]="isLoading">
-                <option 
-                  *ngFor="let year of years" 
-                  [value]="year">
-                  {{ year }}
-                </option>
-              </select>
-              <i class="fas fa-chevron-down select-arrow"></i>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="month">Mjesec<span class="required">*</span></label>
-            <div class="select-wrapper">
-              <select 
-                id="month" 
-                class="form-control" 
-                [(ngModel)]="reportData.month"
-                name="month"
-                required
-                [disabled]="isLoading">
-                <option value="">Odaberite mjesec</option>
-                <option 
-                  *ngFor="let month of months" 
-                  [value]="month">
-                  {{ month }}
-                </option>
-              </select>
-              <i class="fas fa-chevron-down select-arrow"></i>
-            </div>
-          </div>
-        </div>
-      </form>
+      <div class="form-group" *ngIf="usedHighway">
+        <span class="field-label">Račun cestarine *</span>
+        <label class="file-picker" [class.has-file]="!!tollFile" [class.disabled]="isLoading" for="toll-file">
+          <input id="toll-file" #tollInput class="file-input" type="file" accept="application/pdf,.pdf" (change)="onTollSelected($event)" [disabled]="isLoading" />
+          <span class="file-badge" [class.is-upload]="!tollFile">
+            <i *ngIf="!tollFile" class="fa-solid fa-cloud-arrow-up"></i>
+            <ng-container *ngIf="tollFile">{{ fileBadge(tollFile) }}</ng-container>
+          </span>
+          <span class="file-copy">
+            <strong>{{ tollFile ? tollFile.name : 'Odaberite datoteku' }}</strong>
+            <small>PDF</small>
+          </span>
+          <span class="file-action">{{ tollFile ? 'Promijeni' : 'Odaberi' }}</span>
+          <button
+            *ngIf="tollFile"
+            type="button"
+            class="file-clear"
+            (click)="clearFile('toll', tollInput, $event)"
+            [disabled]="isLoading"
+            aria-label="Ukloni račun cestarine">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </label>
+      </div>
     </div>
 
     <div class="modal-footer">
-      <button 
-        class="btn btn-secondary" 
-        (click)="onClose()"
-        [disabled]="isLoading">
-        Odustani
-      </button>
-      <button 
-        class="btn btn-primary" 
-        (click)="onSave()"
-        [disabled]="!isFormValid() || isLoading || isLoadingUser">
-        <span *ngIf="isLoading">Spremanje...</span>
-        <span *ngIf="!isLoading">Spremi</span>
+      <button type="button" class="cancel-btn" (click)="onClose()" [disabled]="isLoading">Odustani</button>
+      <button type="button" class="save-btn" (click)="submit()" [disabled]="isLoading">
+        {{ isLoading ? 'Predavanje...' : 'Predaj nalog' }}
       </button>
     </div>
   </div>

@@ -40,6 +40,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender
   },
   {
+    path: 'users',
+    renderMode: RenderMode.Prerender
+  },
+  {
     path: 'notifications',
     renderMode: RenderMode.Prerender
   },

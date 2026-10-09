@@ -75,6 +75,18 @@
           <span>Ispiti</span>
         </a>
       </li>
+      <li *ngIf="isAdmin()">
+        <a
+          (click)="navigateToPage('/users')"
+          [class.active]="isActiveRoute('/users')"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="navigateToPage('/users')"
+          (keydown.space)="navigateToPage('/users')">
+          <i class="fas fa-user-cog"></i>
+          <span>Korisnici</span>
+        </a>
+      </li>
       <li *ngIf="canViewEligibleOfficials()">
         <a
           (click)="navigateToPage('/eligible-officials')"

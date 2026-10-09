@@ -1,198 +1,35 @@
 <div class="main-layout">
-  
-  <!-- Content -->
   <section class="content">
     <div class="material-library">
       <div class="library-header">
         <h1 class="library-title">Dokumenti</h1>
         <p class="library-description">
-          Među dokumentacijom se nalaze službeni pravilnici, preporuke i upute za suce i službenike košarkaških utakmica u Hrvatskoj. Ova zbirka uključuje najnovije priručnike FIBA, službena pravila košarke, tumačenja i tehničke vodiče za podršku profesionalnom razvoju i osiguravanje dosljednih standarda za igranje igara na svim razinama natjecanja.
+          Službeni pravilnici, tumačenja i priručnici za suce i službene osobe.
+          Nova FIBA pravila za 2026. dostupna su u prijevodu HKS-a; ostali priručnici vode na FIBA knjižnicu.
         </p>
       </div>
 
       <div class="materials-grid">
-        <div class="material-item">
+        <a class="material-item"
+           *ngFor="let document of documents"
+           [href]="document.href"
+           target="_blank"
+           rel="noopener noreferrer">
           <div class="material-card">
-            <div class="material-cover official-rules">
-              <div class="cover-title">OFFICIAL BASKETBALL RULES 2024</div>
-              <div class="cover-version">v1.0a</div>
+            <div class="material-cover" [ngClass]="document.coverClass">
+              <div class="cover-title">{{ document.coverTitle }}</div>
+              <div class="cover-subtitle" *ngIf="document.coverSubtitle">{{ document.coverSubtitle }}</div>
+              <div class="cover-version">{{ document.coverVersion }}</div>
             </div>
             <div class="material-info">
               <div class="material-meta">
-                <span class="material-date">1/10/2024</span>
-                <span class="material-badge">FIBA</span>
+                <span class="material-date">{{ document.date }}</span>
+                <span class="material-badge">{{ document.source }}</span>
               </div>
-              <h3 class="material-title">
-                <a href="https://library.fibairef.basketball/cdn/OBR2024"
-                  >Official Basketball Rules 2024 - v1.0a</a
-                >
-              </h3>
+              <h3 class="material-title">{{ document.title }}</h3>
             </div>
           </div>
-        </div>
-
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover interpretations">
-              <div class="cover-title">
-                OFFICIAL BASKETBALL RULES INTERPRETATIONS 2024
-              </div>
-              <div class="cover-version">v1.0a</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">1/10/2024</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a href="https://library.fibairef.basketball/cdn/OBRI2024"
-                  >Official Basketball Rules Interpretations 2024 - v1.0a</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover equipment">
-              <div class="cover-title">
-                OFFICIAL BASKETBALL RULES 2024: BASKETBALL EQUIPMENT
-              </div>
-              <div class="cover-version">v1.0</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">1/10/2024</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a
-                  href="https://library.fibairef.basketball/cdn/OBR2024_Equipment"
-                >
-                  Official Basketball Rules 2024: Basketball Equipment - v1.0</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover changes">
-              <div class="cover-title">
-                OFFICIAL BASKETBALL RULES 2024 CHANGES
-              </div>
-              <div class="cover-version">v2.0a</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">1/10/2024</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a
-                  href="https://library.fibairef.basketball/cdn/OBR_Changes2024"
-                >
-                  Official Basketball Rules 2024 Changes - v2.0a</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover individual">
-              <div class="cover-title">FIBA REFEREES MANUAL</div>
-              <div class="cover-subtitle">
-                INDIVIDUAL OFFICIATING TECHNIQUES (IOT)
-              </div>
-              <div class="cover-version">VERSION 2.5</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">15/12/2024</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a
-                  href="https://library.fibairef.basketball/doc/MlVhTUhWZzlsaVFLaFNBWFFRSnZmUT09"
-                >
-                  INDIVIDUAL OFFICIATING TECHNIQUES 2024 v2.5 (IOT)</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover three-person">
-              <div class="cover-title">FIBA MANUAL FOR REFEREES</div>
-              <div class="cover-subtitle">BASIC<br />3 PERSON OFFICIATING</div>
-              <div class="cover-version">VERSION 2.5</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">15/12/2024</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a
-                  href="https://library.fibairef.basketball/doc/WUVSODVLcUVKckNaM3pBbFBQU0JVZz09"
-                >
-                  3 PERSON OFFICIATING - BASIC 2024 v2.5 (SPO)</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover terminology">
-              <div class="cover-title">
-                BASIC BASKETBALL OFFICIATING TERMINOLOGY
-              </div>
-              <div class="cover-version">VERSION 2.1</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">01/12/2022</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a
-                  href="https://library.fibairef.basketball/doc/Z05xejI2YmIrMzJVNnY2a09hYTNZdz09"
-                >
-                  BASIC BASKETBALL OFFICIATING TERMINOLOGY (v2.1)</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div class="material-item">
-          <div class="material-card">
-            <div class="material-cover table-officials">
-              <div class="cover-title">FIBA MANUAL FOR TABLE OFFICIALS</div>
-              <div class="cover-version">VERSION 6.0</div>
-            </div>
-            <div class="material-info">
-              <div class="material-meta">
-                <span class="material-date">01/11/2022</span>
-                <span class="material-badge">FIBA</span>
-              </div>
-              <h3 class="material-title">
-                <a
-                  href="https://library.fibairef.basketball/doc/anZ0UTNCaTlZNVdCZW1IYTZHOFNjUT09"
-                >
-                  FIBA TABLE OFFICIALS MANUAL (v6.0, OBR 2022)</a
-                >
-              </h3>
-            </div>
-          </div>
-        </div>
+        </a>
       </div>
     </div>
   </section>

@@ -1,0 +1,123 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-container" role="dialog" aria-modal="true" [attr.aria-labelledby]="'user-form-title'">
+    <div class="modal-header">
+      <h3 id="user-form-title">{{ isEdit ? 'Uredi korisnika' : 'Novi korisnik' }}</h3>
+      <button class="close-btn" type="button" (click)="close.emit()" [disabled]="isBusy" aria-label="Zatvori">
+        <span>&times;</span>
+      </button>
+    </div>
+
+    <form class="modal-body" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="user-username">Korisničko ime *</label>
+          <input id="user-username" type="text" formControlName="username" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label for="user-email">E-pošta *</label>
+          <input id="user-email" type="email" formControlName="email" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label for="user-name">Ime *</label>
+          <input id="user-name" type="text" formControlName="name" />
+        </div>
+        <div class="form-group">
+          <label for="user-surname">Prezime *</label>
+          <input id="user-surname" type="text" formControlName="surname" />
+        </div>
+        <div class="form-group">
+          <label for="user-personal">Osobni broj *</label>
+          <input id="user-personal" type="text" formControlName="personalCode" />
+        </div>
+        <div class="form-group">
+          <label for="user-birthdate">Datum rođenja *</label>
+          <input id="user-birthdate" type="date" formControlName="birthdate" />
+        </div>
+        <div class="form-group form-group-wide">
+          <label for="user-address">Adresa *</label>
+          <input id="user-address" type="text" formControlName="address" />
+        </div>
+        <div class="form-group form-group-wide">
+          <label for="user-password">{{ isEdit ? 'Nova lozinka (ostavi prazno da ostane ista)' : 'Lozinka *' }}</label>
+          <input id="user-password" type="password" formControlName="password" autocomplete="new-password" />
+        </div>
+      </div>
+
+      <fieldset class="roles-block">
+        <legend>Uloge *</legend>
+        <p class="hint">
+          Jedna osoba može imati više uloga (npr. Sudac i Povjerenik za službene osobe).
+          Terenske uloge Sudac, Delegat i Kontrolor međusobno se isključuju.
+          Sudac se ne može kombinirati ni s Povjerenikom natjecanja.
+          Povjereniku odaberi natjecanja; prazan odabir znači sva natjecanja.
+        </p>
+        <div class="role-chips">
+          <label
+            class="chip"
+            *ngFor="let role of allRoles"
+            [class.active]="isRoleSelected(role)"
+            [class.disabled]="isRoleBlocked(role)">
+            <input
+              type="checkbox"
+              [checked]="isRoleSelected(role)"
+              [disabled]="isRoleBlocked(role)"
+              (change)="toggleRole(role)"
+            />
+            {{ role }}
+          </label>
+        </div>
+
+        <div class="competition-block" *ngFor="let role of commissionerRoles">
+          <ng-container *ngIf="isRoleSelected(role)">
+            <h4>{{ role }} — natjecanja</h4>
+            <label class="all-comps">
+              <input
+                type="checkbox"
+                [checked]="coversAllCompetitions(role)"
+                (change)="onAllCompetitionsChange(role, $event)"
+              />
+              Sva natjecanja
+            </label>
+            <div class="comp-chips" *ngIf="!coversAllCompetitions(role)">
+              <label *ngFor="let competition of competitions">
+                <input
+                  type="checkbox"
+                  [checked]="hasCompetition(role, competition)"
+                  (change)="toggleCompetition(role, competition)"
+                />
+                {{ competition }}
+              </label>
+            </div>
+          </ng-container>
+        </div>
+      </fieldset>
+
+      <div class="form-grid" *ngIf="needsOfficialCap">
+        <div class="form-group">
+          <label for="user-rang">Rang</label>
+          <select id="user-rang" formControlName="rang">
+            <option value="">Nije uneseno</option>
+            <option *ngFor="let rank of ranks" [value]="rank">{{ rank }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="user-liga">Najviša liga</label>
+          <select id="user-liga" formControlName="najvisaLiga">
+            <option value="">Nije uneseno</option>
+            <option *ngFor="let competition of competitions" [value]="competition">{{ competition }}</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="form-error" *ngIf="formError">{{ formError }}</p>
+      <p class="form-error" *ngIf="serverError">{{ serverError }}</p>
+
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="close.emit()" [disabled]="isBusy">Odustani</button>
+        <button type="submit" class="save-btn" [disabled]="isBusy">
+          {{ isBusy ? 'Spremanje...' : (isEdit ? 'Spremi izmjene' : 'Kreiraj korisnika') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

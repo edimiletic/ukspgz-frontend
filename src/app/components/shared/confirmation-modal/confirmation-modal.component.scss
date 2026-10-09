@@ -42,9 +42,32 @@
 
   h3 {
     margin: 0;
-    color: #e74c3c;
     font-size: 1.25rem;
     font-weight: 600;
+  }
+}
+
+.tone-danger {
+  .modal-header h3,
+  .warning-lead,
+  .warning-detail:last-child {
+    color: #e74c3c;
+  }
+}
+
+.tone-success {
+  .modal-header h3,
+  .warning-lead,
+  .warning-detail:last-child {
+    color: #16a34a;
+  }
+}
+
+.tone-primary {
+  .modal-header h3,
+  .warning-lead,
+  .warning-detail:last-child {
+    color: #2563eb;
   }
 }
 
@@ -87,7 +110,6 @@
   line-height: 1.5;
 
   .warning-lead {
-    color: #e74c3c;
     font-weight: 600;
     margin: 0 0 0.75rem;
   }
@@ -102,7 +124,6 @@
     margin-top: 0.75rem;
     font-style: normal;
     font-weight: 600;
-    color: #e74c3c;
   }
 }
 

@@ -1,14 +1,14 @@
 export type NotificationType =
   | 'GAME_ASSIGNMENT'
   | 'ASSIGNMENT_RESPONSE'
-  | 'KONTROLA_RECEIVED'
   | 'ASSIGNMENT_RELEASED'
   | 'GAME_SCHEDULE_CHANGED'
   | 'ASSIGNMENT_REMOVED'
   | 'COLLEAGUE_REPLACED'
   | 'NOMINATION_EXPIRED'
   | 'EXPENSE_APPROVED'
-  | 'EXPENSE_REJECTED';
+  | 'EXPENSE_REJECTED'
+  | 'GAME_CREATED';
 
 export interface Notification {
   _id: string;
@@ -17,7 +17,6 @@ export interface Notification {
   message: string;
   gameId?: string;
   assignmentId?: string;
-  kontrolaId?: string; // Add this for kontrola notifications
   travelExpenseId?: string;
   isRead: boolean;
   createdAt: string;
@@ -30,7 +29,6 @@ export interface CreateNotificationRequest {
   message: string;
   gameId?: string;
   assignmentId?: string;
-  kontrolaId?: string; // Add this
   travelExpenseId?: string;
 }
 

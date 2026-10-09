@@ -1,7 +1,6 @@
 import {
   canAssignGameRole,
   canManageCalendar,
-  canNominateAssistants,
   canNominateOfficials,
   canSeeAllGames,
   canViewEligibleOfficials,
@@ -13,12 +12,17 @@ import {
   isAdminUser,
   isBlockingScheduleConflict,
   isEligibleForCompetition,
+  isKontrolorRequired,
   isWithinNominationCap,
+  teamEligibleForCompetition,
   normalizeRoleAssignments,
   pickPrimaryRole,
   timesOverlap,
   userHasRole,
-  userHasRoleForCompetition
+  userHasRoleForCompetition,
+  incompatibleRolesMessage,
+  isRoleCompatibleWithSelection,
+  cannotNominateSelf
 } from './roles';
 
 const user = (...roles: Array<{ name: string; competitions?: string[] }>) => ({
@@ -76,7 +80,6 @@ describe('roles', () => {
     const admin = user({ name: 'Admin' });
     const calendarPov = user({ name: 'Povjerenik natjecanja', competitions: ['PRVA MUŠKA LIGA'] });
     const officialsPov = user({ name: 'Povjerenik za službene osobe', competitions: ['PRVA MUŠKA LIGA'] });
-    const assistantPov = user({ name: 'Povjerenik za pomoćne suce', competitions: ['PRVA MUŠKA LIGA'] });
     const sudac = user({ name: 'Sudac' });
 
     it('prepoznaje Admina', () => {
@@ -91,8 +94,7 @@ describe('roles', () => {
       expect(canManageCalendar(admin, 'SuperSport Premijer liga')).toBeTrue();
 
       expect(canNominateOfficials(officialsPov, 'PRVA MUŠKA LIGA')).toBeTrue();
-      expect(canNominateAssistants(assistantPov, 'PRVA MUŠKA LIGA')).toBeTrue();
-      expect(canNominateAssistants(officialsPov, 'PRVA MUŠKA LIGA')).toBeFalse();
+      expect(canNominateOfficials(calendarPov, 'PRVA MUŠKA LIGA')).toBeFalse();
     });
 
     it('userHasRoleForCompetition: prazna lista natjecanja znači sva', () => {
@@ -107,23 +109,23 @@ describe('roles', () => {
       expect(canViewStatistics(sudac)).toBeFalse();
     });
 
-    it('statističke uloge: pomoćni povjerenik vidi samo pomoćne suce', () => {
-      expect(getStatisticsRoles(admin)).toEqual(['Sudac', 'Delegat', 'Pomoćni Sudac', 'Kontrolor']);
-      expect(getStatisticsRoles(assistantPov)).toEqual(['Pomoćni Sudac']);
+    it('statističke uloge: admin i povjerenici vide terenske uloge', () => {
+      expect(getStatisticsRoles(admin)).toEqual(['Sudac', 'Delegat', 'Kontrolor']);
+      expect(getStatisticsRoles(officialsPov)).toEqual(['Sudac', 'Delegat', 'Kontrolor']);
       expect(getStatisticsRoles(sudac)).toEqual([]);
     });
 
-    it('canAssignGameRole razdvaja službene i pomoćne', () => {
+    it('canAssignGameRole: samo povjerenik službenih osoba nominira suca/delegata/kontrolora', () => {
       expect(canAssignGameRole(officialsPov, 'Sudac', 'PRVA MUŠKA LIGA')).toBeTrue();
-      expect(canAssignGameRole(officialsPov, 'Pomoćni Sudac', 'PRVA MUŠKA LIGA')).toBeFalse();
-      expect(canAssignGameRole(assistantPov, 'Pomoćni Sudac', 'PRVA MUŠKA LIGA')).toBeTrue();
+      expect(canAssignGameRole(officialsPov, 'Kontrolor', 'PRVA MUŠKA LIGA')).toBeTrue();
       expect(canAssignGameRole(sudac, 'Sudac', 'PRVA MUŠKA LIGA')).toBeFalse();
     });
 
-    it('eligible officials vidi admin i dva povjerenika, ne pomoćni', () => {
+    it('eligible officials vidi admin, kalendar i povjerenika službenih osoba', () => {
       expect(canViewEligibleOfficials(admin)).toBeTrue();
       expect(canViewEligibleOfficials(calendarPov)).toBeTrue();
-      expect(canViewEligibleOfficials(assistantPov)).toBeFalse();
+      expect(canViewEligibleOfficials(officialsPov)).toBeTrue();
+      expect(canViewEligibleOfficials(sudac)).toBeFalse();
     });
 
     it('getManagedCompetitions: admin null, ograničeni povjerenik listu', () => {
@@ -134,8 +136,7 @@ describe('roles', () => {
   });
 
   describe('nominacija / raspored', () => {
-    it('pomoćni sudac nije vezan uz cap lige', () => {
-      expect(isWithinNominationCap({ najvisaLiga: 'PRVA MUŠKA LIGA' }, 'SuperSport Premijer liga', 'Pomoćni Sudac')).toBeTrue();
+    it('cap lige sprječava nominaciju iznad najviše lige', () => {
       expect(isWithinNominationCap({ najvisaLiga: 'PRVA MUŠKA LIGA' }, 'SuperSport Premijer liga', 'Sudac')).toBeFalse();
       expect(isWithinNominationCap({ najvisaLiga: 'SuperSport Premijer liga' }, 'PRVA MUŠKA LIGA', 'Sudac')).toBeTrue();
     });
@@ -148,6 +149,45 @@ describe('roles', () => {
     it('timesOverlap koristi prozor od 60 minuta', () => {
       expect(timesOverlap('18:00', '18:30')).toBeTrue();
       expect(timesOverlap('18:00', '19:00')).toBeFalse();
+    });
+
+    it('zabranjuje terenske kombinacije i Sudac+Povjerenik natjecanja', () => {
+      expect(incompatibleRolesMessage(['Sudac', 'Delegat'])).toContain('Sudac');
+      expect(incompatibleRolesMessage(['Sudac', 'Kontrolor'])).toContain('Kontrolor');
+      expect(incompatibleRolesMessage(['Delegat', 'Kontrolor'])).toContain('Delegat');
+      expect(incompatibleRolesMessage(['Sudac', 'Povjerenik natjecanja'])).toContain('Povjerenik natjecanja');
+      expect(incompatibleRolesMessage(['Sudac', 'Povjerenik za službene osobe'])).toBeNull();
+      expect(incompatibleRolesMessage(['Delegat', 'Povjerenik natjecanja'])).toBeNull();
+      expect(isRoleCompatibleWithSelection('Delegat', ['Sudac'])).toBeFalse();
+      expect(isRoleCompatibleWithSelection('Kontrolor', ['Sudac'])).toBeFalse();
+      expect(isRoleCompatibleWithSelection('Kontrolor', ['Delegat'])).toBeFalse();
+      expect(isRoleCompatibleWithSelection('Povjerenik za službene osobe', ['Sudac'])).toBeTrue();
+    });
+
+    it('povjerenik ne smije nominirati sami sebe, admin smije', () => {
+      const pov = { _id: 'u1', roles: [{ name: 'Povjerenik za službene osobe', competitions: [] }] };
+      const admin = { _id: 'u1', roles: [{ name: 'Admin', competitions: [] }] };
+      expect(cannotNominateSelf(pov, 'u1')).toBeTrue();
+      expect(cannotNominateSelf(pov, 'u2')).toBeFalse();
+      expect(cannotNominateSelf(admin, 'u1')).toBeFalse();
+    });
+
+    it('kontrolor je obavezan u SuperSportu i na Ćosiću kad igraju dva premijer kluba', () => {
+      const premijer = ['SuperSport Premijer liga', 'KUP «K. ĆOSIĆ»'];
+      const prva = ['PRVA MUŠKA LIGA', 'KUP «K. ĆOSIĆ»'];
+      expect(isKontrolorRequired('SuperSport Premijer liga', premijer, premijer)).toBeTrue();
+      expect(isKontrolorRequired('KUP «K. ĆOSIĆ»', premijer, premijer)).toBeTrue();
+      expect(isKontrolorRequired('KUP «K. ĆOSIĆ»', premijer, prva)).toBeFalse();
+      expect(isKontrolorRequired('PRVA MUŠKA LIGA', premijer, premijer)).toBeFalse();
+      expect(isKontrolorRequired('KUP «R. MEGLAJ-RIMAC»', ['PREMIJER ŽENSKA LIGA'], ['PREMIJER ŽENSKA LIGA'])).toBeFalse();
+    });
+
+    it('svi muški klubovi igraju Ćosić, ženski Meglaj', () => {
+      expect(teamEligibleForCompetition(['PRVA MUŠKA LIGA'], 'KUP «K. ĆOSIĆ»')).toBeTrue();
+      expect(teamEligibleForCompetition(['SuperSport Premijer liga'], 'KUP «K. ĆOSIĆ»')).toBeTrue();
+      expect(teamEligibleForCompetition(['PREMIJER ŽENSKA LIGA'], 'KUP «R. MEGLAJ-RIMAC»')).toBeTrue();
+      expect(teamEligibleForCompetition(['PREMIJER ŽENSKA LIGA'], 'KUP «K. ĆOSIĆ»')).toBeFalse();
+      expect(teamEligibleForCompetition(['PRVA MUŠKA LIGA'], 'KUP «R. MEGLAJ-RIMAC»')).toBeFalse();
     });
 
     it('isEligibleForCompetition: sudac unutar capa, kontrolor samo top lige', () => {

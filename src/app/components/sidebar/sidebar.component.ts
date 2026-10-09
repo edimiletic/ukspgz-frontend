@@ -58,7 +58,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Check if user is admin
   isAdmin(): boolean {
-    return this.authService.hasRole('Admin');
+    return this.authService.isAdmin();
   }
 
   canViewEligibleOfficials(): boolean {

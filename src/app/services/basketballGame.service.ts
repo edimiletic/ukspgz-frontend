@@ -77,7 +77,7 @@ private apiUrl = environment.apiUrl + '/basketball-games';
   }
 
   // Get available positions for a role (Admin only)
-  getAvailablePositions(gameId: string, role: 'Sudac' | 'Delegat' | 'Pomoćni Sudac'): Observable<{role: string, availablePositions: number[], currentAssignments: any}> {
+  getAvailablePositions(gameId: string, role: 'Sudac' | 'Delegat' | 'Kontrolor'): Observable<{role: string, availablePositions: number[], currentAssignments: any}> {
     return this.http.get<{role: string, availablePositions: number[], currentAssignments: any}>(`${this.apiUrl}/${gameId}/available-positions/${role}`);
   }
 

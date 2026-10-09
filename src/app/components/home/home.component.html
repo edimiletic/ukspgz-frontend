@@ -35,7 +35,7 @@
       <!-- Quick Stats Cards -->
       <div class="stats-grid">
         <!-- User Stats -->
-        <div *ngIf="!isAdmin" class="stat-card pending">
+        <div *ngIf="isFieldOfficial" class="stat-card pending">
           <div class="stat-icon">
             <i class="fas fa-clock"></i>
           </div>
@@ -54,7 +54,7 @@
           </div>
           <div class="stat-content">
             <h3>{{ dashboardStats.upcomingGames }}</h3>
-            <p>{{ isAdmin ? 'Nadolazeće utakmice' : 'Potvrđene utakmice' }}</p>
+            <p>{{ isAdmin || canSeeAllGames ? 'Nadolazeće utakmice' : 'Potvrđene utakmice' }}</p>
           </div>
           <button class="stat-action" (click)="navigateTo('/assigned')">
             <i class="fas fa-arrow-right"></i>
@@ -67,14 +67,14 @@
           </div>
           <div class="stat-content">
             <h3>{{ dashboardStats.pendingExpenses }}</h3>
-            <p>{{ isAdmin || canSeeAllGames ? 'Izvješća za pregled' : 'Skice izvješća' }}</p>
+            <p>{{ isAdmin || canSeeAllGames ? 'Nalozi za pregled' : 'Nalozi na čekanju' }}</p>
           </div>
           <button class="stat-action" (click)="navigateTo('/expenses')">
             <i class="fas fa-arrow-right"></i>
           </button>
         </div>
 
-        <div *ngIf="!isAdmin" class="stat-card exam">
+        <div *ngIf="isFieldOfficial" class="stat-card exam">
           <div class="stat-icon">
             <i class="fas fa-graduation-cap"></i>
           </div>
@@ -100,19 +100,6 @@
           </button>
         </div>
 
-        <div class="stat-card kontrola">
-          <div class="stat-icon">
-            <i class="fas fa-clipboard-check"></i>
-          </div>
-          <div class="stat-content">
-            <h3>{{ dashboardStats.kontrolaCount }}</h3>
-            <p>{{ isAdmin || canSeeAllGames ? 'Kontrole' : 'Vaše kontrole' }}</p>
-          </div>
-          <button class="stat-action" (click)="navigateTo('/assigned')">
-            <i class="fas fa-arrow-right"></i>
-          </button>
-        </div>
-
         <div *ngIf="isAdmin" class="stat-card users">
           <div class="stat-icon">
             <i class="fas fa-users"></i>
@@ -121,7 +108,7 @@
             <h3>{{ adminStats.totalUsers }}</h3>
             <p>Korisnici</p>
           </div>
-          <button class="stat-action" (click)="navigateTo('/eligible-officials')">
+          <button class="stat-action" (click)="navigateTo('/users')">
             <i class="fas fa-arrow-right"></i>
           </button>
         </div>
@@ -185,7 +172,7 @@
             <div class="activity-header">
               <h3>
                 <i class="fas fa-receipt"></i>
-                {{ isAdmin ? 'Najnovija izvješća' : 'Vaša izvješća' }}
+                {{ isAdmin ? 'Najnoviji nalozi' : 'Vaši nalozi' }}
               </h3>
               <button class="view-all-btn" (click)="navigateTo('/expenses')">
                 Vidi sve <i class="fas fa-arrow-right"></i>
@@ -194,9 +181,9 @@
             <div class="activity-list">
               <div *ngFor="let expense of recentExpenses; trackBy: trackByExpenseId" class="activity-item">
                 <div class="activity-info">
-                  <h4>{{ expense.type }} - {{ expense.month }} {{ expense.year }}</h4>
+                  <h4>{{ expenseTitle(expense) }}</h4>
                   <p class="activity-meta">
-                    <span>{{ formatAmount(expense.totalAmount) }}</span>
+                    <span>{{ expensePerson(expense) }}</span>
                     <span class="activity-status" [class]="getExpenseStatusClass(expense)">
                       {{ expense.state }}
                     </span>
@@ -204,7 +191,7 @@
                 </div>
               </div>
               <div *ngIf="recentExpenses.length === 0" class="no-data">
-                <p>{{ isAdmin ? 'Nema nedavnih izvješća' : 'Nemate nedavnih izvješća' }}</p>
+                <p>{{ isAdmin ? 'Nema nedavnih naloga' : 'Nemate nedavnih naloga' }}</p>
               </div>
             </div>
           </div>
@@ -236,7 +223,7 @@
           <div class="actions-grid">
 <button class="action-btn expenses-btn" (click)="openExpensesModal()">
   <i class="fas fa-plus"></i>
-  <span>Novo izvješće troškova</span>
+  <span>Novi putni nalog</span>
 </button>
 
             <button *ngIf="!isAdmin && !canSeeAllGames" class="action-btn absence-btn" (click)="openTimeAbsentModal()">
