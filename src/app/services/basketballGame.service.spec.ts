@@ -35,6 +35,29 @@ describe('BasketballGameService', () => {
     req.flush({ games: [], pagination: {} });
   });
 
+  it('getAllGamesComplete spaja sve stranice', () => {
+    const received: string[] = [];
+    service.getAllGamesComplete({ competition: '3X3' }).subscribe(games => {
+      received.push(...games.map(game => game._id));
+    });
+
+    const first = http.expectOne(r =>
+      r.url.includes('competition=3X3') && r.url.includes('page=1') && r.url.includes('limit=100')
+    );
+    first.flush({
+      games: [{ _id: 'g1' }],
+      pagination: { currentPage: 1, hasNext: true, totalPages: 2 }
+    });
+
+    const second = http.expectOne(r => r.url.includes('page=2') && r.url.includes('limit=100'));
+    second.flush({
+      games: [{ _id: 'g2' }],
+      pagination: { currentPage: 2, hasNext: false, totalPages: 2 }
+    });
+
+    expect(received).toEqual(['g1', 'g2']);
+  });
+
   it('kreira, ažurira i briše utakmicu', () => {
     const payload = {
       homeTeam: 'A',

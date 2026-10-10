@@ -24,6 +24,7 @@ import {
   emptyAvailableReferees,
   emptyExpenseStats,
   emptyGradeStats,
+  gameIsInDateRange,
   getDateRange,
   processKontrolaData
 } from './statistics.helpers';
@@ -144,18 +145,13 @@ export class StatisticsComponent implements OnInit {
         kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
       };
 
-      const filters: any = {};
+      const filters: { competition?: string } = {};
       if (this.selectedCompetition) {
         filters.competition = this.selectedCompetition;
       }
       const dateRange = getDateRange(this.dateFilters());
-      if (dateRange.start && dateRange.end) {
-        filters.startDate = dateRange.start;
-        filters.endDate = dateRange.end;
-      }
-
-      const gamesResponse = await firstValueFrom(this.basketballGameService.getAllGames(filters));
-      const games = gamesResponse?.games || [];
+      const gamesResponse = await firstValueFrom(this.basketballGameService.getAllGamesComplete(filters));
+      const games = (gamesResponse || []).filter(game => gameIsInDateRange(game, dateRange));
       this.refereeStats = calculateRefereeStats(games, referees, this.selectedRole);
       this.competitionStats = calculateCompetitionStats(games, this.selectedRole);
       this.totalGamesInPeriod = games.length;
@@ -171,7 +167,7 @@ export class StatisticsComponent implements OnInit {
 
   async loadAbsenceStatistics() {
     try {
-      const absences = await firstValueFrom(this.absenceService.getAllAbsences()) || [];
+      const absences = await firstValueFrom(this.absenceService.getAllAbsencesComplete()) || [];
       this.absenceStats = calculateAbsenceStats(
         absences,
         this.availableReferees,

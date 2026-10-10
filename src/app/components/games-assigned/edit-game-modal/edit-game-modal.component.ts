@@ -239,7 +239,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   loadAbsences() {
     this.isLoadingAbsences = true;
-    this.absenceService.getAllAbsences().subscribe({
+    this.absenceService.getAllAbsencesComplete().subscribe({
       next: (absences) => {
         this.allAbsences = absences || [];
         this.isLoadingAbsences = false;

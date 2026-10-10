@@ -2,8 +2,8 @@ import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from './../model/
 // src/app/services/absence.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 
@@ -51,6 +51,27 @@ export class AbsenceService {
     }
 
     return this.http.get<PaginatedAbsenceResponse>(`${this.apiUrl}/absence?${queryParams}`);
+  }
+
+  // Nomination checks and statistics must see every absence. The list endpoint
+  // defaults to 10 per page and is sorted newest-first, so a single page hides
+  // older absences that still cover the selected date.
+  getAllAbsencesComplete(): Observable<Absence[]> {
+    const limit = 100;
+    const loadPage = (page: number) => this.getAllAbsencesPaginated(page, limit);
+
+    return loadPage(1).pipe(
+      expand(response => {
+        const currentPage = Number(response?.currentPage) || 1;
+        const totalPages = Number(response?.totalPages) || 1;
+        if (currentPage >= totalPages || currentPage >= 200) {
+          return EMPTY;
+        }
+        return loadPage(currentPage + 1);
+      }),
+      map(response => response?.absences || []),
+      reduce((all, absences) => all.concat(absences), [] as Absence[])
+    );
   }
 
   // Update an existing absence

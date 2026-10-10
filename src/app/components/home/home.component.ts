@@ -297,9 +297,8 @@ private loadUserExams(): Promise<void> {
 
 private loadAdminGames(): Promise<void> {
   return new Promise((resolve, reject) => {
-    this.gameService.getAllGames().subscribe({
-      next: (response) => {
-        const games = response.games;
+    this.gameService.getAllGamesComplete().subscribe({
+      next: (games) => {
         const now = new Date();
         
         this.adminStats.totalGames = games.length;
@@ -341,7 +340,7 @@ private loadAdminExpenses(): Promise<void> {
 
 private loadAdminAbsences(): Promise<void> {
   return new Promise((resolve, reject) => {
-    this.absenceService.getAllAbsences().subscribe({
+    this.absenceService.getAllAbsencesComplete().subscribe({
       next: (absences) => {
         this.adminStats.totalAbsences = absences.length;
         const now = new Date();

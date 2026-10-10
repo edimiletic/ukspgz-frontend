@@ -303,9 +303,9 @@ onGameCreated(result: any) {
 
     if (this.canSeeAllGames()) {
       // If admin, load all games in the system
-            this.basketballGameService.getAllGames().subscribe({
-        next: (response) => {
-                    this.categorizeGames(response.games);
+            this.basketballGameService.getAllGamesComplete().subscribe({
+        next: (games) => {
+                    this.categorizeGames(games);
           this.isLoading = false;
         },
         error: (error) => {
