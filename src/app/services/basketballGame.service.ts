@@ -1,7 +1,8 @@
 // src/app/services/basketball-game.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame } from '../model/basketballGame.model';
 import { environment } from '../../environments/environment';
 @Injectable({
@@ -31,6 +32,30 @@ private apiUrl = environment.apiUrl + '/basketball-games';
     }
 
     return this.http.get<{games: BasketballGame[], pagination: any}>(`${this.apiUrl}${queryParams}`);
+  }
+
+  // The list endpoint defaults to 20 games per page. Callers that manage or
+  // count the schedule need every page, not just the earliest ones.
+  getAllGamesComplete(filters?: GameFilters): Observable<BasketballGame[]> {
+    const limit = 100;
+    const rest: GameFilters = { ...(filters || {}) };
+    delete rest.page;
+    delete rest.limit;
+
+    const loadPage = (page: number) => this.getAllGames({ ...rest, page, limit });
+
+    return loadPage(1).pipe(
+      expand(response => {
+        const pagination = response?.pagination;
+        const currentPage = Number(pagination?.currentPage) || 1;
+        if (!pagination?.hasNext || currentPage >= 200) {
+          return EMPTY;
+        }
+        return loadPage(currentPage + 1);
+      }),
+      map(response => response?.games || []),
+      reduce((all, games) => all.concat(games), [] as BasketballGame[])
+    );
   }
 
   // Get game by ID

@@ -132,7 +132,7 @@ isMobileFiltersOpen: boolean = false;
 
     if (this.isAdmin || this.seesSupervisedAbsences) {
       // Admin: Load all absences (backend now includes user names)
-      this.absenceService.getAllAbsences(1, 1000).subscribe({
+      this.absenceService.getAllAbsencesComplete().subscribe({
         next: (absences: AbsenceWithUser[]) => {
            // Debug log
           this.allAbsences = absences;

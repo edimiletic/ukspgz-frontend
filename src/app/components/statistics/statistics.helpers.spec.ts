@@ -8,6 +8,7 @@ import {
   emptyAbsenceStats,
   emptyExpenseStats,
   emptyGradeStats,
+  gameIsInDateRange,
   getDateRange,
   getGradeClass,
   getGradeText,
@@ -57,6 +58,20 @@ describe('statistics.helpers', () => {
     it('vraća custom raspon', () => {
       expect(getDateRange(filters({ selectedPeriod: 'custom' })))
         .toEqual({ start: '2026-01-10', end: '2026-01-20' });
+    });
+  });
+
+  describe('gameIsInDateRange', () => {
+    const range = { start: '2026-09-01', end: '2027-08-31' };
+
+    it('uključuje utakmice na prvi i zadnji dan raspona', () => {
+      expect(gameIsInDateRange({ date: '2026-09-01T00:00:00.000Z' }, range)).toBeTrue();
+      expect(gameIsInDateRange({ date: '2027-08-31T21:00:00.000Z' }, range)).toBeTrue();
+    });
+
+    it('izbacuje utakmice izvan sezone', () => {
+      expect(gameIsInDateRange({ date: '2026-08-31' }, range)).toBeFalse();
+      expect(gameIsInDateRange({ date: '2027-09-01T00:00:00.000Z' }, range)).toBeFalse();
     });
   });
 

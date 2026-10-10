@@ -85,6 +85,26 @@ export function currentSeasonLabel(date = new Date()): string {
   return `${startYear}/${startYear + 1}`;
 }
 
+export function gameIsInDateRange(
+  game: { date?: string | null },
+  range: { start?: string; end?: string }
+): boolean {
+  if (!range.start && !range.end) {
+    return true;
+  }
+  const day = String(game?.date || '').match(/^(\d{4}-\d{2}-\d{2})/)?.[1] || '';
+  if (!day) {
+    return false;
+  }
+  if (range.start && day < range.start) {
+    return false;
+  }
+  if (range.end && day > range.end) {
+    return false;
+  }
+  return true;
+}
+
 export function getDateRange(filters: DateRangeFilters): { start: string; end: string } {
   const currentYear = parseInt(filters.selectedYear, 10);
 
