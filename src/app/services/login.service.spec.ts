@@ -52,6 +52,25 @@ describe('AuthService', () => {
     expect(service.isAdmin()).toBeFalse();
   });
 
+  it('isAdmin ako je Admin u roles[], čak i kad je role Sudac', () => {
+    const token = jwt(3600);
+    service.login({ username: 'admin', password: 'x' }).subscribe();
+    http.expectOne(`${api}/login`).flush({
+      token,
+      user: {
+        _id: 'a1',
+        role: 'Sudac',
+        roles: [
+          { name: 'Sudac', competitions: [] },
+          { name: 'Admin', competitions: [] }
+        ]
+      }
+    });
+    expect(service.isAdmin()).toBeTrue();
+    expect(service.hasRole('Sudac')).toBeTrue();
+    expect(service.currentUserValue?.role).toBe('Admin');
+  });
+
   it('logout čisti token i ide na login', () => {
     localStorage.setItem('token', jwt(3600));
     service.logout();

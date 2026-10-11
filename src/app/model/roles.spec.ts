@@ -88,6 +88,18 @@ describe('roles', () => {
       expect(userHasRole(sudac, 'Sudac')).toBeTrue();
     });
 
+    it('prepoznaje Admina i kad je u roles[], a primary role je Sudac', () => {
+      const dual = {
+        role: 'Sudac',
+        roles: [
+          { name: 'Sudac', competitions: [] },
+          { name: 'Admin', competitions: [] }
+        ]
+      };
+      expect(isAdminUser(dual)).toBeTrue();
+      expect(pickPrimaryRole(normalizeRoleAssignments(dual))).toBe('Admin');
+    });
+
     it('kalendar i nominacije ovise o natjecanju', () => {
       expect(canManageCalendar(calendarPov, 'PRVA MUŠKA LIGA')).toBeTrue();
       expect(canManageCalendar(calendarPov, 'SuperSport Premijer liga')).toBeFalse();

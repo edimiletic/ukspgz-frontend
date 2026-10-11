@@ -46,7 +46,7 @@ export class AuthService {
       _id: id,
       id,
       roles: assignments,
-      role: user.role || pickPrimaryRole(assignments)
+      role: pickPrimaryRole(assignments)
     };
   }
 
