@@ -861,17 +861,34 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     const currentManaged = currentAssignments.filter(assignment => managedRoles.includes(assignment.role));
     const removedUserIds: string[] = [];
+    const removedForRollback: Array<{ userId: string; role: RefereeAssignmentData['role']; position?: number }> = [];
 
     for (const currentAssignment of currentManaged) {
       const key = assignmentKey(assignmentUserId(currentAssignment), currentAssignment.role);
       const desired = newAssignments.find(assignment => assignmentKey(assignment.userId, assignment.role) === key);
 
       if (!desired) {
-        removedUserIds.push(assignmentUserId(currentAssignment));
+        const userId = assignmentUserId(currentAssignment);
+        let alreadyGone = false;
         try {
           await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
         } catch (error) {
-          throw error;
+          // A previous attempt may already have removed this assignment. Continue so the replacement can still be saved.
+          if ((error as { status?: number })?.status !== 404) {
+            await this.rollbackAssignmentChanges(removedForRollback, []);
+            throw error;
+          }
+          alreadyGone = true;
+        }
+        if (userId) {
+          removedUserIds.push(userId);
+          if (!alreadyGone) {
+            removedForRollback.push({
+              userId,
+              role: currentAssignment.role,
+              position: currentAssignment.position
+            });
+          }
         }
         continue;
       }
@@ -888,22 +905,28 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     }
 
     const actuallyNewUsers: string[] = [];
+    const addedAssignmentIds: string[] = [];
     const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
-    
-    for (const newAssignment of newAssignments) {
-      const alreadyAssigned = currentManaged.some(assignment =>
-        assignmentKey(assignmentUserId(assignment), assignment.role) === assignmentKey(newAssignment.userId, newAssignment.role)
-      );
-      if (alreadyAssigned) {
-        continue;
-      }
 
-      try {
+    try {
+      for (const newAssignment of newAssignments) {
+        const alreadyAssigned = currentManaged.some(assignment =>
+          assignmentKey(assignmentUserId(assignment), assignment.role) === assignmentKey(newAssignment.userId, newAssignment.role)
+        );
+        if (alreadyAssigned) {
+          continue;
+        }
+
         const result: any = await firstValueFrom(this.basketballGameService.assignReferee(this.game._id, {
           userId: newAssignment.userId,
           role: newAssignment.role,
           position: newAssignment.position
         }));
+
+        const createdId = this.createdAssignmentId(result, newAssignment.userId, newAssignment.role);
+        if (createdId) {
+          addedAssignmentIds.push(createdId);
+        }
 
         if (result?.releasedNominations?.length) {
           releasedNominations.push(...result.releasedNominations);
@@ -912,10 +935,11 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         if (newlyAssignedUsers.includes(newAssignment.userId)) {
           actuallyNewUsers.push(newAssignment.userId);
         }
-      } catch (error) {
-        console.error('Error adding assignment:', error);
-        throw error;
       }
+    } catch (error) {
+      console.error('Error adding assignment:', error);
+      await this.rollbackAssignmentChanges(removedForRollback, addedAssignmentIds);
+      throw error;
     }
 
     if (removedUserIds.length && actuallyNewUsers.length) {
@@ -934,6 +958,44 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       newAssignments: actuallyNewUsers.length,
       releasedNominations
     };
+  }
+
+  private createdAssignmentId(result: any, userId: string, role: string): string | undefined {
+    const assignments = result?.refereeAssignments || [];
+    const match = assignments.find((assignment: { userId: any; role?: string; _id?: string }) => {
+      const id = typeof assignment.userId === 'object' ? assignment.userId?._id : assignment.userId;
+      return id === userId && assignment.role === role;
+    });
+    return match?._id;
+  }
+
+  private async rollbackAssignmentChanges(
+    removed: Array<{ userId: string; role: RefereeAssignmentData['role']; position?: number }>,
+    addedAssignmentIds: string[]
+  ): Promise<void> {
+    if (!this.game) {
+      return;
+    }
+
+    for (const assignmentId of addedAssignmentIds) {
+      try {
+        await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, assignmentId));
+      } catch (error) {
+        console.warn('Error rolling back added assignment:', error);
+      }
+    }
+
+    for (const assignment of removed) {
+      try {
+        await firstValueFrom(this.basketballGameService.assignReferee(this.game._id, {
+          userId: assignment.userId,
+          role: assignment.role,
+          position: assignment.position
+        }));
+      } catch (error) {
+        console.warn('Error restoring removed assignment:', error);
+      }
+    }
   }
 
   // Modal management
