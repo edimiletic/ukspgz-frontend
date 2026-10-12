@@ -1,6 +1,10 @@
 # UkspgzFrontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.14.
+Angular 19 portal for HKS officials: game calendar, nominations, absences, travel orders, exams, and user administration. UI copy is Croatian. Permission rules live in `src/app/model/roles.ts`.
+
+For roles, nomination caps, travel-order review, and the pitfalls that show up when those screens change, see [docs/roles-and-workflows.md](docs/roles-and-workflows.md).
+
+The dev server talks to `http://localhost:3000/api` (`src/environments/environment.ts`). Production builds replace that file with `src/environments/environment.prod.ts`.
 
 ## Development server
 
@@ -43,6 +47,15 @@ To execute unit tests with the [Karma](https://karma-runner.github.io) test runn
 ```bash
 ng test
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs the headless suite and a production build:
+
+```bash
+npm run test:ci
+npm run build
+```
+
+`test:ci` uses the `ChromeHeadlessCI` launcher in `karma.conf.js` (`--no-sandbox`, `--disable-gpu`).
 
 ## Running end-to-end tests
 
