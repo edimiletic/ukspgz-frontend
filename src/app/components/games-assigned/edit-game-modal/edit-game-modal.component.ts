@@ -20,7 +20,7 @@ import {
   refereeAssignmentError,
   unavailableOfficialsCount
 } from './edit-game-modal.helpers';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameDetailsStepComponent } from './game-details-step.component';
 import { GameNominationsStepComponent } from './game-nominations-step.component';
@@ -30,6 +30,7 @@ import { GameNominationsStepComponent } from './game-nominations-step.component'
   imports: [CommonModule, FormsModule, GameDetailsStepComponent, GameNominationsStepComponent],
   templateUrl: './edit-game-modal.component.html',
   styleUrl: './edit-game-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
 export class EditGameModalComponent implements OnInit, OnChanges {
@@ -123,8 +124,13 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     private userService: UserService,
     private absenceService: AbsenceService,
     private authService: AuthService,
-    private catalogService: CatalogService
+    private catalogService: CatalogService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  private refreshView(): void {
+    this.cdr.markForCheck();
+  }
 
   canManageCalendar(): boolean {
     if (this.isCreateMode) {
@@ -176,12 +182,12 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   loadCatalog() {
     this.catalogService.getTeams().subscribe({
-      next: (teams) => { this.teams = teams || []; },
-      error: () => { this.teams = []; }
+      next: (teams) => { this.teams = teams || []; this.refreshView(); },
+      error: () => { this.teams = []; this.refreshView(); }
     });
     this.catalogService.getVenues().subscribe({
-      next: (venues) => { this.venues = venues || []; },
-      error: () => { this.venues = []; }
+      next: (venues) => { this.venues = venues || []; this.refreshView(); },
+      error: () => { this.venues = []; this.refreshView(); }
     });
   }
 
@@ -263,11 +269,13 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         if (this.isOpen && this.gameForm.date && this.gameForm.time) {
           this.refreshAvailability();
         }
+        this.refreshView();
       },
       error: (error) => {
         console.error('Error loading absences in edit modal:', error);
         this.allAbsences = [];
         this.isLoadingAbsences = false;
+        this.refreshView();
       }
     });
   }
@@ -342,11 +350,13 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         if (this.currentStep === 2) {
           this.initializeAvailabilityArrays();
         }
+        this.refreshView();
       },
       error: (error) => {
         console.error('Error loading referees:', error);
         this.errorMessage = 'Greška pri učitavanju sudaca.';
         this.isLoadingReferees = false;
+        this.refreshView();
       }
     });
   }
@@ -409,6 +419,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.currentStep = 2;
       this.errorMessage = '';
       await this.initializeAvailabilityArrays();
+      this.refreshView();
     }
   }
 
@@ -592,6 +603,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.errorMessage = error?.error?.error || 'Greška pri kreiranju utakmice. Molimo pokušajte ponovo.';
     } finally {
       this.isLoading = false;
+      this.refreshView();
     }
   }
 
@@ -650,6 +662,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.errorMessage = 'Greška pri ažuriranju utakmice. Molimo pokušajte ponovo.';
     } finally {
       this.isLoading = false;
+      this.refreshView();
     }
   }
 
@@ -841,6 +854,7 @@ this.currentStep = 1;
    }
    await this.loadScheduleForDate();
    this.updateAvailableReferees();
+   this.refreshView();
  }
 
  private updateAvailableReferees() {
