@@ -21,30 +21,40 @@
   overflow-y: auto;
 }
 
-.modal-header {
+.modal-overlay .modal-content .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
+  padding: 1.25rem 1.5rem;
+  border-bottom: none;
+  background: #c0392b;
+  color: #fff;
 
   h3 {
     margin: 0;
-    color: #e74c3c;
+    color: #fff;
     font-size: 1.25rem;
     font-weight: 600;
   }
 }
 
-.btn-close {
-  background: none;
+.modal-overlay .modal-content .btn-close {
+  background: rgba(255, 255, 255, 0.15);
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   cursor: pointer;
-  color: #666;
+  color: #fff;
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.28);
+    color: #fff;
+  }
 
   &:disabled {
     opacity: 0.5;

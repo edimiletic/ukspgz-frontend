@@ -33,50 +33,58 @@
   }
 }
 
-.modal-header {
+.modal-overlay .modal-content .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #eee;
+  padding: 1.25rem 1.5rem;
+  border-bottom: none;
+  background: #c0392b;
+  color: #fff;
 
   h3 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
+    color: #fff;
   }
 }
 
+.modal-overlay .modal-content.tone-success .modal-header {
+  background: #15803d;
+}
+
+.modal-overlay .modal-content.tone-primary .modal-header {
+  background: #1d4ed8;
+}
+
 .tone-danger {
-  .modal-header h3,
   .warning-lead,
   .warning-detail:last-child {
-    color: #e74c3c;
+    color: #b91c1c;
   }
 }
 
 .tone-success {
-  .modal-header h3,
   .warning-lead,
   .warning-detail:last-child {
-    color: #16a34a;
+    color: #166534;
   }
 }
 
 .tone-primary {
-  .modal-header h3,
   .warning-lead,
   .warning-detail:last-child {
-    color: #2563eb;
+    color: #1e40af;
   }
 }
 
-.btn-close {
-  background: none;
+.modal-overlay .modal-content .btn-close {
+  background: rgba(255, 255, 255, 0.15);
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   cursor: pointer;
-  color: #666;
+  color: #fff;
   padding: 0;
   width: 30px;
   height: 30px;
@@ -87,8 +95,8 @@
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background-color: #f8f9fa;
-    color: #2c3e50;
+    background-color: rgba(255, 255, 255, 0.28);
+    color: #fff;
   }
 
   &:disabled {
