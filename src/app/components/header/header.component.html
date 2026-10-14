@@ -62,9 +62,14 @@
       <div class="user-dropdown" [class.open]="isUserMenuOpen">
         <div class="user-icon" (click)="toggleUserMenu($event)"><i class="fas fa-user"></i></div>
         <div class="dropdown-menu" *ngIf="isUserMenuOpen" (click)="$event.stopPropagation()">
+          <div class="dropdown-item" (click)="openChangePassword()">Promijeni lozinku</div>
           <div class="dropdown-item" (click)="logout()">Odjava</div>
         </div>
       </div>
     </div>
   </div>
 </header>
+<app-change-password-modal
+  [isOpen]="isChangePasswordOpen"
+  (close)="closeChangePassword()">
+</app-change-password-modal>

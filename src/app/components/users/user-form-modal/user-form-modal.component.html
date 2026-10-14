@@ -40,11 +40,10 @@
           <label for="user-address">Adresa *</label>
           <input id="user-address" type="text" formControlName="address" />
         </div>
-        <div class="form-group form-group-wide">
-          <label for="user-password">{{ isEdit ? 'Nova lozinka (ostavi prazno da ostane ista)' : 'Lozinka *' }}</label>
-          <input id="user-password" type="password" formControlName="password" autocomplete="new-password" />
-        </div>
       </div>
+      <p class="hint" *ngIf="!isEdit">
+        Lozinku korisnik postavlja sam. Nakon spremanja dobit ćeš jednokratni link (vrijedi 24 sata).
+      </p>
 
       <fieldset class="roles-block">
         <legend>Uloge *</legend>
@@ -117,6 +116,14 @@
 
       <div class="form-actions">
         <button type="button" class="cancel-btn" (click)="close.emit()" [disabled]="isBusy">Odustani</button>
+        <button
+          *ngIf="isEdit"
+          type="button"
+          class="cancel-btn"
+          (click)="requestResetLink.emit()"
+          [disabled]="isBusy">
+          Novi link za lozinku
+        </button>
         <button type="submit" class="save-btn" [disabled]="isBusy">
           {{ isBusy ? 'Spremanje...' : (isEdit ? 'Spremi izmjene' : 'Kreiraj korisnika') }}
         </button>

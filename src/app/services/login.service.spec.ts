@@ -71,6 +71,13 @@ describe('AuthService', () => {
     expect(service.currentUserValue?.role).toBe('Admin');
   });
 
+  it('changePassword šalje trenutnu i novu lozinku', () => {
+    service.changePassword('stara', 'nova1234').subscribe();
+    const req = http.expectOne(`${api}/change-password`);
+    expect(req.request.body).toEqual({ currentPassword: 'stara', newPassword: 'nova1234' });
+    req.flush({ message: 'ok' });
+  });
+
   it('logout čisti token i ide na login', () => {
     localStorage.setItem('token', jwt(3600));
     service.logout();

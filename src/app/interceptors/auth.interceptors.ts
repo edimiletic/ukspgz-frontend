@@ -10,9 +10,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const platformId = inject(PLATFORM_ID);
   const isBrowser = isPlatformBrowser(platformId);
-  const isLoginRequest = req.url.includes('/login');
+  const isPublicAuthRequest =
+    req.url.includes('/login') || req.url.includes('/reset-password');
 
-  if (isBrowser && !isLoginRequest) {
+  if (isBrowser && !isPublicAuthRequest) {
     const token = authService.getToken() ?? localStorage.getItem('token');
     if (token) {
       req = req.clone({
@@ -26,7 +27,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       const sentAuth = req.headers.has('Authorization');
-      if (isBrowser && error.status === 401 && !isLoginRequest && sentAuth) {
+      if (isBrowser && error.status === 401 && !isPublicAuthRequest && sentAuth) {
         authService.clearSession();
         router.navigate(['/login']);
       }

@@ -50,4 +50,13 @@ describe('UserService', () => {
     expect(del.request.method).toBe('DELETE');
     del.flush({ message: 'ok' });
   });
+
+  it('traži link za reset lozinke', () => {
+    service.createPasswordResetLink('u1').subscribe((res) => {
+      expect(res.inviteUrl).toContain('set-password');
+    });
+    const req = http.expectOne(`${base}/u1/password-reset-link`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ inviteUrl: 'http://localhost:4200/set-password?token=abc', inviteExpiresAt: 'x' });
+  });
 });

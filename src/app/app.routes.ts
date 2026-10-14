@@ -9,6 +9,11 @@ import { StatisticsGuard } from './guards/statistics.guard';
 export const routes: Routes = [
   { path: 'login', component: AuthComponent },
   {
+    path: 'set-password',
+    loadComponent: () =>
+      import('./components/set-password/set-password.component').then((m) => m.SetPasswordComponent)
+  },
+  {
     path: '',
     component: AppShellComponent,
     canActivate: [AuthGuard],

@@ -13,7 +13,8 @@
     <div class="alert">
       <strong>Admin:</strong>
       Ovdje uvodiš osobe u sezonu — uloge, natjecanja, rang i najvišu ligu.
-      Brisanje nije dopušteno ako osoba ima nominacije ili ako bi ostalo natjecanje bez pokrivenog povjerenika.
+      Lozinku korisnik postavlja sam preko jednokratnog linka. Brisanje nije dopušteno
+      ako osoba ima nominacije ili ako bi ostalo natjecanje bez pokrivenog povjerenika.
     </div>
 
     <div class="filter-section">
@@ -77,6 +78,13 @@
                   <i class="fas fa-pen"></i>
                 </button>
                 <button
+                  class="btn-icon btn-reset"
+                  type="button"
+                  (click)="issueResetLink(user)"
+                  title="Novi link za lozinku">
+                  <i class="fas fa-key"></i>
+                </button>
+                <button
                   class="btn-icon btn-delete"
                   type="button"
                   (click)="askDelete(user)"
@@ -106,8 +114,26 @@
   [users]="users"
   [serverError]="formError"
   (close)="closeForm()"
-  (save)="saveUser($event)">
+  (save)="saveUser($event)"
+  (requestResetLink)="editingUser && issueResetLink(editingUser)">
 </app-user-form-modal>
+
+<div class="modal-overlay" *ngIf="inviteUrl" (click)="closeInvite()">
+  <div class="invite-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <h3>Link za lozinku</h3>
+    <p>
+      Pošalji ovaj link korisniku (npr. WhatsApp). Vrijedi 24 sata i vidi se samo jednom.
+      Stari link prestaje vrijediti čim napraviš novi.
+    </p>
+    <input type="text" [value]="inviteUrl" readonly />
+    <div class="invite-actions">
+      <button type="button" class="btn-create" (click)="copyInvite()">
+        {{ inviteCopied ? 'Kopirano' : 'Kopiraj link' }}
+      </button>
+      <button type="button" class="cancel-invite" (click)="closeInvite()">Zatvori</button>
+    </div>
+  </div>
+</div>
 
 <app-confirmation-modal
   [isOpen]="isDeleteOpen"

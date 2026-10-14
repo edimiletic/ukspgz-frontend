@@ -38,6 +38,14 @@ describe('authInterceptor', () => {
     req.flush([]);
   });
 
+  it('ne dira reset-password zahtjev', () => {
+    auth.getToken.and.returnValue('abc.def.ghi');
+    http.post('/api/reset-password', { token: 't', password: 'Lozinka12' }).subscribe();
+    const req = httpMock.expectOne('/api/reset-password');
+    expect(req.request.headers.has('Authorization')).toBeFalse();
+    req.flush({ message: 'ok' });
+  });
+
   it('ne dira login zahtjev', () => {
     auth.getToken.and.returnValue('abc.def.ghi');
     http.post('/api/login', { username: 'a', password: 'b' }).subscribe();

@@ -45,9 +45,15 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/${userId}`);
   }
 
-  // Create new user (Admin only)
-  createUser(userData: Partial<User>): Observable<User> {
-    return this.http.post<User>(this.apiUrl, userData);
+  createUser(userData: Partial<User>): Observable<User & { inviteUrl?: string; inviteExpiresAt?: string }> {
+    return this.http.post<User & { inviteUrl?: string; inviteExpiresAt?: string }>(this.apiUrl, userData);
+  }
+
+  createPasswordResetLink(userId: string): Observable<{ inviteUrl: string; inviteExpiresAt: string }> {
+    return this.http.post<{ inviteUrl: string; inviteExpiresAt: string }>(
+      `${this.apiUrl}/${userId}/password-reset-link`,
+      {}
+    );
   }
 
   // Update user (Admin only)

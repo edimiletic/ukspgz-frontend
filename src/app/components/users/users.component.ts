@@ -51,6 +51,8 @@ export class UsersComponent implements OnInit {
   isDeleteOpen = false;
   isDeleteBusy = false;
   userToDelete: User | null = null;
+  inviteUrl = '';
+  inviteCopied = false;
   confirmationData: ConfirmationData = {
     title: 'Obriši korisnika',
     message: 'Jeste li sigurni?',
@@ -137,11 +139,15 @@ export class UsersComponent implements OnInit {
 
     const isUpdate = !!this.editingUser;
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
+      next: (created) => {
         this.isFormBusy = false;
         this.isFormOpen = false;
         this.editingUser = null;
-        this.showSuccess(isUpdate ? 'Korisnik je ažuriran.' : 'Korisnik je kreiran.');
+        const inviteUrl = (created as User & { inviteUrl?: string }).inviteUrl;
+        if (!isUpdate && inviteUrl) {
+          this.openInvite(inviteUrl);
+        }
+        this.showSuccess(isUpdate ? 'Korisnik je ažuriran.' : 'Korisnik je kreiran. Kopiraj link za lozinku.');
         this.loadUsers();
         this.cdr.markForCheck();
       },
@@ -151,6 +157,59 @@ export class UsersComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  issueResetLink(user: User): void {
+    this.userService
+      .createPasswordResetLink(user._id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (invite) => {
+          this.openInvite(invite.inviteUrl);
+          this.showSuccess('Novi link za lozinku je spreman. Kopiraj ga i pošalji korisniku.');
+          this.cdr.markForCheck();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.formError = apiErrorMessage(error, 'Link se nije mogao napraviti.');
+          this.showError(this.formError);
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  closeInvite(): void {
+    this.inviteUrl = '';
+    this.inviteCopied = false;
+  }
+
+  copyInvite(): void {
+    if (!this.inviteUrl) {
+      return;
+    }
+    const done = () => {
+      this.inviteCopied = true;
+      this.cdr.markForCheck();
+    };
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(this.inviteUrl).then(done).catch(() => this.fallbackCopyInvite(done));
+      return;
+    }
+    this.fallbackCopyInvite(done);
+  }
+
+  private openInvite(url: string): void {
+    this.inviteUrl = url;
+    this.inviteCopied = false;
+  }
+
+  private fallbackCopyInvite(done: () => void): void {
+    const area = document.createElement('textarea');
+    area.value = this.inviteUrl;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
+    done();
   }
 
   askDelete(user: User): void {

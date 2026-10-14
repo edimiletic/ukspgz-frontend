@@ -35,7 +35,6 @@ export interface UserFormSave {
   name: string;
   surname: string;
   email: string;
-  password?: string;
   birthdate: string;
   personalCode: string;
   address: string;
@@ -59,6 +58,7 @@ export class UserFormModalComponent implements OnChanges {
   @Input() serverError = '';
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<UserFormSave>();
+  @Output() requestResetLink = new EventEmitter<void>();
 
   readonly allRoles = USER_ROLES;
   readonly competitions = ALL_COMPETITIONS;
@@ -77,7 +77,6 @@ export class UserFormModalComponent implements OnChanges {
     name: ['', Validators.required],
     surname: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    password: [''],
     birthdate: ['', Validators.required],
     personalCode: ['', Validators.required],
     address: ['', Validators.required],
@@ -215,14 +214,6 @@ export class UserFormModalComponent implements OnChanges {
     }
 
     const raw = this.form.getRawValue();
-    if (!this.isEdit && !raw.password.trim()) {
-      this.formError = 'Lozinka je obavezna za novog korisnika.';
-      return;
-    }
-    if (raw.password.trim() && raw.password.trim().length < 8) {
-      this.formError = 'Lozinka mora imati najmanje 8 znakova.';
-      return;
-    }
 
     const missingCommissionerLeagues = COMMISSIONER_ROLES.filter(
       (role) => this.selectedRoles.has(role) && !(this.competitionsByRole[role] || []).length
@@ -262,9 +253,6 @@ export class UserFormModalComponent implements OnChanges {
       rang: this.needsRank ? raw.rang : '',
       najvisaLiga: this.needsOfficialCap ? raw.najvisaLiga : ''
     };
-    if (raw.password.trim()) {
-      payload.password = raw.password.trim();
-    }
     this.save.emit(payload);
   }
 
@@ -284,8 +272,7 @@ export class UserFormModalComponent implements OnChanges {
       surname: 'prezime',
       personalCode: 'osobni broj',
       birthdate: 'datum rođenja',
-      address: 'adresa',
-      password: 'lozinka'
+      address: 'adresa'
     };
     const missing = Object.keys(labels).filter((key) => this.form.get(key)?.hasError('required'));
     if (missing.length) {
@@ -304,7 +291,6 @@ export class UserFormModalComponent implements OnChanges {
         name: '',
         surname: '',
         email: '',
-        password: '',
         birthdate: '',
         personalCode: '',
         address: '',
@@ -330,7 +316,6 @@ export class UserFormModalComponent implements OnChanges {
       name: this.user.name,
       surname: this.user.surname,
       email: this.user.email,
-      password: '',
       birthdate: toDateInputValue(this.user.birthdate),
       personalCode: this.user.personalCode,
       address: this.user.address,

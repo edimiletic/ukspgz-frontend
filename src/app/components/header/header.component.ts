@@ -7,10 +7,11 @@ import { SidebarNavService } from '../../services/sidebar-nav.service';
 import { Notification, notificationTargetRoute } from '../../model/notification.model';
 import { Router } from '@angular/router';
 import { Subscription, interval, forkJoin } from 'rxjs';
+import { ChangePasswordModalComponent } from '../change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule],
+  imports: [CommonModule, ChangePasswordModalComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -23,6 +24,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   isMenuOpen = false;
   isNotificationsOpen = false;
   isUserMenuOpen = false;
+  isChangePasswordOpen = false;
   private notificationSubscription?: Subscription;
   private pollSubscription?: Subscription;
   private sidebarSubscriptions: Subscription[] = [];
@@ -90,8 +92,12 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isNotificationsOpen = false;
   }
 
-  @HostListener('document:click')
-  closeHeaderMenus(): void {
+  @HostListener('document:click', ['$event'])
+  closeHeaderMenus(event: Event): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.user-dropdown') || target?.closest('.notification-dropdown')) {
+      return;
+    }
     this.isNotificationsOpen = false;
     this.isUserMenuOpen = false;
   }
@@ -215,6 +221,15 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const days = Math.floor(diffInSeconds / 86400);
       return `Prije ${days} dana`;
     }
+  }
+
+  openChangePassword(): void {
+    this.isUserMenuOpen = false;
+    this.isChangePasswordOpen = true;
+  }
+
+  closeChangePassword(): void {
+    this.isChangePasswordOpen = false;
   }
 
   logout() {

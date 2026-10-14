@@ -31,6 +31,7 @@ describe('AuthComponent', () => {
 
   it('prikazuje naslov prijave', () => {
     expect(fixture.nativeElement.textContent).toContain('Prijava u sustav');
+    expect(fixture.nativeElement.textContent).toContain('Zaboravljena lozinka');
   });
 
   it('zahtijeva korisničko ime i lozinku', () => {

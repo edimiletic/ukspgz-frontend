@@ -70,6 +70,22 @@ h2 {
   }
 }
 
+.auth-hint {
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.4;
+
+  a {
+    color: #007bff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 form {
   display: flex;
   flex-direction: column;
