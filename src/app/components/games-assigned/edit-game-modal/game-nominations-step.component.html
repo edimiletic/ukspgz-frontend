@@ -1,0 +1,71 @@
+<div class="referee-assignments">
+  <div *ngIf="isLoadingReferees || isLoadingAbsences" class="loading-referees">
+    <div class="loading-spinner"></div>
+    <p>Učitavanje sudaca i provjera dostupnosti...</p>
+  </div>
+
+  <div *ngIf="!isLoadingReferees && !isLoadingAbsences" class="referee-sections">
+    <div class="referee-section" *ngIf="canNominate">
+      <h3>
+        Sudci (3 obavezno)
+        <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.sudci" class="unavailable-count">
+          ({{ unavailableCounts.sudci }} nedostupno zbog odsustva ili drugih utakmica)
+        </span>
+      </h3>
+      <div class="referee-list">
+        <div *ngFor="let sudac of selectedReferees.sudci; let i = index" class="referee-assignment">
+          <label>Sudac {{ sudac.position }}</label>
+          <div class="assignment-row">
+            <select
+              [(ngModel)]="sudac.userId"
+              name="sudac_{{i}}"
+              (ngModelChange)="selectionChange.emit()"
+              class="form-control">
+              <option value="">Odaberite suca</option>
+              <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
+                {{ ref.name }} {{ ref.surname }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="referee-section" *ngIf="canNominate">
+      <h3>
+        Delegat (obavezno)
+        <span *ngIf="gameForm.date && gameForm.time && unavailableCounts.delegati" class="unavailable-count">
+          ({{ unavailableCounts.delegati }} nedostupno zbog odsustva ili drugih utakmica)
+        </span>
+      </h3>
+      <div class="referee-assignment">
+        <select
+          [(ngModel)]="selectedReferees.delegat"
+          name="delegat"
+          (ngModelChange)="selectionChange.emit()"
+          class="form-control">
+          <option value="">Odaberite delegata</option>
+          <option *ngFor="let ref of availableDelegati" [value]="ref._id">
+            {{ ref.name }} {{ ref.surname }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="referee-section" *ngIf="showKontrolor">
+      <h3>{{ kontrolorHeading }}</h3>
+      <div class="referee-assignment">
+        <select
+          [(ngModel)]="selectedReferees.kontrolor"
+          name="kontrolor"
+          (ngModelChange)="selectionChange.emit()"
+          class="form-control">
+          <option value="">Odaberite kontrolora</option>
+          <option *ngFor="let ref of availableKontrolori" [value]="ref._id">
+            {{ ref.name }} {{ ref.surname }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>

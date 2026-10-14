@@ -1,0 +1,86 @@
+<div class="description">
+  <h2 *ngIf="titleTag === 'h2'">{{ title }}</h2>
+  <h3 *ngIf="titleTag === 'h3'">{{ title }}</h3>
+  <div *ngIf="games.length === 0" class="no-games">
+    <p>{{ emptyMessage }}</p>
+  </div>
+  <div *ngIf="games.length > 0" class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Vrijeme</th>
+          <th>Mjesto</th>
+          <th>Natjecanje</th>
+          <th>Ekipe</th>
+          <th>Sudački tim</th>
+          <th *ngIf="showOfficialActions">Akcije</th>
+          <th *ngIf="showStatus">Status</th>
+          <th *ngIf="showOverviewActions || showHistoryAdminActions">Akcije</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let game of displayedGames; trackBy: trackByGameId">
+          <td>{{ formatDate(game.date) }}</td>
+          <td>{{ game.time }}</td>
+          <td>{{ game.venue }}</td>
+          <td>{{ game.competition }}</td>
+          <td>{{ teamsDisplay(game) }}</td>
+          <td>
+            <div class="referees-summary">
+              <ng-container *ngIf="referees(game) as parts">
+                <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
+                <span *ngFor="let part of parts; let last = last">
+                  <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
+                </span>
+              </ng-container>
+            </div>
+          </td>
+          <td *ngIf="showOfficialActions">
+            <div class="action-buttons">
+              <button class="btn btn-success btn-sm" (click)="accept.emit(game._id)" title="Prihvati" [disabled]="isResponding">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn btn-danger btn-sm" (click)="reject.emit(game._id)" title="Odbij" [disabled]="isResponding">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </td>
+          <td *ngIf="showStatus">
+            <span class="status-badge" [ngClass]="statusClass(game)">
+              {{ statusLabel(game) }}
+            </span>
+          </td>
+          <td *ngIf="showOverviewActions || showHistoryAdminActions">
+            <div class="admin-action-buttons">
+              <button *ngIf="canEdit(game)" class="btn btn-warning btn-sm" (click)="edit.emit(game)" title="Uredi utakmicu">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button *ngIf="canDelete(game)" class="btn btn-danger btn-sm" (click)="remove.emit(game)" title="Obriši utakmicu">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination-container" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        Prikazano {{ displayedGames.length }} od {{ games.length }} •
+        Stranica {{ page }} od {{ totalPages }}
+      </div>
+      <div class="pagination">
+        <button class="page-btn" [disabled]="page === 1" (click)="pageChange.emit(page - 1)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="page-btn" *ngFor="let n of pageNumbers" [class.active]="n === page"
+          (click)="pageChange.emit(n)">
+          {{ n }}
+        </button>
+        <button class="page-btn" [disabled]="page === totalPages" (click)="pageChange.emit(page + 1)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

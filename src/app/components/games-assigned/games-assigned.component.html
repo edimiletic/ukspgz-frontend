@@ -1,10 +1,5 @@
-<!-- Updated src/app/components/games-assigned/games-assigned.component.html -->
 <div class="main-layout">
-
-
-  <!-- Content -->
   <section class="content">
-    <!-- Admin Title and Actions -->
     <div *ngIf="canManageCalendar() && !isLoading" class="admin-header">
       <h1 class="admin-title">Sve utakmice</h1>
       <button class="btn btn-primary btn-create-game" (click)="openCreateGameModal()">
@@ -17,55 +12,14 @@
       <h1 class="title">Sve utakmice</h1>
     </div>
 
-    <!-- Filter Section -->
-<!-- Updated Filter Section HTML - Replace your existing filter section with this -->
-<div *ngIf="!isLoading" class="filter-section">
-  <!-- Mobile Filter Toggle Button (visible only on mobile) -->
-  <button class="mobile-filter-toggle" 
-          [class.active]="isMobileFiltersOpen" 
-          (click)="toggleMobileFilters()">
-    <i class="fas fa-filter"></i>
-    {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
-    <i class="fas fa-chevron-down"></i>
-  </button>
+    <app-games-filter-bar
+      *ngIf="!isLoading"
+      [filterValues]="filterValues"
+      [(isMobileOpen)]="isMobileFiltersOpen"
+      (filterChange)="onFilterChange()"
+      (clear)="clearFilters()">
+    </app-games-filter-bar>
 
-  <!-- Filter Content (collapsible on mobile) -->
-  <div class="filter-content" [class.open]="isMobileFiltersOpen">
-    <div class="filter-row">
-      <div class="filter-group">
-        <label>Datum</label>
-        <input type="date" class="form-control" [(ngModel)]="filterValues.date" (change)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <label>Mjesto</label>
-        <input type="text" class="form-control" placeholder="Pretraži po mjestu" [(ngModel)]="filterValues.venue"
-          (input)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <label>Domaći tim</label>
-        <input type="text" class="form-control" placeholder="Pretraži po domaćem timu"
-          [(ngModel)]="filterValues.homeTeam" (input)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <label>Gostujući tim</label>
-        <input type="text" class="form-control" placeholder="Pretraži po gostujućem timu"
-          [(ngModel)]="filterValues.awayTeam" (input)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <label>Natjecanje</label>
-        <input type="text" class="form-control" placeholder="Pretraži po natjecanju"
-          [(ngModel)]="filterValues.competition" (input)="onFilterChange()">
-      </div>
-      <div class="filter-group">
-        <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">
-          <i class="fas fa-times"></i> Očisti
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-    <!-- Filter Status -->
     <div *ngIf="!isLoading && hasActiveFilters" class="admin-filter-status">
       <span class="filter-indicator">
         <i class="fas fa-filter"></i>
@@ -73,267 +27,73 @@
       </span>
     </div>
 
-    <!-- Loading State -->
     <div *ngIf="isLoading" class="loading-container">
       <div class="loading-spinner"></div>
       <p>Učitavanje utakmica...</p>
     </div>
 
-    <!-- Main Content -->
     <div *ngIf="!isLoading">
-      <!-- Pending Nominations Section -->
-      <div class="description">
-        <h2 *ngIf="!canSeeAllGames()">Nominacije koje čekaju odluku</h2>
-        <h2 *ngIf="canSeeAllGames()">Nadolazeće utakmice</h2>
-        <div *ngIf="pendingGames.length === 0" class="no-games">
-          <p *ngIf="!canSeeAllGames()">Nema nominacija na čekanju</p>
-          <p *ngIf="canSeeAllGames()">Nema nadolazećih utakmica</p>
-        </div>
-        <div *ngIf="pendingGames.length > 0" class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Vrijeme</th>
-                <th>Mjesto</th>
-                <th>Natjecanje</th>
-                <th>Ekipe</th>
-                <!-- <th *ngIf="!isAdmin()">Moja uloga</th> -->
-                <th>Sudački tim</th>
-                <th *ngIf="!canSeeAllGames()">Akcije</th>
-                <th *ngIf="canSeeAllGames()">Status</th>
-                <th *ngIf="canSeeAllGames()">Akcije</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let game of pendingDisplayedGames; trackBy: trackByGameId">
-                <td>{{ formatDate(game.date) }}</td>
-                <td>{{ game.time }}</td>
-                <td>{{ game.venue }}</td>
-                <td>{{ game.competition }}</td>
-                <td>{{ getTeamsDisplay(game) }}</td>
-                <!-- <td *ngIf="!isAdmin()">{{ getMyRole(game) }}</td> -->
-                <td>
-                  <div class="referees-summary">
-                    <ng-container *ngIf="getAllRefereesFormatted(game) as parts">
-                      <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
-                      <span *ngFor="let part of parts; let last = last">
-                        <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
-                      </span>
-                    </ng-container>
-                  </div>
-                </td>
-                <td *ngIf="!canSeeAllGames()">
-                  <div class="action-buttons">
-                    <button class="btn btn-success btn-sm" (click)="acceptAssignment(game._id)" title="Prihvati" [disabled]="isResponding">
-                      <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" (click)="rejectAssignment(game._id)" title="Odbij" [disabled]="isResponding">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </td>
-                <td *ngIf="canSeeAllGames()">
-                  <span class="status-badge" [ngClass]="getStatusClass(game)">
-                    {{ getStatusDisplay(game) }}
-                  </span>
-                </td>
-                <td *ngIf="canSeeAllGames()">
-                  <div class="admin-action-buttons">
-                    <button *ngIf="canEditGame(game)" class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
-                      <i class="fas fa-pen"></i>
-                    </button>
-                    <button *ngIf="canManageCalendar(game.competition)" class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="pagination-container" *ngIf="pendingTotalPages > 1">
-            <div class="pagination-info">
-              Prikazano {{ pendingDisplayedGames.length }} od {{ pendingGames.length }} •
-              Stranica {{ pendingPage }} od {{ pendingTotalPages }}
-            </div>
-            <div class="pagination">
-              <button class="page-btn" [disabled]="pendingPage === 1" (click)="goToPendingPage(pendingPage - 1)">
-                <i class="fas fa-chevron-left"></i>
-              </button>
+      <app-games-list-section
+        [title]="canSeeAllGames() ? 'Nadolazeće utakmice' : 'Nominacije koje čekaju odluku'"
+        [emptyMessage]="canSeeAllGames() ? 'Nema nadolazećih utakmica' : 'Nema nominacija na čekanju'"
+        [games]="pendingGames"
+        [displayedGames]="pendingDisplayedGames"
+        [page]="pendingPage"
+        [totalPages]="pendingTotalPages"
+        [pageNumbers]="getPendingPages()"
+        [seeAllGames]="canSeeAllGames()"
+        [userId]="viewerUserId()"
+        [showOfficialActions]="!canSeeAllGames()"
+        [showStatus]="canSeeAllGames()"
+        [showOverviewActions]="canSeeAllGames()"
+        [isResponding]="isResponding"
+        [canEdit]="canEditListedGame"
+        [canDelete]="canDeleteGame"
+        (pageChange)="goToPendingPage($event)"
+        (accept)="acceptAssignment($event)"
+        (reject)="rejectAssignment($event)"
+        (edit)="editGame($event)"
+        (remove)="deleteGame($event)">
+      </app-games-list-section>
 
-              <button class="page-btn" *ngFor="let page of getPendingPages()" [class.active]="page === pendingPage"
-                (click)="goToPendingPage(page)">
-                {{ page }}
-              </button>
+      <app-games-list-section
+        *ngIf="!canSeeAllGames()"
+        title="Potvrđene nominacije"
+        emptyMessage="Nema potvrđenih nominacija"
+        [games]="confirmedGames"
+        [displayedGames]="confirmedDisplayedGames"
+        [page]="confirmedPage"
+        [totalPages]="confirmedTotalPages"
+        [pageNumbers]="getConfirmedPages()"
+        [seeAllGames]="false"
+        [userId]="viewerUserId()"
+        [showStatus]="true"
+        (pageChange)="goToConfirmedPage($event)">
+      </app-games-list-section>
 
-              <button class="page-btn" [disabled]="pendingPage === pendingTotalPages"
-                (click)="goToPendingPage(pendingPage + 1)">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Confirmed Nominations Section - Only show for non-admin users -->
-      <div class="description" *ngIf="!canSeeAllGames()">
-        <h2>Potvrđene nominacije</h2>
-        <div *ngIf="confirmedGames.length === 0" class="no-games">
-          <p>Nema potvrđenih nominacija</p>
-        </div>
-        <div *ngIf="confirmedGames.length > 0" class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Vrijeme</th>
-                <th>Mjesto</th>
-                <th>Natjecanje</th>
-                <th>Ekipe</th>
-                <!-- <th>Moja uloga</th> -->
-                <th>Sudački tim</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let game of confirmedDisplayedGames; trackBy: trackByGameId">
-                <td>{{ formatDate(game.date) }}</td>
-                <td>{{ game.time }}</td>
-                <td>{{ game.venue }}</td>
-                <td>{{ game.competition }}</td>
-                <td>{{ getTeamsDisplay(game) }}</td>
-                <!-- <td>{{ getMyRole(game) }}</td> -->
-                <td>
-                  <div class="referees-summary">
-                    <ng-container *ngIf="getAllRefereesFormatted(game) as parts">
-                      <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
-                      <span *ngFor="let part of parts; let last = last">
-                        <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
-                      </span>
-                    </ng-container>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(game)">
-                    {{ getStatusDisplay(game) }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="pagination-container" *ngIf="confirmedTotalPages > 1">
-            <div class="pagination-info">
-              Prikazano {{ confirmedDisplayedGames.length }} od {{ confirmedGames.length }} •
-              Stranica {{ confirmedPage }} od {{ confirmedTotalPages }}
-            </div>
-            <div class="pagination">
-              <button class="page-btn" [disabled]="confirmedPage === 1" (click)="goToConfirmedPage(confirmedPage - 1)">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-
-              <button class="page-btn" *ngFor="let page of getConfirmedPages()" [class.active]="page === confirmedPage"
-                (click)="goToConfirmedPage(page)">
-                {{ page }}
-              </button>
-
-              <button class="page-btn" [disabled]="confirmedPage === confirmedTotalPages"
-                (click)="goToConfirmedPage(confirmedPage + 1)">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game History Section -->
-      <!-- src/app/components/games-assigned/games-assigned.component.html -->
-      <!-- Update the Game History Section -->
-
-
-
-      <div class="description">
-        <h3>Povijest utakmica</h3>
-        <div *ngIf="gameHistory.length === 0" class="no-games">
-          <p>Nema povijesti utakmica</p>
-        </div>
-        <div *ngIf="gameHistory.length > 0" class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Vrijeme</th>
-                <th>Mjesto</th>
-                <th>Natjecanje</th>
-                <th>Ekipe</th>
-                <th>Sudački tim</th>
-                <th>Status</th>
-                <th *ngIf="isAdmin()">Akcije</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let game of historyDisplayedGames; trackBy: trackByGameId">
-                <td>{{ formatDate(game.date) }}</td>
-                <td>{{ game.time }}</td>
-                <td>{{ game.venue }}</td>
-                <td>{{ game.competition }}</td>
-                <td>{{ getTeamsDisplay(game) }}</td>
-                <td>
-                  <div class="referees-summary">
-                    <ng-container *ngIf="getAllRefereesFormatted(game) as parts">
-                      <span *ngIf="parts.length === 0">Nema dodijeljenih sudaca</span>
-                      <span *ngFor="let part of parts; let last = last">
-                        <strong>{{ part.label }}:</strong> {{ part.text }}<span *ngIf="!last"> | </span>
-                      </span>
-                    </ng-container>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(game)">
-                    {{ getStatusDisplay(game) }}
-                  </span>
-                </td>
-                <td *ngIf="isAdmin()">
-                  <div class="admin-action-buttons">
-                    <button *ngIf="canEditGame(game)" class="btn btn-warning btn-sm" (click)="editGame(game)" title="Uredi utakmicu">
-                      <i class="fas fa-pen"></i>
-                    </button>
-                    <button *ngIf="canManageCalendar(game.competition)" class="btn btn-danger btn-sm" (click)="deleteGame(game)" title="Obriši utakmicu">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="pagination-container" *ngIf="historyTotalPages > 1">
-            <div class="pagination-info">
-              Prikazano {{ historyDisplayedGames.length }} od {{ gameHistory.length }} •
-              Stranica {{ historyPage }} od {{ historyTotalPages }}
-            </div>
-            <div class="pagination">
-              <button class="page-btn" [disabled]="historyPage === 1" (click)="goToHistoryPage(historyPage - 1)">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-
-              <button class="page-btn" *ngFor="let page of getHistoryPages()" [class.active]="page === historyPage"
-                (click)="goToHistoryPage(page)">
-                {{ page }}
-              </button>
-
-              <button class="page-btn" [disabled]="historyPage === historyTotalPages"
-                (click)="goToHistoryPage(historyPage + 1)">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-            </div>
-
+      <app-games-list-section
+        title="Povijest utakmica"
+        titleTag="h3"
+        emptyMessage="Nema povijesti utakmica"
+        [games]="gameHistory"
+        [displayedGames]="historyDisplayedGames"
+        [page]="historyPage"
+        [totalPages]="historyTotalPages"
+        [pageNumbers]="getHistoryPages()"
+        [seeAllGames]="canSeeAllGames()"
+        [userId]="viewerUserId()"
+        [showStatus]="true"
+        [showHistoryAdminActions]="isAdmin()"
+        [canEdit]="canEditListedGame"
+        [canDelete]="canDeleteGame"
+        (pageChange)="goToHistoryPage($event)"
+        (edit)="editGame($event)"
+        (remove)="deleteGame($event)">
+      </app-games-list-section>
+    </div>
   </section>
 </div>
 
-<!-- Toast Notifications -->
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">
     <span class="toast-emoji">✅</span>
@@ -348,7 +108,6 @@
   </div>
 </div>
 
-<!-- Rejection Modal -->
 <app-reason-modal
   [isOpen]="isRejectionModalOpen"
   [isBusy]="isRejectBusy"
@@ -363,12 +122,10 @@
   (confirm)="onRejectionConfirmed($event)">
 </app-reason-modal>
 
-<!-- Game form modal (create + edit) -->
 <app-game-form-modal [isOpen]="isGameFormModalOpen" [game]="gameToEdit" (close)="closeGameFormModal()"
   (gameCreated)="onGameCreated($event)" (gameUpdated)="onGameUpdated($event)">
 </app-game-form-modal>
 
-<!-- Confirmation Modal -->
 <app-confirmation-modal [isOpen]="isConfirmationModalOpen" [isBusy]="isConfirmBusy"
   [confirmationData]="confirmationData" (close)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
 </app-confirmation-modal>

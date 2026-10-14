@@ -10,17 +10,27 @@ import { AuthService } from '../../../services/login.service';
 import { CatalogService } from '../../../services/catalog.service';
 import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
 import { firstValueFrom } from 'rxjs';
-import { ALL_COMPETITIONS, canManageCalendar, canNominateOfficials, cannotNominateSelf, getCalendarCompetitions, isAdminUser, isBlockingScheduleConflict, isKontrolorRequired, isWithinNominationCap, teamEligibleForCompetition, timesOverlap, userHasRole } from '../../../model/roles';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ALL_COMPETITIONS, canManageCalendar, canNominateOfficials, getCalendarCompetitions, isAdminUser, teamEligibleForCompetition, userHasRole } from '../../../model/roles';
+import {
+  assignmentUserId,
+  eligibleOfficials as filterEligibleOfficials,
+  gameFormError,
+  isRefereeAvailable,
+  kontrolorRequiredForForm,
+  refereeAssignmentError,
+  unavailableOfficialsCount
+} from './edit-game-modal.helpers';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TimeSelectComponent } from '../time-select/time-select.component';
-import { VenueSearchComponent } from '../venue-search/venue-search.component';
+import { GameDetailsStepComponent } from './game-details-step.component';
+import { GameNominationsStepComponent } from './game-nominations-step.component';
 
 @Component({
   selector: 'app-game-form-modal',
-  imports: [CommonModule, FormsModule, TimeSelectComponent, VenueSearchComponent],
+  imports: [CommonModule, FormsModule, GameDetailsStepComponent, GameNominationsStepComponent],
   templateUrl: './edit-game-modal.component.html',
-  styleUrl: './edit-game-modal.component.scss'
+  styleUrl: './edit-game-modal.component.scss',
+  encapsulation: ViewEncapsulation.None
 })
 export class EditGameModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
@@ -140,7 +150,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   }
 
   kontrolorRequired(): boolean {
-    return isKontrolorRequired(
+    return kontrolorRequiredForForm(
       this.gameForm.competition,
       this.teamCompetitions(this.gameForm.homeTeam),
       this.teamCompetitions(this.gameForm.awayTeam)
@@ -152,12 +162,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   }
 
   eligibleOfficials(refs: User[]): User[] {
-    return refs.filter((ref) => {
-      if (!isWithinNominationCap(ref, this.gameForm.competition)) {
-        return false;
-      }
-      return !cannotNominateSelf(this.authService.currentUserValue, String(ref._id || ''));
-    });
+    return filterEligibleOfficials(refs, this.gameForm.competition, this.authService.currentUserValue);
   }
 
   ngOnInit() {
@@ -346,11 +351,6 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     });
   }
 
-  private assignmentUserId(assignment: { userId: any }): string {
-    if (!assignment?.userId) return '';
-    return typeof assignment.userId === 'object' ? assignment.userId._id : String(assignment.userId);
-  }
-
   private async loadScheduleForDate(): Promise<void> {
     if (!this.gameForm.date) {
       this.gamesOnSelectedDate = [];
@@ -371,59 +371,27 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     this.loadedScheduleDate = this.gameForm.date;
   }
 
-  private isRefereeAvailable(referee: User): boolean {
-    if (!this.gameForm.date || !this.gameForm.time) {
-      return true;
-    }
-
-    const selectedGameDate = new Date(this.gameForm.date);
-    selectedGameDate.setHours(0, 0, 0, 0);
-
-    const hasAbsenceConflict = this.allAbsences.some(absence => {
-      if (absence.userPersonalCode !== referee.personalCode) {
-        return false;
-      }
-
-      const startDate = new Date(absence.startDate);
-      const endDate = new Date(absence.endDate);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-
-      return selectedGameDate >= startDate && selectedGameDate <= endDate;
-    });
-
-    if (hasAbsenceConflict) {
-      return false;
-    }
-
-    return !this.gamesOnSelectedDate.some(game => {
-      if (this.game && String(game._id) === String(this.game._id)) {
-        return false;
-      }
-      if (!timesOverlap(game.time, this.gameForm.time)) {
-        return false;
-      }
-      if (!isBlockingScheduleConflict(game.competition, this.gameForm.competition)) {
-        return false;
-      }
-      return (game.refereeAssignments || []).some(assignment => {
-        if (!['Accepted', 'Pending'].includes(assignment.assignmentStatus)) {
-          return false;
-        }
-        return this.assignmentUserId(assignment) === referee._id;
-      });
+  private isOfficialFree(referee: User): boolean {
+    return isRefereeAvailable(referee, {
+      date: this.gameForm.date,
+      time: this.gameForm.time,
+      competition: this.gameForm.competition,
+      currentGameId: this.game?._id,
+      absences: this.allAbsences,
+      gamesOnDate: this.gamesOnSelectedDate
     });
   }
 
   getUnavailableRefereesCount(role: 'Sudac' | 'Delegat'): number {
-    if (!this.gameForm.date || !this.gameForm.time) return 0;
-
     const pool =
       role === 'Sudac'
         ? this.eligibleOfficials(this.availableReferees.sudci)
         : this.eligibleOfficials(this.availableReferees.delegati);
-
-    return pool.filter(ref => !this.isRefereeAvailable(ref)).length;
+    return unavailableOfficialsCount(
+      pool,
+      (ref) => this.isOfficialFree(ref),
+      !!(this.gameForm.date && this.gameForm.time)
+    );
   }
 
   onDateChange() {
@@ -451,79 +419,23 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   // Validation
   validateGameForm(): boolean {
-    const { homeTeam, awayTeam, date, time, venue, competition } = this.gameForm;
-    
-    if (!homeTeam.trim()) {
-      this.errorMessage = 'Domaći tim je obavezan.';
+    const error = gameFormError(this.gameForm);
+    if (error) {
+      this.errorMessage = error;
       return false;
     }
-    
-    if (!awayTeam.trim()) {
-      this.errorMessage = 'Gostujući tim je obavezan.';
-      return false;
-    }
-    
-    if (homeTeam.toLowerCase().trim() === awayTeam.toLowerCase().trim()) {
-      this.errorMessage = 'Domaći i gostujući tim ne mogu biti isti.';
-      return false;
-    }
-    
-    if (!date) {
-      this.errorMessage = 'Datum je obavezan.';
-      return false;
-    }
-    
-    if (!time) {
-      this.errorMessage = 'Vrijeme je obavezno.';
-      return false;
-    }
-    
-    if (!venue.trim()) {
-      this.errorMessage = 'Mjesto je obavezno.';
-      return false;
-    }
-    
-    if (!competition) {
-      this.errorMessage = 'Natjecanje je obavezno.';
-      return false;
-    }
-    
     return true;
   }
 
   validateRefereeAssignments(): boolean {
-    if (!this.shouldShowNominations()) {
-      return true;
-    }
-
-    if (this.canNominateOfficials()) {
-      const validSudci = this.selectedReferees.sudci.filter(s => s.userId).length;
-      if (validSudci < 3) {
-        this.errorMessage = 'Potrebno je odabrati 3 suca.';
-        return false;
-      }
-      if (!this.selectedReferees.delegat) {
-        this.errorMessage = 'Delegat je obavezan.';
-        return false;
-      }
-      if (this.kontrolorRequired() && !this.selectedReferees.kontrolor) {
-        this.errorMessage = 'Kontrolor je obavezan na ovom natjecanju.';
-        return false;
-      }
-    }
-
-    const allSelectedIds = [
-      ...this.selectedReferees.sudci.map(s => s.userId).filter(id => id),
-      this.selectedReferees.delegat,
-      this.selectedReferees.kontrolor
-    ].filter(id => id);
-
-    const uniqueIds = new Set(allSelectedIds);
-    if (allSelectedIds.length !== uniqueIds.size) {
-      this.errorMessage = 'Isti sudac ne može biti dodijeljen više puta.';
+    const error = refereeAssignmentError(this.selectedReferees, {
+      canNominate: this.shouldShowNominations(),
+      kontrolorRequired: this.kontrolorRequired()
+    });
+    if (error) {
+      this.errorMessage = error;
       return false;
     }
-
     return true;
   }
 
@@ -554,7 +466,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     ].filter((id): id is string => !!id);
 
     return this.eligibleOfficials(this.availableReferees.sudci).filter(ref =>
-      !excludedIds.includes(ref._id) && this.isRefereeAvailable(ref)
+      !excludedIds.includes(ref._id) && this.isOfficialFree(ref)
     );
   }
 
@@ -565,7 +477,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     ].filter((id): id is string => !!id);
 
     return this.eligibleOfficials(this.availableReferees.delegati).filter(ref =>
-      !excludedIds.includes(ref._id) && this.isRefereeAvailable(ref)
+      !excludedIds.includes(ref._id) && this.isOfficialFree(ref)
     );
   }
 
@@ -792,8 +704,6 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     const currentUserIds = new Set(currentAssignments.map(a => a.userId._id));
     const newUserIds = newAssignments.map(a => a.userId);
     const newlyAssignedUsers = newUserIds.filter(userId => !currentUserIds.has(userId));
-    const assignmentUserId = (assignment: { userId: any }) =>
-      typeof assignment.userId === 'object' ? assignment.userId._id : assignment.userId;
     const assignmentKey = (userId: string, role: string) => `${userId}:${role}`;
 
     const currentManaged = currentAssignments.filter(assignment => managedRoles.includes(assignment.role));
@@ -953,7 +863,7 @@ this.currentStep = 1;
      ![
        ...this.selectedReferees.sudci.map(s => s.userId),
        this.selectedReferees.delegat
-     ].includes(ref._id) && this.isRefereeAvailable(ref)
+     ].includes(ref._id) && this.isOfficialFree(ref)
    );
 
    this.unavailableCounts = {

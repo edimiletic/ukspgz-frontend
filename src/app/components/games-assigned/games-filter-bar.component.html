@@ -1,0 +1,44 @@
+<div class="filter-section">
+  <button
+    class="mobile-filter-toggle"
+    [class.active]="isMobileOpen"
+    (click)="toggleMobile()">
+    <i class="fas fa-filter"></i>
+    {{ isMobileOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
+    <i class="fas fa-chevron-down"></i>
+  </button>
+
+  <div class="filter-content" [class.open]="isMobileOpen">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Datum</label>
+        <input type="date" class="form-control" [(ngModel)]="filterValues.date" (change)="filterChange.emit()">
+      </div>
+      <div class="filter-group">
+        <label>Mjesto</label>
+        <input type="text" class="form-control" placeholder="Pretraži po mjestu" [(ngModel)]="filterValues.venue"
+          (input)="filterChange.emit()">
+      </div>
+      <div class="filter-group">
+        <label>Domaći tim</label>
+        <input type="text" class="form-control" placeholder="Pretraži po domaćem timu"
+          [(ngModel)]="filterValues.homeTeam" (input)="filterChange.emit()">
+      </div>
+      <div class="filter-group">
+        <label>Gostujući tim</label>
+        <input type="text" class="form-control" placeholder="Pretraži po gostujućem timu"
+          [(ngModel)]="filterValues.awayTeam" (input)="filterChange.emit()">
+      </div>
+      <div class="filter-group">
+        <label>Natjecanje</label>
+        <input type="text" class="form-control" placeholder="Pretraži po natjecanju"
+          [(ngModel)]="filterValues.competition" (input)="filterChange.emit()">
+      </div>
+      <div class="filter-group">
+        <button class="btn btn-outline-secondary filter-btn" (click)="clear.emit()">
+          <i class="fas fa-times"></i> Očisti
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

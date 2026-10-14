@@ -1,0 +1,131 @@
+<form class="game-form">
+  <div class="form-row" [class.form-row-single]="isCreateMode">
+    <div class="form-group">
+      <label for="competition">Natjecanje</label>
+      <select
+        id="competition"
+        [(ngModel)]="gameForm.competition"
+        name="competition"
+        class="form-control"
+        [disabled]="!canEditDetails"
+        (ngModelChange)="competitionChange.emit()"
+        required>
+        <option value="">Odaberite natjecanje</option>
+        <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
+      </select>
+    </div>
+    <div class="form-group" *ngIf="!isCreateMode">
+      <label for="status">Status</label>
+      <select
+        id="status"
+        [(ngModel)]="gameForm.status"
+        name="status"
+        class="form-control"
+        [disabled]="!canEditDetails"
+        required>
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="homeTeam">Domaći Tim</label>
+      <select
+        *ngIf="hasTeamCatalog"
+        id="homeTeam"
+        [(ngModel)]="gameForm.homeTeam"
+        name="homeTeam"
+        class="form-control"
+        [disabled]="!canEditDetails"
+        required>
+        <option value="">Odaberite domaći tim</option>
+        <option *ngFor="let team of teamOptions" [value]="team">{{ team }}</option>
+      </select>
+      <input
+        *ngIf="!hasTeamCatalog"
+        type="text"
+        id="homeTeam"
+        [(ngModel)]="gameForm.homeTeam"
+        name="homeTeam"
+        class="form-control"
+        placeholder="Unesite naziv domaćeg tima"
+        [disabled]="!canEditDetails"
+        required>
+    </div>
+    <div class="form-group">
+      <label for="awayTeam">Gostujući Tim</label>
+      <select
+        *ngIf="hasTeamCatalog"
+        id="awayTeam"
+        [(ngModel)]="gameForm.awayTeam"
+        name="awayTeam"
+        class="form-control"
+        [disabled]="!canEditDetails"
+        required>
+        <option value="">Odaberite gostujući tim</option>
+        <option *ngFor="let team of awayTeamOptions" [value]="team">{{ team }}</option>
+      </select>
+      <input
+        *ngIf="!hasTeamCatalog"
+        type="text"
+        id="awayTeam"
+        [(ngModel)]="gameForm.awayTeam"
+        name="awayTeam"
+        class="form-control"
+        placeholder="Unesite naziv gostujućeg tima"
+        [disabled]="!canEditDetails"
+        required>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="date">Datum</label>
+      <input
+        type="date"
+        id="date"
+        [(ngModel)]="gameForm.date"
+        name="date"
+        class="form-control"
+        [min]="minDate"
+        [disabled]="!canEditDetails"
+        (change)="dateTimeChange.emit()"
+        required>
+    </div>
+    <div class="form-group">
+      <label>Vrijeme</label>
+      <app-time-select
+        name="time"
+        [(ngModel)]="gameForm.time"
+        [disabled]="!canEditDetails"
+        (ngModelChange)="dateTimeChange.emit()">
+      </app-time-select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="venue">Dvorana</label>
+    <app-venue-search
+      id="venue"
+      name="venue"
+      [options]="venueOptions"
+      [(ngModel)]="gameForm.venue"
+      [disabled]="!canEditDetails">
+    </app-venue-search>
+  </div>
+
+  <div class="form-group">
+    <label for="notes">Napomene</label>
+    <textarea
+      id="notes"
+      [(ngModel)]="gameForm.notes"
+      name="notes"
+      class="form-control"
+      rows="3"
+      [disabled]="!canEditDetails"
+      placeholder="Dodatne napomene o utakmici (opcionalno)"></textarea>
+  </div>
+</form>

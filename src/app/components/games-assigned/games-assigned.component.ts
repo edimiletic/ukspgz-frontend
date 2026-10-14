@@ -1,21 +1,36 @@
 import { BasketballGameService } from './../../services/basketballGame.service';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
-import { BasketballGame, BasketballGameUtils, RefereeAssignment, RefereeGroups, RefereeInfo } from '../../model/basketballGame.model';
+import { BasketballGame, RefereeAssignment } from '../../model/basketballGame.model';
 import { FormsModule } from '@angular/forms';
 import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
 import { canManageCalendar, canNominateOfficials, canSeeAllGames, isAdminUser } from '../../model/roles';
+import {
+  EMPTY_GAME_FILTERS,
+  categorizeGames as splitGamesIntoBuckets,
+  filterGames,
+  findMyAssignment,
+  formatGameDate,
+  GamesListFilters,
+  hasActiveFilters,
+  isGameInPast,
+  pageWindow,
+  paginate
+} from './games-assigned.helpers';
+import { GamesFilterBarComponent } from './games-filter-bar.component';
+import { GamesListSectionComponent } from './games-list-section.component';
 
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent],
+  imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent, GamesFilterBarComponent, GamesListSectionComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class GamesAssignedComponent implements OnInit {
  // Game arrays
@@ -63,14 +78,7 @@ isMobileFiltersOpen: boolean = false;
   currentUser: any = null;
   
   // Filter properties
-  filterValues = {
-    id: '',
-    homeTeam: '',
-    awayTeam: '',
-    venue: '',
-    competition: '',
-    date: ''
-  };
+  filterValues: GamesListFilters = { ...EMPTY_GAME_FILTERS };
     
   // Rejection modal
   isRejectionModalOpen = false;
@@ -154,15 +162,6 @@ isMobileFiltersOpen: boolean = false;
     return this.currentUser?._id || this.currentUser?.id || '';
   }
 
-  private assignmentUserId(assignment: RefereeAssignment): string {
-    const assigned: any = assignment?.userId;
-    return String(typeof assigned === 'string' ? assigned : assigned?._id || assigned?.id || '');
-  }
-
-  private isCurrentUserAssignment(assignment: RefereeAssignment): boolean {
-    return this.assignmentUserId(assignment) === this.currentUserId();
-  }
-
   openCreateGameModal() {
     this.gameToEdit = null;
     this.isGameFormModalOpen = true;
@@ -229,59 +228,22 @@ onGameCreated(result: any) {
   }
 
  categorizeGames(games: BasketballGame[]) {
-        const now = new Date();
-    
-    if (this.canSeeAllGames()) {
-      // For admin, show upcoming games and history only
-      this.allPendingGames = games.filter(game => this.isGameUpcoming(game, now));
-
-      this.allConfirmedGames = []; // Admin doesn't see confirmed games section
-
-      this.allGameHistory = games.filter(game => this.isGameInPast(game, now));
-
-          } else {
-      // For referees, show only their assigned games
-      this.allPendingGames = games.filter(game => {
-        const myAssignment = this.getMyAssignment(game);
-        return myAssignment?.assignmentStatus === 'Pending';
-      });
-
-      this.allConfirmedGames = games.filter(game => {
-        const myAssignment = this.getMyAssignment(game);
-        return myAssignment?.assignmentStatus === 'Accepted' && this.isGameUpcoming(game, now);
-      });
-
-      this.allGameHistory = games.filter(game => {
-        const myAssignment = this.getMyAssignment(game);
-        return (myAssignment?.assignmentStatus === 'Accepted' && this.isGameInPast(game, now)) ||
-               myAssignment?.assignmentStatus === 'Rejected';
-      });
-
-          }
-    
+    const buckets = splitGamesIntoBuckets(games, {
+      seeAllGames: this.canSeeAllGames(),
+      userId: this.currentUserId()
+    });
+    this.allPendingGames = buckets.pending;
+    this.allConfirmedGames = buckets.confirmed;
+    this.allGameHistory = buckets.history;
     this.applyFilters();
   }
 
-  private getGameDateTime(game: BasketballGame): Date {
-    const dateTime = new Date(game.date);
-    const [hours = '0', minutes = '0'] = (game.time || '00:00').split(':');
-    dateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
-    return dateTime;
-  }
-
   private isGameInPast(game: BasketballGame, now = new Date()): boolean {
-    return this.getGameDateTime(game).getTime() < now.getTime();
-  }
-
-  private isGameUpcoming(game: BasketballGame, now = new Date()): boolean {
-    return this.getGameDateTime(game).getTime() >= now.getTime();
+    return isGameInPast(game, now);
   }
 
   getMyAssignment(game: BasketballGame): RefereeAssignment | undefined {
-    if (!this.currentUser) return undefined;
-    return game.refereeAssignments.find(
-      assignment => this.isCurrentUserAssignment(assignment)
-    );
+    return findMyAssignment(game, this.currentUserId());
   }
 
   isAcceptModalOpen = false;
@@ -401,190 +363,16 @@ onGameCreated(result: any) {
 
   // Helper methods for display
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('hr-HR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatGameDate(dateString);
   }
 
-  formatDateTime(dateString: string, timeString: string): string {
-    const date = new Date(dateString);
-    return `${date.toLocaleDateString('hr-HR')} ${timeString}`;
+  viewerUserId(): string {
+    return this.currentUserId();
   }
 
-  getTeamsDisplay(game: BasketballGame): string {
-    return `${game.homeTeam} vs ${game.awayTeam}`;
-  }
+  canDeleteGame = (game: BasketballGame): boolean => this.canManageCalendar(game.competition);
 
-  getMyRole(game: BasketballGame): string {
-    if (this.canSeeAllGames()) {
-      return 'Pregled utakmica';
-    }
-
-    const myAssignment = this.getMyAssignment(game);
-    if (!myAssignment) return '';
-    
-    const roleTranslation: Record<string, string> = {
-      'Sudac': 'Sudac',
-      'Delegat': 'Delegat',
-      'Kontrolor': 'Kontrolor'
-    };
-    
-    return `${roleTranslation[myAssignment.role]} ${myAssignment.position}`;
-  }
-
-  getOtherReferees(game: BasketballGame): string {
-    if (!this.currentUser) return '';
-    
-    const otherReferees = game.refereeAssignments
-      .filter(assignment => !this.isCurrentUserAssignment(assignment))
-      .map(assignment => `${assignment.userId.name} ${assignment.userId.surname} (${assignment.role} ${assignment.position})`)
-      .join(', ');
-    
-    return otherReferees || 'Nema ostalih sudaca';
-  }
-
-  // New method to get all referees with their status
-  getAllReferees(game: BasketballGame): RefereeGroups {
-    const refereeGroups: RefereeGroups = {
-      'Sudac': [],
-      'Delegat': [],
-      Kontrolor: []
-    };
-
-    game.refereeAssignments.forEach(assignment => {
-      // Only show referees with Pending or Accepted status
-      if (assignment.assignmentStatus === 'Pending' || assignment.assignmentStatus === 'Accepted') {
-        const statusText = assignment.assignmentStatus === 'Pending' ? '(na čekanju)' : '(potvrđeno)';
-        const isCurrentUser = this.isCurrentUserAssignment(assignment);
-        let nameDisplay: string;
-        
-        if (this.canSeeAllGames()) {
-          nameDisplay = `${assignment.userId.name} ${assignment.userId.surname}`;
-        } else {
-          nameDisplay = isCurrentUser ? 'Vi' : `${assignment.userId.name} ${assignment.userId.surname}`;
-        }
-        
-        const refereeInfo: RefereeInfo = {
-          name: nameDisplay,
-          position: assignment.position,
-          status: assignment.assignmentStatus,
-          statusText: statusText,
-          isCurrentUser: isCurrentUser
-        };
-
-        if (refereeGroups[assignment.role]) {
-          refereeGroups[assignment.role].push(refereeInfo);
-        }
-      }
-    });
-
-    return refereeGroups;
-  }
-
-  // Method to format all referees for display (filtered based on user role)
-  getAllRefereesFormatted(game: BasketballGame): { label: string; text: string }[] {
-    const refereeGroups = this.getAllReferees(game);
-    const parts: { label: string; text: string }[] = [];
-
-    if (refereeGroups['Sudac'].length > 0) {
-      parts.push({
-        label: 'Sudci',
-        text: refereeGroups['Sudac']
-          .sort((a, b) => a.position - b.position)
-          .map(ref => `${ref.name} ${ref.statusText}`)
-          .join(', ')
-      });
-    }
-
-    if (refereeGroups['Delegat'].length > 0) {
-      parts.push({
-        label: 'Delegat',
-        text: refereeGroups['Delegat'].map(ref => `${ref.name} ${ref.statusText}`).join(', ')
-      });
-    }
-
-    if (refereeGroups['Kontrolor'].length > 0) {
-      parts.push({
-        label: 'Kontrolor',
-        text: refereeGroups['Kontrolor'].map(ref => `${ref.name} ${ref.statusText}`).join(', ')
-      });
-    }
-
-    return parts;
-  }
-
-  // Method to get referee summary for cards
-  getRefereesSummaryForCard(game: BasketballGame): { sudci: RefereeInfo[], delegat: RefereeInfo[] } {
-    const refereeGroups = this.getAllReferees(game);
-    
-    return {
-      sudci: refereeGroups['Sudac'].sort((a, b) => a.position - b.position),
-      delegat: refereeGroups['Delegat']
-    };
-  }
-
-  getStatusDisplay(game: BasketballGame): string {
-    if (this.canSeeAllGames()) {
-      if (game.status === 'Scheduled' && this.isGameInPast(game)) {
-        return 'Odigrano'; // Past scheduled games are considered "played"
-      }
-      
-      const statusTranslation = {
-        'Scheduled': 'Zakazano',
-        'Ongoing': 'U tijeku',
-        'Completed': 'Završeno',
-        'Cancelled': 'Otkazano'
-      };
-      return statusTranslation[game.status] || game.status;
-    }
-
-    const myAssignment = this.getMyAssignment(game);
-    if (!myAssignment) return game.status;
-
-    const statusTranslation = {
-      'Pending': 'Na čekanju',
-      'Accepted': 'Prihvaćeno',
-      'Rejected': 'Odbijeno'
-    };
-
-    return statusTranslation[myAssignment.assignmentStatus] || game.status;
-  }
-
-  getStatusClass(game: BasketballGame): string {
-    if (this.canSeeAllGames()) {
-      if (game.status === 'Scheduled' && this.isGameInPast(game)) {
-        return 'status-accepted'; // Use green styling for "Odigrano"
-      }
-      
-      switch (game.status) {
-        case 'Scheduled': return 'status-pending';
-        case 'Ongoing': return 'status-pending';
-        case 'Completed': return 'status-accepted';
-        case 'Cancelled': return 'status-rejected';
-        default: return '';
-      }
-    }
-
-    const myAssignment = this.getMyAssignment(game);
-    if (!myAssignment) return '';
-
-    switch (myAssignment.assignmentStatus) {
-      case 'Pending': return 'status-pending';
-      case 'Accepted': return 'status-accepted';
-      case 'Rejected': return 'status-rejected';
-      default: return '';
-    }
-  }
-
-  getScoreDisplay(game: BasketballGame): string {
-    if (game.status === 'Completed' && game.score) {
-      return `${game.score.homeScore} : ${game.score.awayScore}`;
-    }
-    return '-';
-  }
+  canEditListedGame = (game: BasketballGame): boolean => this.canEditGame(game);
 
   // Toast notification methods
   private showSuccess(message: string): void {
@@ -614,65 +402,14 @@ onGameCreated(result: any) {
   }
 
 
-  private filterGames(games: BasketballGame[]): BasketballGame[] {
-    return games.filter(game => {
-      // ID filter - starts with
-      const displayId = game.displayId != null ? String(game.displayId) : '';
-      if (this.filterValues.id && !displayId.startsWith(this.filterValues.id.trim())) {
-        return false;
-      }
-
-      // Home team filter - starts with
-      if (this.filterValues.homeTeam && !game.homeTeam.toLowerCase().startsWith(this.filterValues.homeTeam.toLowerCase())) {
-        return false;
-      }
-
-      // Away team filter - starts with
-      if (this.filterValues.awayTeam && !game.awayTeam.toLowerCase().startsWith(this.filterValues.awayTeam.toLowerCase())) {
-        return false;
-      }
-
-      // Venue filter - starts with
-      if (this.filterValues.venue && !game.venue.toLowerCase().startsWith(this.filterValues.venue.toLowerCase())) {
-        return false;
-      }
-
-      // Competition filter - starts with
-      if (this.filterValues.competition && !game.competition.toLowerCase().startsWith(this.filterValues.competition.toLowerCase())) {
-        return false;
-      }
-
-      // Date filter - EXACT match
-      if (this.filterValues.date) {
-        const filterDate = new Date(this.filterValues.date);
-        const gameDate = new Date(game.date);
-        
-        // Compare only the date part (ignore time)
-        filterDate.setHours(0, 0, 0, 0);
-        gameDate.setHours(0, 0, 0, 0);
-        
-        if (filterDate.getTime() !== gameDate.getTime()) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }
 
   onFilterChange() {
     this.applyFilters();
+    this.refreshView();
   }
 
   clearFilters() {
-    this.filterValues = {
-      id: '',
-      homeTeam: '',
-      awayTeam: '',
-      venue: '',
-      competition: '',
-      date: ''
-    };
+    this.filterValues = { ...EMPTY_GAME_FILTERS };
     this.pendingPage = 1;
     this.confirmedPage = 1;
     this.historyPage = 1;
@@ -686,8 +423,7 @@ if (window.innerWidth <= 693) {
 
   // Check if any filters are active
   get hasActiveFilters(): boolean {
-    return !!(this.filterValues.id || this.filterValues.homeTeam || this.filterValues.awayTeam || 
-              this.filterValues.venue || this.filterValues.competition || this.filterValues.date);
+    return hasActiveFilters(this.filterValues);
   }
 
   // Get total count for display
@@ -760,48 +496,24 @@ if (window.innerWidth <= 693) {
   }
 
   updatePendingPagination() {
-    this.pendingTotalPages = Math.ceil(this.pendingGames.length / this.pendingLimit);
-    
-    // Only change page if current page is invalid
-    if (this.pendingPage > this.pendingTotalPages && this.pendingTotalPages > 0) {
-      this.pendingPage = this.pendingTotalPages;
-    } else if (this.pendingTotalPages === 0) {
-      this.pendingPage = 1;
-    }
-    
-    const startIndex = (this.pendingPage - 1) * this.pendingLimit;
-    const endIndex = startIndex + this.pendingLimit;
-    this.pendingDisplayedGames = this.pendingGames.slice(startIndex, endIndex);
+    const slice = paginate(this.pendingGames, this.pendingPage, this.pendingLimit);
+    this.pendingPage = slice.page;
+    this.pendingTotalPages = slice.totalPages;
+    this.pendingDisplayedGames = slice.items;
   }
 
   updateConfirmedPagination() {
-    this.confirmedTotalPages = Math.ceil(this.confirmedGames.length / this.confirmedLimit);
-    
-    // Only change page if current page is invalid
-    if (this.confirmedPage > this.confirmedTotalPages && this.confirmedTotalPages > 0) {
-      this.confirmedPage = this.confirmedTotalPages;
-    } else if (this.confirmedTotalPages === 0) {
-      this.confirmedPage = 1;
-    }
-    
-    const startIndex = (this.confirmedPage - 1) * this.confirmedLimit;
-    const endIndex = startIndex + this.confirmedLimit;
-    this.confirmedDisplayedGames = this.confirmedGames.slice(startIndex, endIndex);
+    const slice = paginate(this.confirmedGames, this.confirmedPage, this.confirmedLimit);
+    this.confirmedPage = slice.page;
+    this.confirmedTotalPages = slice.totalPages;
+    this.confirmedDisplayedGames = slice.items;
   }
 
   updateHistoryPagination() {
-    this.historyTotalPages = Math.ceil(this.gameHistory.length / this.historyLimit);
-    
-    // Only change page if current page is invalid
-    if (this.historyPage > this.historyTotalPages && this.historyTotalPages > 0) {
-      this.historyPage = this.historyTotalPages;
-    } else if (this.historyTotalPages === 0) {
-      this.historyPage = 1;
-    }
-    
-    const startIndex = (this.historyPage - 1) * this.historyLimit;
-    const endIndex = startIndex + this.historyLimit;
-    this.historyDisplayedGames = this.gameHistory.slice(startIndex, endIndex);
+    const slice = paginate(this.gameHistory, this.historyPage, this.historyLimit);
+    this.historyPage = slice.page;
+    this.historyTotalPages = slice.totalPages;
+    this.historyDisplayedGames = slice.items;
   }
 
   // Pending games pagination methods
@@ -813,14 +525,7 @@ if (window.innerWidth <= 693) {
   }
 
   getPendingPages(): number[] {
-    const pages = [];
-    const start = Math.max(1, this.pendingPage - 2);
-    const end = Math.min(this.pendingTotalPages, this.pendingPage + 2);
-    
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
+    return pageWindow(this.pendingPage, this.pendingTotalPages);
   }
 
   // Confirmed games pagination methods
@@ -832,14 +537,7 @@ if (window.innerWidth <= 693) {
   }
 
   getConfirmedPages(): number[] {
-    const pages = [];
-    const start = Math.max(1, this.confirmedPage - 2);
-    const end = Math.min(this.confirmedTotalPages, this.confirmedPage + 2);
-    
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
+    return pageWindow(this.confirmedPage, this.confirmedTotalPages);
   }
 
   // History games pagination methods
@@ -851,22 +549,15 @@ if (window.innerWidth <= 693) {
   }
 
   getHistoryPages(): number[] {
-    const pages = [];
-    const start = Math.max(1, this.historyPage - 2);
-    const end = Math.min(this.historyTotalPages, this.historyPage + 2);
-    
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
+    return pageWindow(this.historyPage, this.historyTotalPages);
   }
 
   // UPDATE EXISTING METHODS
   applyFilters() {
     // Filter each category
-    this.pendingGames = this.filterGames(this.allPendingGames);
-    this.confirmedGames = this.filterGames(this.allConfirmedGames);
-    this.gameHistory = this.filterGames(this.allGameHistory);
+    this.pendingGames = filterGames(this.allPendingGames, this.filterValues);
+    this.confirmedGames = filterGames(this.allConfirmedGames, this.filterValues);
+    this.gameHistory = filterGames(this.allGameHistory, this.filterValues);
     
     // ADD PAGINATION UPDATE
     this.updatePagination();

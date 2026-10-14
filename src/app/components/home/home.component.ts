@@ -25,6 +25,22 @@ import {
   isAdminUser,
   userHasRole
 } from '../../model/roles';
+import {
+  activeAbsences,
+  countOwnPendingNominations,
+  expenseStatusClass,
+  formatAmount as formatEuroAmount,
+  formatHomeDate,
+  greetingForHour,
+  homeGameStatusClass,
+  homeGameStatusText,
+  summarizeExamAttempts,
+  summarizeOfficialGames,
+  summarizeOverviewExpenses,
+  summarizeOverviewGames,
+  summarizeUserExpenses,
+  welcomeMessage
+} from './home.helpers';
 
 @Component({
   selector: 'app-home',
@@ -204,18 +220,11 @@ isExpensesModalOpen = false;
   }
 
 
-private countOwnPendingNominations(games: BasketballGame[]): number {
-  return games.filter((game) => {
-    const assignment = game.refereeAssignments.find((a) => this.isCurrentUserAssignment(a));
-    return assignment?.assignmentStatus === 'Pending';
-  }).length;
-}
-
 private loadOwnPendingNominations(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.gameService.getMyAssignments().subscribe({
       next: (games) => {
-        this.dashboardStats.pendingGames = this.countOwnPendingNominations(games);
+        this.dashboardStats.pendingGames = countOwnPendingNominations(games, this.currentUserId());
         resolve();
       },
       error: reject
@@ -227,35 +236,11 @@ private loadUserGames(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.gameService.getMyAssignments().subscribe({
       next: (games) => {
-        const now = new Date();
-        
-        // Count pending games (assignments waiting for response)
-        this.dashboardStats.pendingGames = this.countOwnPendingNominations(games);
-
-        // Count upcoming games (accepted and future)
-        this.dashboardStats.upcomingGames = games.filter(game => {
-          const assignment = game.refereeAssignments.find(
-            a => this.isCurrentUserAssignment(a)
-          );
-          return assignment?.assignmentStatus === 'Accepted' && this.isGameUpcoming(game, now);
-        }).length;
-
-        // Get recent completed games
-        this.recentGames = games
-          .filter(game => {
-            const assignment = game.refereeAssignments.find(
-              a => this.isCurrentUserAssignment(a)
-            );
-            return assignment?.assignmentStatus === 'Accepted' && this.isGameInPast(game, now);
-          })
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.date).getTime();
-            const dateB = this.getSafeDate(b.date).getTime();
-            return dateB - dateA;
-          })
-          .slice(0, 3);
-
-        this.dashboardStats.completedGames = this.recentGames.length;
+        const summary = summarizeOfficialGames(games, this.currentUserId());
+        this.dashboardStats.pendingGames = summary.pendingGames;
+        this.dashboardStats.upcomingGames = summary.upcomingGames;
+        this.recentGames = summary.recentGames;
+        this.dashboardStats.completedGames = summary.recentGames.length;
         resolve();
       },
       error: reject
@@ -267,14 +252,9 @@ private loadUserExpenses(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.expenseService.getCurrentUserTravelExpenses().subscribe({
       next: (expenses) => {
-        this.dashboardStats.pendingExpenses = expenses.filter(e => e.state === 'Predano' || e.state === 'Odbijeno').length;
-        this.recentExpenses = expenses
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.updatedAt || a.createdAt).getTime();
-            const dateB = this.getSafeDate(b.updatedAt || b.createdAt).getTime();
-            return dateB - dateA;
-          })
-          .slice(0, 3);
+        const summary = summarizeUserExpenses(expenses);
+        this.dashboardStats.pendingExpenses = summary.pendingExpenses;
+        this.recentExpenses = summary.recentExpenses;
         resolve();
       },
       error: reject
@@ -286,18 +266,7 @@ private loadUserAbsences(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.absenceService.getCurrentUserAbsences().subscribe({
       next: (absences) => {
-        const now = new Date();
-        this.currentAbsences = absences
-          .filter(absence => {
-            const startDate = new Date(absence.startDate);
-            const endDate = new Date(absence.endDate);
-            return startDate <= now && endDate >= now;
-          })
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.createdAt).getTime();
-            const dateB = this.getSafeDate(b.createdAt).getTime();
-            return dateB - dateA;
-          });
+        this.currentAbsences = activeAbsences(absences);
         this.dashboardStats.activeAbsences = this.currentAbsences.length;
         resolve();
       },
@@ -305,19 +274,14 @@ private loadUserAbsences(): Promise<void> {
     });
   });
 }
+
 private loadUserExams(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.examService.getUserAttempts().subscribe({
       next: (attempts) => {
-        if (attempts.length > 0) {
-          const latest = attempts.sort((a, b) => {
-            const dateA = this.getSafeDate(a.completedAt).getTime();
-            const dateB = this.getSafeDate(b.completedAt).getTime();
-            return dateB - dateA;
-          })[0];
-          this.dashboardStats.lastExamScore = latest.score || 0;
-          this.recentExamAttempts = attempts.slice(0, 2);
-        }
+        const summary = summarizeExamAttempts(attempts);
+        this.dashboardStats.lastExamScore = summary.lastExamScore;
+        this.recentExamAttempts = summary.recentExamAttempts;
         resolve();
       },
       error: reject
@@ -329,39 +293,26 @@ private loadAdminGames(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.gameService.getAllGames().subscribe({
       next: (response) => {
-        const games = response.games;
-        const now = new Date();
-        
-        this.adminStats.totalGames = games.length;
-        this.dashboardStats.upcomingGames = games.filter(game => this.isGameUpcoming(game, now)).length;
-        this.dashboardStats.completedGames = games.filter(game => this.isGameInPast(game, now)).length;
-        
-        this.recentGames = games
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.createdAt || a.date).getTime();
-            const dateB = this.getSafeDate(b.createdAt || b.date).getTime();
-            return dateB - dateA;
-          })
-          .slice(0, 5);
+        const summary = summarizeOverviewGames(response.games);
+        this.adminStats.totalGames = summary.totalGames;
+        this.dashboardStats.upcomingGames = summary.upcomingGames;
+        this.dashboardStats.completedGames = summary.completedGames;
+        this.recentGames = summary.recentGames;
         resolve();
       },
       error: reject
     });
   });
 }
+
 private loadAdminExpenses(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.expenseService.getAllTravelExpenses().subscribe({
       next: (expenses) => {
-        this.adminStats.totalExpenses = expenses.length;
-        this.dashboardStats.pendingExpenses = expenses.filter(e => e.state === 'Predano').length;
-        this.recentExpenses = expenses
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.submittedAt || a.createdAt).getTime();
-            const dateB = this.getSafeDate(b.submittedAt || b.createdAt).getTime();
-            return dateB - dateA;
-          })
-          .slice(0, 5);
+        const summary = summarizeOverviewExpenses(expenses);
+        this.adminStats.totalExpenses = summary.totalExpenses;
+        this.dashboardStats.pendingExpenses = summary.pendingExpenses;
+        this.recentExpenses = summary.recentExpenses;
         resolve();
       },
       error: reject
@@ -374,18 +325,7 @@ private loadAdminAbsences(): Promise<void> {
     this.absenceService.getAllAbsences().subscribe({
       next: (absences) => {
         this.adminStats.totalAbsences = absences.length;
-        const now = new Date();
-        this.currentAbsences = absences
-          .filter(absence => {
-            const startDate = new Date(absence.startDate);
-            const endDate = new Date(absence.endDate);
-            return startDate <= now && endDate >= now;
-          })
-          .sort((a, b) => {
-            const dateA = this.getSafeDate(a.createdAt).getTime();
-            const dateB = this.getSafeDate(b.createdAt).getTime();
-            return dateB - dateA;
-          });
+        this.currentAbsences = activeAbsences(absences);
         this.dashboardStats.activeAbsences = this.currentAbsences.length;
         resolve();
       },
@@ -412,48 +352,19 @@ private loadAdminAbsences(): Promise<void> {
 
   // Formatting helpers
 formatDate(dateString: string | undefined): string {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('hr-HR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-}
-
-formatDateTime(dateString: string | undefined): string {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('hr-HR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return formatHomeDate(dateString);
 }
 
   getGameStatusClass(game: BasketballGame): string {
-    if (this.isGameUpcoming(game)) return 'status-upcoming';
-    if (this.isGameInPast(game)) return 'status-completed';
-    return 'status-ongoing';
+    return homeGameStatusClass(game);
   }
 
   getExpenseStatusClass(expense: TravelExpense): string {
-    switch (expense.state) {
-      case 'Skica': return 'status-draft';
-      case 'Predano': return 'status-submitted';
-      case 'Potvrđeno': return 'status-approved';
-      case 'Odbijeno': return 'status-rejected';
-      default: return '';
-    }
+    return expenseStatusClass(expense.state);
   }
 
   getGreeting(): string {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Dobro jutro';
-    if (hour < 18) return 'Dobar dan';
-    return 'Dobra večer';
+    return greetingForHour(new Date().getHours());
   }
 
   getRoleLabel(): string {
@@ -461,84 +372,24 @@ formatDateTime(dateString: string | undefined): string {
   }
 
   getWelcomeMessage(): string {
-    if (this.isAdmin) {
-      return 'Dobrodošli u administratorski panel. Ovdje možete upravljati svim aspektima sustava.';
-    }
-    const hats: string[] = [];
-    if (this.canManageCalendar) {
-      hats.push('dogovarati kalendar natjecanja');
-    }
-    if (this.canNominateOfficials) {
-      hats.push('slati nominacije službenim osobama');
-    }
-    if (this.isFieldOfficial) {
-      hats.push('pratiti svoje utakmice, troškove i ispite');
-    }
-    if (!hats.length) {
-      return 'Dobrodošli u portal.';
-    }
-    if (hats.length === 1) {
-      return `Ovdje možete ${hats[0]}.`;
-    }
-    const last = hats.pop() as string;
-    return `Ovdje možete ${hats.join(', ')} i ${last}.`;
+    return welcomeMessage({
+      isAdmin: this.isAdmin,
+      canManageCalendar: this.canManageCalendar,
+      canNominateOfficials: this.canNominateOfficials,
+      isFieldOfficial: this.isFieldOfficial
+    });
   }
 
-// Add this method to your HomeComponent class
 formatAmount(amount: number | undefined | null): string {
-  if (amount === undefined || amount === null || isNaN(amount)) {
-    return '0,00 €';
-  }
-  return `${amount.toFixed(2).replace('.', ',')} €`;
-}
-
-// Add this helper method to your HomeComponent
-private getSafeDate(dateString: string | undefined, fallback: string | Date = new Date(0)): Date {
-  if (!dateString) {
-    return new Date(fallback);
-  }
-  return new Date(dateString);
-}
-
-private getGameDateTime(game: BasketballGame): Date {
-  const dateTime = new Date(game.date);
-  const [hours = '0', minutes = '0'] = (game.time || '00:00').split(':');
-  dateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
-  return dateTime;
-}
-
-private isGameInPast(game: BasketballGame, now = new Date()): boolean {
-  return this.getGameDateTime(game).getTime() < now.getTime();
-}
-
-private isGameUpcoming(game: BasketballGame, now = new Date()): boolean {
-  return this.getGameDateTime(game).getTime() >= now.getTime();
+  return formatEuroAmount(amount);
 }
 
 private currentUserId(): string {
   return this.currentUser?._id || (this.currentUser as { id?: string })?.id || '';
 }
 
-private isCurrentUserAssignment(assignment: { userId?: any }): boolean {
-  const assigned = assignment?.userId;
-  const assignedId = typeof assigned === 'string'
-    ? assigned
-    : assigned?._id || assigned?.id;
-  return String(assignedId) === this.currentUserId();
-}
-
 getGameStatusText(game: BasketballGame): string {
-  switch (game.status) {
-    case 'Completed':
-      return 'Završeno';
-    case 'Cancelled':
-      return 'Otkazano';
-    case 'Ongoing':
-      return 'U tijeku';
-    case 'Scheduled':
-    default:
-      return this.isGameUpcoming(game) ? 'Nadolazi' : 'Završeno';
-  }
+  return homeGameStatusText(game);
 }
 
   openCreateGameModal(): void {
