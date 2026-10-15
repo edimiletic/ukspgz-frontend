@@ -9,11 +9,10 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     auth = jasmine.createSpyObj('AuthService', [
-      'isAuthenticated',
       'getCurrentUser',
       'clearSession'
     ], { currentUserValue: null });
-    auth.isAuthenticated.and.returnValue(false);
+    auth.getCurrentUser.and.returnValue(throwError(() => ({ status: 401 })));
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -27,12 +26,12 @@ describe('AppComponent', () => {
   it('prikazuje aplikaciju kad korisnik nije prijavljen', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
+    expect(auth.getCurrentUser).toHaveBeenCalled();
+    expect(auth.clearSession).toHaveBeenCalled();
     expect(fixture.componentInstance.isInitializing).toBeFalse();
-    expect(auth.getCurrentUser).not.toHaveBeenCalled();
   });
 
-  it('dohvaća korisnika kad postoji token bez cached profila', () => {
-    auth.isAuthenticated.and.returnValue(true);
+  it('dohvaća korisnika kad postoji cookie sesija bez cached profila', () => {
     auth.getCurrentUser.and.returnValue(of({ _id: 'u1' } as any));
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -41,7 +40,6 @@ describe('AppComponent', () => {
   });
 
   it('čisti sesiju ako dohvat trenutnog korisnika padne', () => {
-    auth.isAuthenticated.and.returnValue(true);
     auth.getCurrentUser.and.returnValue(throwError(() => ({ status: 401 })));
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
