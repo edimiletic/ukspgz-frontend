@@ -23,7 +23,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     private router: Router, 
     private authService: AuthService,
     private sidebarNav: SidebarNavService,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
@@ -86,7 +86,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Close sidebar when clicking outside or pressing escape
   @HostListener('document:keydown.escape', ['$event'])
-  onEscapeKey(event: KeyboardEvent) {
+  onEscapeKey(_event: KeyboardEvent) {
     if (this.isSidebarOpen) {
       this.closeSidebar();
     }

@@ -41,7 +41,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private notificationService: NotificationService,
     private sidebarNav: SidebarNavService,
     private router: Router,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }

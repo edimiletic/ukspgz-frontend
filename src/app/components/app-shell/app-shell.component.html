@@ -1,5 +1,5 @@
 <app-header></app-header>
-<app-sidebar *ngIf="!(hideSidebar$ | async)"></app-sidebar>
+<app-sidebar *ngIf="(hideSidebar$ | async) === false"></app-sidebar>
 
 <main class="shell-main" [class.no-sidebar]="hideSidebar$ | async">
   <div class="shell-content">

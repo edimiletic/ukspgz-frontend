@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AttemptReview, ReviewQuestion } from '../../model/exam.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './exam-review.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExamReviewComponent {
+export class ExamReviewComponent implements OnInit {
   reviewData: AttemptReview | null = null;
   reviewQuestions: ReviewQuestion[] = [];
   loading = true;

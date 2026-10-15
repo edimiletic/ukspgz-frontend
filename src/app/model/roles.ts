@@ -144,7 +144,7 @@ export const getCompetitionRank = (competition?: string | null): number =>
 export const isWithinNominationCap = (
   user?: { najvisaLiga?: string | null } | null,
   competition?: string | null,
-  assignmentRole?: string | null
+  _assignmentRole?: string | null
 ): boolean => {
   const cap = user?.najvisaLiga;
   if (!cap || !competition) return true;

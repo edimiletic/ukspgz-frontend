@@ -739,11 +739,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
       if (!desired) {
         removedUserIds.push(assignmentUserId(currentAssignment));
-        try {
-          await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
-        } catch (error) {
-          throw error;
-        }
+        await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
         continue;
       }
 

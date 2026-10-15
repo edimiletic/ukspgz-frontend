@@ -13,7 +13,7 @@ export class SidebarNavService {
   readonly isOpen$ = this.openSubject.asObservable();
   readonly isPresent$ = this.presentSubject.asObservable();
 
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) platformId: object) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
@@ -31,7 +31,11 @@ export class SidebarNavService {
   }
 
   toggle(): void {
-    this.isOpen ? this.close() : this.open();
+    if (this.isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
   }
 
   open(): void {

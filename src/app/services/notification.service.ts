@@ -21,7 +21,7 @@ export class NotificationService {
 
   constructor(
     private http: HttpClient,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
       }

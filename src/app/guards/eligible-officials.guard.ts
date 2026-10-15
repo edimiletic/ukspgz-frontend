@@ -15,7 +15,7 @@ export class EligibleOfficialsGuard implements CanActivate {
   constructor(
     private router: Router,
     private authService: AuthService,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }

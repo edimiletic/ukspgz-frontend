@@ -1,6 +1,6 @@
 import { AbsenceService } from './../../services/absence.service';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostBinding, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { TimeAbsentModalComponent } from './time-absent-modal/time-absent-modal.component';
 import { Absence } from '../../model/absence.model';
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
@@ -9,7 +9,7 @@ import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser, userHasRole } from '../../model/roles';
+import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser } from '../../model/roles';
 
 
 interface AbsenceWithUser extends Absence {
@@ -23,7 +23,7 @@ interface AbsenceWithUser extends Absence {
   styleUrl: './time-absent.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TimeAbsentComponent {
+export class TimeAbsentComponent implements OnInit {
   isAbsenceFormOpen = false;
   absences: AbsenceWithUser[] = [];
   // Original data (unfiltered)

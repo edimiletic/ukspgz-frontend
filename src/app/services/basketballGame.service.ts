@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame, NominationRejection } from '../model/basketballGame.model';
+import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, BasketballGame, NominationRejection } from '../model/basketballGame.model';
 import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'

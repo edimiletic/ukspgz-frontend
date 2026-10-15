@@ -45,7 +45,7 @@ export class AuthComponent implements OnInit {
     };
 
     this.authService.login(credentials).subscribe({
-      next: (response) => {
+      next: (_response) => {
                 // Always redirect to home after login
         this.router.navigate(['/home']);
       },

@@ -30,7 +30,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }

@@ -15,12 +15,12 @@ export class AuthGuard implements CanActivate {
   constructor(
     private router: Router,
     private authService: AuthService,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+  canActivate(_route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {
     if (!this.isBrowser) {
       return of(true);
     }

@@ -13,7 +13,7 @@ export class TravelExpenseService {
 
   constructor(
     private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
   downloadTemplate(): Observable<Blob> {
