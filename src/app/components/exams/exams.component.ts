@@ -13,9 +13,11 @@ import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirma
 import {
   correctAnswerLabel,
   filterQuestionBank,
+  paginateList,
   paginateQuestions,
   questionPageNumbers
 } from './question-bank.helpers';
+import { attemptUserName, filterExamAttempts } from './exam-attempts.helpers';
 
 @Component({
   selector: 'app-exams',
@@ -40,6 +42,10 @@ export class ExamsComponent implements OnInit {
   questionPage = 1;
   loadingQuestions = false;
   answerLabel = correctAnswerLabel;
+  allAttempts: ExamAttempt[] = [];
+  attemptSearch = '';
+  attemptPage = 1;
+  loadingAllAttempts = false;
 
   isDeleteAttemptModalOpen = false;
   isDeleteQuestionModalOpen = false;
@@ -71,6 +77,11 @@ export class ExamsComponent implements OnInit {
     this.refreshView();
   }
 
+  onAttemptFilterChange(): void {
+    this.attemptPage = 1;
+    this.refreshView();
+  }
+
   ngOnInit(): void {
     this.loadCurrentUser();
     this.loadCurrentExam();
@@ -84,6 +95,7 @@ loadCurrentUser(): void {
       this.refreshView();
       this.loadExamStats();
       this.loadQuestionBank();
+      this.loadAllAttempts();
     },
     error: (err) => {
       console.error('Failed to load user:', err);
@@ -170,6 +182,55 @@ loadCurrentUser(): void {
     const slice = paginateQuestions(this.filteredQuestions, page);
     this.questionPage = slice.page;
     this.refreshView();
+  }
+
+  loadAllAttempts(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+    this.loadingAllAttempts = true;
+    this.examService.getAllAttempts().subscribe({
+      next: (attempts: ExamAttempt[]) => {
+        this.allAttempts = attempts || [];
+        this.loadingAllAttempts = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error('Failed to load all attempts:', err);
+        this.loadingAllAttempts = false;
+        this.showErrorToast('Greška prilikom učitavanja svih pokušaja ispita.');
+      }
+    });
+  }
+
+  get filteredAllAttempts(): ExamAttempt[] {
+    return filterExamAttempts(this.allAttempts, this.attemptSearch);
+  }
+
+  get attemptPageSlice() {
+    return paginateList(this.filteredAllAttempts, this.attemptPage);
+  }
+
+  get pagedAllAttempts(): ExamAttempt[] {
+    return this.attemptPageSlice.items;
+  }
+
+  get attemptTotalPages(): number {
+    return this.attemptPageSlice.totalPages;
+  }
+
+  get attemptPageButtons(): number[] {
+    return questionPageNumbers(this.attemptPageSlice.page, this.attemptTotalPages);
+  }
+
+  goToAttemptPage(page: number): void {
+    const slice = paginateList(this.filteredAllAttempts, page);
+    this.attemptPage = slice.page;
+    this.refreshView();
+  }
+
+  getAttemptUserName(attempt: ExamAttempt): string {
+    return attemptUserName(attempt);
   }
 
   loadExamStats(): void {
@@ -432,6 +493,8 @@ onDeleteAttemptConfirmed(payload: unknown): void {
     next: () => {
       this.showSuccessToast('Pokušaj ispita je uspješno obrisan.');
       this.loadUserAttempts();
+      this.loadAllAttempts();
+      this.goToAttemptPage(this.attemptPage);
       this.closeDeleteAttemptModal();
     },
     error: (err) => {

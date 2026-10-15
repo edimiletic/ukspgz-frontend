@@ -39,12 +39,12 @@ export function filterQuestionBank(questions: QuestionBank[], search: string): Q
   return questions.filter((question) => question.questionText.toLowerCase().includes(needle));
 }
 
-export function paginateQuestions(
-  questions: QuestionBank[],
+export function paginateList<T>(
+  items: T[],
   page: number,
   pageSize = QUESTIONS_PAGE_SIZE
-): { page: number; totalPages: number; items: QuestionBank[] } {
-  const totalPages = Math.ceil(questions.length / pageSize);
+): { page: number; totalPages: number; items: T[] } {
+  const totalPages = Math.ceil(items.length / pageSize);
   let current = page;
   if (totalPages === 0) {
     current = 1;
@@ -57,8 +57,16 @@ export function paginateQuestions(
   return {
     page: current,
     totalPages,
-    items: questions.slice(start, start + pageSize)
+    items: items.slice(start, start + pageSize)
   };
+}
+
+export function paginateQuestions(
+  questions: QuestionBank[],
+  page: number,
+  pageSize = QUESTIONS_PAGE_SIZE
+): { page: number; totalPages: number; items: QuestionBank[] } {
+  return paginateList(questions, page, pageSize);
 }
 
 export function questionPageNumbers(page: number, totalPages: number): number[] {

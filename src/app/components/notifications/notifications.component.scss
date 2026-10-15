@@ -285,6 +285,14 @@
       justify-content: center;
       margin-right: 1rem;
       flex-shrink: 0;
+
+      &.accepted {
+        background-color: #27ae60;
+      }
+
+      &.rejected {
+        background-color: #e74c3c;
+      }
       
       i {
         font-size: 1rem;

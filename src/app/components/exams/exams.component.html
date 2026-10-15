@@ -13,7 +13,7 @@
         </div>
         <div class="header-actions" *ngIf="isAdmin()">
           <button class="add-question-btn" (click)="openAddQuestionModal()">
-            <i class="icon-plus"></i>
+            <i class="fas fa-plus"></i>
             Kreiraj novo pitanje
           </button>
         </div>
@@ -69,7 +69,7 @@
         </div>
       </div>
       <button class="continue-exam-btn" (click)="continueExistingExam()" [disabled]="currentExam.isCompleted">
-        <i class="icon-play"></i>
+        <i class="fas fa-play"></i>
         {{ currentExam.isCompleted ? 'Ispit završen' : 'Nastavi ispit' }}
       </button>
     </div>
@@ -95,12 +95,12 @@
             </div>
             <div class="detail-item">
               <span class="label">Vrijeme za rješavanje:</span>
-              <span class="value">2 sata</span>
+              <span class="value">1 sat</span>
             </div>
           </div>
         </div>
         <button class="start-exam-btn" (click)="startNewExam()" [disabled]="generatingExam">
-          <i class="icon-play"></i>
+          <i class="fas fa-play"></i>
           {{ generatingExam ? 'Priprema ispita...' : 'Pokreni ispit' }}
         </button>
       </div>
@@ -206,6 +206,81 @@
       </div>
     </div>
 
+    <div class="attempts-section" *ngIf="isAdmin()">
+      <h3>Svi pokušaji ispita</h3>
+      <p class="section-hint">Pregled rezultata svih korisnika. Admin može otvoriti pregled odgovora ili obrisati pokušaj.</p>
+      <div class="question-filters">
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="attemptSearch"
+          (ngModelChange)="onAttemptFilterChange()"
+          placeholder="Pretraži po imenu...">
+      </div>
+      <div *ngIf="loadingAllAttempts" class="loading-message">Učitavam pokušaje...</div>
+      <div *ngIf="!loadingAllAttempts && filteredAllAttempts.length === 0" class="no-attempts-message">
+        <p>Nema pokušaja za ovaj filter.</p>
+      </div>
+      <div *ngIf="!loadingAllAttempts && filteredAllAttempts.length > 0" class="attempts-table-container">
+        <table class="attempts-table">
+          <thead>
+            <tr>
+              <th>Korisnik</th>
+              <th>Ispit</th>
+              <th>Datum</th>
+              <th>Rezultat</th>
+              <th>Status</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let attempt of pagedAllAttempts; trackBy: trackByAttemptId">
+              <td>{{ getAttemptUserName(attempt) }}</td>
+              <td class="exam-title">{{ getExamTitle(attempt) }}</td>
+              <td class="attempt-date">{{ attempt.completedAt ? formatDate(attempt.completedAt) : 'N/A' }}</td>
+              <td class="attempt-score">
+                <span class="score-fraction">{{ attempt.score || 0 }}/25</span>
+              </td>
+              <td class="attempt-status">
+                <span [class]="getAttemptStatusClass(attempt)">{{ getAttemptStatusText(attempt) }}</span>
+              </td>
+              <td class="attempt-actions">
+                <button class="btn-icon btn-info" (click)="reviewAttempt(attempt)" title="Pregled odgovora">
+                  <i class="fas fa-search"></i>
+                </button>
+                <button class="btn-icon btn-delete" (click)="deleteAttempt(attempt._id)" title="Obriši pokušaj">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination-container" *ngIf="attemptTotalPages > 1">
+          <div class="pagination-info">
+            Prikazano {{ pagedAllAttempts.length }} od {{ filteredAllAttempts.length }} •
+            Stranica {{ attemptPageSlice.page }} od {{ attemptTotalPages }}
+          </div>
+          <div class="pagination">
+            <button class="page-btn" type="button" title="Prva stranica" [disabled]="attemptPageSlice.page === 1" (click)="goToAttemptPage(1)">
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="page-btn" type="button" title="Prethodna stranica" [disabled]="attemptPageSlice.page === 1" (click)="goToAttemptPage(attemptPageSlice.page - 1)">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="page-btn" type="button" *ngFor="let n of attemptPageButtons" [class.active]="n === attemptPageSlice.page" (click)="goToAttemptPage(n)">
+              {{ n }}
+            </button>
+            <button class="page-btn" type="button" title="Sljedeća stranica" [disabled]="attemptPageSlice.page === attemptTotalPages" (click)="goToAttemptPage(attemptPageSlice.page + 1)">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button class="page-btn" type="button" title="Zadnja stranica" [disabled]="attemptPageSlice.page === attemptTotalPages" (click)="goToAttemptPage(attemptTotalPages)">
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Previous Attempts Section -->
     <div class="attempts-section">
       <h3>Vaši prethodni pokušaji</h3>
@@ -282,7 +357,7 @@
 <!-- Toast Notifications -->
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">
-    <span class="toast-emoji">✅</span>
+    <span class="toast-emoji"><i class="fas fa-check"></i></span>
     <span class="toast-message">{{ successMessage }}</span>
     <button class="toast-close" (click)="clearMessages()">
       <span>&times;</span>
@@ -290,7 +365,7 @@
   </div>
 
   <div *ngIf="errorMessage" class="toast toast-error">
-    <span class="toast-emoji">❌</span>
+    <span class="toast-emoji"><i class="fas fa-times"></i></span>
     <span class="toast-message">{{ errorMessage }}</span>
     <button class="toast-close" (click)="clearMessages()">
       <span>&times;</span>

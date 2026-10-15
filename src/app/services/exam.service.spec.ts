@@ -57,6 +57,13 @@ describe('ExamService', () => {
     const del = http.expectOne(`${base}/attempts/at1`);
     expect(del.request.method).toBe('DELETE');
     del.flush({ message: 'ok' });
+
+    service.getAllAttempts().subscribe((list) => {
+      expect(list.length).toBe(1);
+    });
+    const all = http.expectOne(`${base}/attempts/all`);
+    expect(all.request.method).toBe('GET');
+    all.flush([{ _id: 'at1' }]);
   });
 
   it('dohvaća, mijenja i briše pitanje u bazi', () => {

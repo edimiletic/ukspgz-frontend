@@ -3,7 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
-import { Notification, NotificationResponse, notificationTargetRoute } from '../../model/notification.model';
+import {
+  displayNotificationMessage,
+  Notification,
+  NotificationResponse,
+  notificationIconClass,
+  notificationResponseKind,
+  notificationTargetRoute
+} from '../../model/notification.model';
 import { AuthService } from '../../services/login.service';
 import { isAdminUser, userHasRole } from '../../model/roles';
 
@@ -162,31 +169,18 @@ export class NotificationsComponent implements OnInit {
     }
   }
 
-  getNotificationIcon(type: string): string {
-    switch (type) {
-      case 'GAME_ASSIGNMENT':
-        return 'fas fa-basketball-ball';
-      case 'GAME_CREATED':
-        return 'fas fa-calendar-plus';
-      case 'ASSIGNMENT_RESPONSE':
-        return 'fas fa-reply';
-      case 'ASSIGNMENT_RELEASED':
-        return 'fas fa-undo';
-      case 'GAME_SCHEDULE_CHANGED':
-        return 'fas fa-clock';
-      case 'ASSIGNMENT_REMOVED':
-        return 'fas fa-user-minus';
-      case 'COLLEAGUE_REPLACED':
-        return 'fas fa-exchange-alt';
-      case 'NOMINATION_EXPIRED':
-        return 'fas fa-hourglass-end';
-      case 'EXPENSE_APPROVED':
-        return 'fas fa-check-circle';
-      case 'EXPENSE_REJECTED':
-        return 'fas fa-times-circle';
-      default:
-        return 'fas fa-bell';
-    }
+  getNotificationIcon(notification: Notification): string {
+    return notificationIconClass(notification.type, notification.message);
+  }
+
+  responseKind(notification: Notification): 'accepted' | 'rejected' | null {
+    return notification.type === 'ASSIGNMENT_RESPONSE'
+      ? notificationResponseKind(notification.message)
+      : null;
+  }
+
+  displayMessage(message: string): string {
+    return displayNotificationMessage(message);
   }
 
   markAsRead(notification: Notification) {

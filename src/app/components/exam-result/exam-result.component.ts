@@ -99,11 +99,6 @@ export class ExamResultComponent implements OnInit {
     return 'score-poor';
   }
 
-  getResultIcon(): string {
-    if (!this.result) return '📋';
-    return this.result.passed ? '🎉' : '😔';
-  }
-
   getResultTitle(): string {
     if (!this.result) return 'Rezultat ispita';
     return this.result.passed ? 'Čestitamo! Položili ste ispit!' : 'Nažalost, niste položili ispit';

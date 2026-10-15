@@ -34,9 +34,16 @@ export interface ExamAnswer {
   answer: boolean | null;
 }
 
+export interface ExamAttemptUser {
+  _id: string;
+  name?: string;
+  surname?: string;
+  username?: string;
+}
+
 export interface ExamAttempt {
   _id: string;
-  userId: string;
+  userId: string | ExamAttemptUser;
   examId: string | Exam;
   answers: ExamAnswer[];
   score: number;

@@ -41,10 +41,17 @@
                  [class.unread]="!notification.isRead"
                  (click)="markAsRead(notification)">
               <div class="notification-content">
-                <div class="notification-text">{{ notification.message }}</div>
-                <div class="notification-meta">
-                  <span class="notification-time">{{ formatNotificationTime(notification.createdAt) }}</span>
-                  <span *ngIf="!notification.isRead" class="unread-dot"></span>
+                <i
+                  class="notification-type-icon"
+                  [ngClass]="notificationIcon(notification)"
+                  [class.accepted]="responseKind(notification) === 'accepted'"
+                  [class.rejected]="responseKind(notification) === 'rejected'"></i>
+                <div class="notification-body">
+                  <div class="notification-text">{{ displayMessage(notification.message) }}</div>
+                  <div class="notification-meta">
+                    <span class="notification-time">{{ formatNotificationTime(notification.createdAt) }}</span>
+                    <span *ngIf="!notification.isRead" class="unread-dot"></span>
+                  </div>
                 </div>
               </div>
             </div>

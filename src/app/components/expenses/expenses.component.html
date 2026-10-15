@@ -198,7 +198,7 @@
 
 <div class="toast-container">
   <div *ngIf="successMessage" class="toast toast-success">
-    <span class="toast-emoji">✅</span>
+    <span class="toast-emoji"><i class="fas fa-check"></i></span>
     <span class="toast-message">{{ successMessage }}</span>
     <button class="toast-close" (click)="clearMessages()">
       <i class="fa-solid fa-xmark"></i>
@@ -206,7 +206,7 @@
   </div>
 
   <div *ngIf="errorMessage" class="toast toast-error">
-    <span class="toast-emoji">❌</span>
+    <span class="toast-emoji"><i class="fas fa-times"></i></span>
     <span class="toast-message">{{ errorMessage }}</span>
     <button class="toast-close" (click)="clearMessages()">
       <i class="fa-solid fa-xmark"></i>

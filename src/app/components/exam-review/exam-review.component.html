@@ -8,7 +8,7 @@
         <p>{{ reviewData.exam?.title || 'Sudački Ispit' }}</p>
       </div>
       <button class="back-btn" (click)="goBack()">
-        <i class="back-icon">←</i>
+        <i class="back-icon fas fa-chevron-left"></i>
         Povratak
       </button>
     </div>
@@ -18,7 +18,6 @@
   <div class="result-summary">
     <div class="summary-cards">
       <div class="summary-card" [class]="reviewData.attempt.passed ? 'card-passed' : 'card-failed'">
-        <!-- <div class="card-icon">{{ reviewData.attempt.passed ? '🎉' : '📚' }}</div> -->
         <div class="card-content">
           <div class="card-title">{{ reviewData.attempt.passed ? 'POLOŽEN' : 'NEPOLOŽEN' }}</div>
           <div class="card-subtitle">{{ getScorePercentage() }}% ({{ reviewData.attempt.score }}/25)</div>
@@ -27,17 +26,17 @@
 
       <div class="summary-stats">
         <div class="stat-item correct">
-          <span class="stat-icon">✅</span>
+          <span class="stat-icon"><i class="fas fa-check"></i></span>
           <span class="stat-value">{{ getCorrectCount() }}</span>
           <span class="stat-label">Točno</span>
         </div>
         <div class="stat-item incorrect">
-          <span class="stat-icon">❌</span>
+          <span class="stat-icon"><i class="fas fa-times"></i></span>
           <span class="stat-value">{{ getIncorrectCount() }}</span>
           <span class="stat-label">Netočno</span>
         </div>
         <div class="stat-item unanswered">
-          <span class="stat-icon">❔</span>
+          <span class="stat-icon"><i class="fas fa-question"></i></span>
           <span class="stat-value">{{ getUnansweredCount() }}</span>
           <span class="stat-label">Neodgovoreno</span>
         </div>
@@ -97,9 +96,9 @@
       <div class="question-header">
         <span class="question-number">Pitanje {{ question.questionIndex + 1 }}</span>
         <span class="question-status" [class]="getAnswerClass(question)">
-          <span *ngIf="question.userAnswer === null">❔</span>
-          <span *ngIf="question.userAnswer !== null && question.isCorrect">✅</span>
-          <span *ngIf="question.userAnswer !== null && !question.isCorrect">❌</span>
+          <span *ngIf="question.userAnswer === null"><i class="fas fa-question"></i></span>
+          <span *ngIf="question.userAnswer !== null && question.isCorrect"><i class="fas fa-check"></i></span>
+          <span *ngIf="question.userAnswer !== null && !question.isCorrect"><i class="fas fa-times"></i></span>
         </span>
       </div>
 
@@ -131,7 +130,7 @@
   <!-- Bottom Back Button -->
   <div class="bottom-actions">
     <button class="back-btn" (click)="goBack()">
-      <i class="back-icon">←</i>
+      <i class="back-icon fas fa-chevron-left"></i>
       Povratak
     </button>
   </div>
@@ -145,7 +144,7 @@
     </div>
     
     <div *ngIf="error" class="error-message">
-      <div class="error-icon">❌</div>
+      <div class="error-icon"><i class="fas fa-times-circle"></i></div>
       <h3>Greška</h3>
       <p>{{ error }}</p>
       <button class="back-btn" (click)="goBack()">Povratak na ispite</button>

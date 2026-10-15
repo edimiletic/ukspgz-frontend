@@ -4,7 +4,13 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { NotificationService } from '../../services/notification.service';
 import { SidebarNavService } from '../../services/sidebar-nav.service';
-import { Notification, notificationTargetRoute } from '../../model/notification.model';
+import {
+  displayNotificationMessage,
+  Notification,
+  notificationIconClass,
+  notificationResponseKind,
+  notificationTargetRoute
+} from '../../model/notification.model';
 import { Router } from '@angular/router';
 import { Subscription, interval, forkJoin } from 'rxjs';
 import { ChangePasswordModalComponent } from '../change-password-modal/change-password-modal.component';
@@ -238,5 +244,19 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   trackByNotificationId(_index: number, notification: Notification): string {
     return notification._id;
+  }
+
+  notificationIcon(notification: Notification): string {
+    return notificationIconClass(notification.type, notification.message);
+  }
+
+  responseKind(notification: Notification): 'accepted' | 'rejected' | null {
+    return notification.type === 'ASSIGNMENT_RESPONSE'
+      ? notificationResponseKind(notification.message)
+      : null;
+  }
+
+  displayMessage(message: string): string {
+    return displayNotificationMessage(message);
   }
 }

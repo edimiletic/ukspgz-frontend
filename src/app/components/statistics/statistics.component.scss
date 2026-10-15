@@ -713,30 +713,18 @@
             .performer-rank {
               color: #f39c12;
               font-size: 1rem;
-
-              &::after {
-                content: " 🥇";
-              }
             }
           }
 
           &:nth-child(2) {
             .performer-rank {
               color: #95a5a6;
-
-              &::after {
-                content: " 🥈";
-              }
             }
           }
 
           &:nth-child(3) {
             .performer-rank {
               color: #cd7f32;
-
-              &::after {
-                content: " 🥉";
-              }
             }
           }
         }

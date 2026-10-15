@@ -32,6 +32,63 @@ export interface CreateNotificationRequest {
   travelExpenseId?: string;
 }
 
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu;
+
+export function displayNotificationMessage(message: string | undefined): string {
+  return String(message || '')
+    .replace(EMOJI_RE, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function notificationResponseKind(
+  message: string | undefined
+): 'accepted' | 'rejected' | null {
+  const text = displayNotificationMessage(message).toLowerCase();
+  if (text.includes('odbio')) {
+    return 'rejected';
+  }
+  if (text.includes('prihvatio')) {
+    return 'accepted';
+  }
+  return null;
+}
+
+export function notificationIconClass(type: string, message?: string): string {
+  switch (type) {
+    case 'GAME_ASSIGNMENT':
+      return 'fas fa-basketball-ball';
+    case 'GAME_CREATED':
+      return 'fas fa-calendar-plus';
+    case 'ASSIGNMENT_RESPONSE': {
+      const kind = notificationResponseKind(message);
+      if (kind === 'accepted') {
+        return 'fas fa-check';
+      }
+      if (kind === 'rejected') {
+        return 'fas fa-times';
+      }
+      return 'fas fa-reply';
+    }
+    case 'ASSIGNMENT_RELEASED':
+      return 'fas fa-undo';
+    case 'GAME_SCHEDULE_CHANGED':
+      return 'fas fa-clock';
+    case 'ASSIGNMENT_REMOVED':
+      return 'fas fa-user-minus';
+    case 'COLLEAGUE_REPLACED':
+      return 'fas fa-exchange-alt';
+    case 'NOMINATION_EXPIRED':
+      return 'fas fa-hourglass-end';
+    case 'EXPENSE_APPROVED':
+      return 'fas fa-check-circle';
+    case 'EXPENSE_REJECTED':
+      return 'fas fa-times-circle';
+    default:
+      return 'fas fa-bell';
+  }
+}
+
 export function notificationTargetRoute(notification: Notification): string[] | null {
   const expenseId = extractRelatedId(notification.travelExpenseId);
   if (expenseId) {

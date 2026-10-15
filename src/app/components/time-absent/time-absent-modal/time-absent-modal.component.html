@@ -37,11 +37,11 @@
           placeholder="Unesite razlog odsustva..."></textarea>
       </div>
       <div class="info-note" *ngIf="absence && endDateLocked">
-        <i class="icon-info">ℹ️</i>
+        <i class="fas fa-info-circle"></i>
         <span>Napomena: Ovo odsustvo je već završeno ({{ formatDate(absence.endDate) }}), možete urediti samo razlog.</span>
       </div>
       <div class="info-note" *ngIf="absence && startDateLocked && !endDateLocked">
-        <i class="icon-info">ℹ️</i>
+        <i class="fas fa-info-circle"></i>
         <span>Napomena: Odsustvo je već počelo, početni datum se ne može mijenjati.</span>
       </div>
     </div>

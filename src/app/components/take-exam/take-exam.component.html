@@ -19,11 +19,11 @@
     
     <div class="exam-controls">
       <div class="timer" [class]="getTimerClass()">
-        <i class="timer-icon">⏰</i>
+        <i class="timer-icon fas fa-clock"></i>
         <span class="timer-text">{{ formatTime(timeRemaining) }}</span>
       </div>
       <button class="exit-btn" (click)="exitExam()" [disabled]="isSubmitting">
-        <i class="exit-icon">🚪</i>
+        <i class="exit-icon fas fa-sign-out-alt"></i>
         Izađi
       </button>
     </div>
@@ -118,7 +118,7 @@
           (click)="previousQuestion()" 
           [disabled]="currentQuestionIndex === 0"
         >
-          <i class="nav-icon">←</i>
+          <i class="nav-icon fas fa-chevron-left"></i>
           Prethodno
         </button>
 
@@ -134,7 +134,7 @@
           [disabled]="currentQuestionIndex === getTotalQuestions() - 1"
         >
           Sljedeće
-          <i class="nav-icon">→</i>
+          <i class="nav-icon fas fa-chevron-right"></i>
         </button>
       </div>
     </div>
@@ -165,7 +165,7 @@
       [disabled]="isSubmitting"
       [class.ready]="canSubmit()"
     >
-      <i class="submit-icon">📝</i>
+      <i class="submit-icon fas fa-paper-plane"></i>
       {{ isSubmitting ? 'Šalje se...' : 'Pošalji ispit' }}
     </button>
   </div>
@@ -191,7 +191,7 @@
         </div>
       </div>
       <p class="warning-text" *ngIf="getUnansweredCount() > 0">
-        ⚠️ Imate {{ getUnansweredCount() }} neodgovorenih pitanja. Ona će biti označena kao netočni odgovori.
+        <i class="fas fa-exclamation-triangle"></i> Imate {{ getUnansweredCount() }} neodgovorenih pitanja. Ona će biti označena kao netočni odgovori.
       </p>
     </div>
     
@@ -212,7 +212,7 @@
     <div class="dialog-body">
       <p>Jeste li sigurni da se želite izaći s ispita?</p>
       <p class="warning-text">
-        ⚠️ Sav napredak će biti izgubljen.
+        <i class="fas fa-exclamation-triangle"></i> Sav napredak će biti izgubljen.
       </p>
     </div>
     
@@ -225,7 +225,7 @@
 
 <div class="error-container" *ngIf="error && !isLoading">
   <div class="error-card">
-    <div class="error-icon">❌</div>
+    <div class="error-icon"><i class="fas fa-times-circle"></i></div>
     <h3>Greška</h3>
     <p>{{ error }}</p>
     <button class="back-btn" (click)="navigateToExams()">
