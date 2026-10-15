@@ -4,16 +4,23 @@ import { Exam, ExamStats, ExamAttempt, QuestionBank } from './../../model/exam.m
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
 import { isAdminUser } from '../../model/roles';
 import { AddQuestionModalComponent } from "./add-question-modal/add-question-modal.component";
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
+import {
+  correctAnswerLabel,
+  filterQuestionBank,
+  paginateQuestions,
+  questionPageNumbers
+} from './question-bank.helpers';
 
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, AddQuestionModalComponent, RouterModule, ConfirmationModalComponent],
+  imports: [CommonModule, FormsModule, AddQuestionModalComponent, RouterModule, ConfirmationModalComponent],
   templateUrl: './exams.component.html',
   styleUrl: './exams.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,8 +34,16 @@ export class ExamsComponent implements OnInit {
   generatingExam = false;
   error: string | null = null;
   showAddQuestionModal = false;
+  questionToEdit: QuestionBank | null = null;
+  questions: QuestionBank[] = [];
+  questionSearch = '';
+  questionPage = 1;
+  loadingQuestions = false;
+  answerLabel = correctAnswerLabel;
 
   isDeleteAttemptModalOpen = false;
+  isDeleteQuestionModalOpen = false;
+  questionToDelete: QuestionBank | null = null;
   isConfirmBusy = false;
   attemptToDelete: ExamAttempt | null = null;
   confirmationData: ConfirmationData = {
@@ -51,6 +66,11 @@ export class ExamsComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  onQuestionFilterChange(): void {
+    this.questionPage = 1;
+    this.refreshView();
+  }
+
   ngOnInit(): void {
     this.loadCurrentUser();
     this.loadCurrentExam();
@@ -63,6 +83,7 @@ loadCurrentUser(): void {
       this.currentUser = user;
       this.refreshView();
       this.loadExamStats();
+      this.loadQuestionBank();
     },
     error: (err) => {
       console.error('Failed to load user:', err);
@@ -104,6 +125,51 @@ loadCurrentUser(): void {
         this.refreshView();
       }
     });
+  }
+
+  loadQuestionBank(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+    this.loadingQuestions = true;
+    this.examService.getQuestionBank().subscribe({
+      next: (questions: QuestionBank[]) => {
+        this.questions = questions || [];
+        this.loadingQuestions = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error('Failed to load questions:', err);
+        this.loadingQuestions = false;
+        this.showErrorToast('Greška prilikom učitavanja baze pitanja.');
+      }
+    });
+  }
+
+  get filteredQuestions(): QuestionBank[] {
+    return filterQuestionBank(this.questions, this.questionSearch);
+  }
+
+  get questionPageSlice() {
+    return paginateQuestions(this.filteredQuestions, this.questionPage);
+  }
+
+  get pagedQuestions(): QuestionBank[] {
+    return this.questionPageSlice.items;
+  }
+
+  get questionTotalPages(): number {
+    return this.questionPageSlice.totalPages;
+  }
+
+  get questionPageButtons(): number[] {
+    return questionPageNumbers(this.questionPageSlice.page, this.questionTotalPages);
+  }
+
+  goToQuestionPage(page: number): void {
+    const slice = paginateQuestions(this.filteredQuestions, page);
+    this.questionPage = slice.page;
+    this.refreshView();
   }
 
   loadExamStats(): void {
@@ -157,18 +223,80 @@ loadCurrentUser(): void {
   }
 
   openAddQuestionModal(): void {
+    this.questionToEdit = null;
+    this.showAddQuestionModal = true;
+  }
+
+  openEditQuestionModal(question: QuestionBank): void {
+    this.questionToEdit = question;
     this.showAddQuestionModal = true;
   }
 
   closeAddQuestionModal(): void {
     this.showAddQuestionModal = false;
+    this.questionToEdit = null;
   }
 
-  onQuestionAdded(newQuestion: QuestionBank): void {
-    // Refresh stats after adding a question
+  onQuestionSaved(saved: QuestionBank): void {
+    this.closeAddQuestionModal();
     this.loadExamStats();
-    this.showSuccessToast(`Pitanje "${newQuestion.questionText.substring(0, 50)}..." je uspješno dodano!`);
+    this.loadQuestionBank();
+    this.showSuccessToast(
+      saved.questionText
+        ? `Pitanje "${saved.questionText.substring(0, 50)}..." je spremljeno.`
+        : 'Pitanje je spremljeno.'
+    );
+  }
+
+  deleteQuestion(question: QuestionBank): void {
+    this.questionToDelete = question;
+    this.confirmationData = {
+      title: 'Obriši pitanje',
+      message: 'Jeste li sigurni da želite obrisati ovo pitanje iz baze?',
+      details: [
+        question.questionText,
+        `Odgovor: ${this.answerLabel(question.correctAnswer)}`,
+        'Ova akcija se ne može poništiti.'
+      ],
+      confirmText: 'Obriši pitanje',
+      loadingText: 'Brisanje...',
+      data: question._id
+    };
+    this.isDeleteQuestionModalOpen = true;
+  }
+
+  closeDeleteQuestionModal(): void {
+    this.isDeleteQuestionModalOpen = false;
+    this.isConfirmBusy = false;
+    this.questionToDelete = null;
+  }
+
+  onDeleteQuestionConfirmed(payload: unknown): void {
+    const questionId = payload as string | undefined;
+    if (!questionId || this.isConfirmBusy) {
+      return;
+    }
+
+    this.isConfirmBusy = true;
+    this.examService.deleteQuestion(questionId).subscribe({
+      next: () => {
+        this.showSuccessToast('Pitanje je obrisano iz baze.');
+        this.loadQuestionBank();
+        this.loadExamStats();
+        this.goToQuestionPage(this.questionPage);
+        this.closeDeleteQuestionModal();
+      },
+      error: (err) => {
+        console.error('Failed to delete question:', err);
+        this.showErrorToast('Greška prilikom brisanja pitanja.');
+        this.closeDeleteQuestionModal();
       }
+    });
+  }
+
+  trackByQuestionId(_index: number, question: QuestionBank): string {
+    return question._id;
+  }
 
   // Toast notification methods
   showSuccessToast(message: string): void {

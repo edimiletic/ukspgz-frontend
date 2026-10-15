@@ -106,6 +106,106 @@
       </div>
     </ng-template>
 
+    <!-- Question bank (Admin) -->
+    <div class="attempts-section question-bank-section" *ngIf="isAdmin()">
+      <h3>Baza pitanja</h3>
+      <p class="section-hint">Pregled, izmjena i brisanje pitanja koja ulaze u sudački ispit. Neaktivno pitanje ostaje u bazi, ali se ne bira u novi ispit.</p>
+
+      <div class="question-filters">
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="questionSearch"
+          (ngModelChange)="onQuestionFilterChange()"
+          placeholder="Pretraži pitanje...">
+      </div>
+
+      <div *ngIf="loadingQuestions" class="loading-message">Učitavam pitanja...</div>
+      <div *ngIf="!loadingQuestions && filteredQuestions.length === 0" class="no-attempts-message">
+        <p>Nema pitanja za ovaj filter.</p>
+      </div>
+
+      <div *ngIf="!loadingQuestions && filteredQuestions.length > 0" class="attempts-table-container">
+        <table class="attempts-table">
+          <thead>
+            <tr>
+              <th>Pitanje</th>
+              <th>Odgovor</th>
+              <th>Status</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let question of pagedQuestions; trackBy: trackByQuestionId">
+              <td class="question-text">{{ question.questionText }}</td>
+              <td>{{ answerLabel(question.correctAnswer) }}</td>
+              <td>
+                <span [class]="question.isActive !== false ? 'status-passed' : 'status-failed'">
+                  {{ question.isActive !== false ? 'Aktivno' : 'Neaktivno' }}
+                </span>
+              </td>
+              <td class="attempt-actions">
+                <button class="btn-icon btn-info" (click)="openEditQuestionModal(question)" title="Uredi pitanje">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon btn-delete" (click)="deleteQuestion(question)" title="Obriši pitanje">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination-container" *ngIf="questionTotalPages > 1">
+          <div class="pagination-info">
+            Prikazano {{ pagedQuestions.length }} od {{ filteredQuestions.length }} •
+            Stranica {{ questionPageSlice.page }} od {{ questionTotalPages }}
+          </div>
+          <div class="pagination">
+            <button
+              class="page-btn"
+              type="button"
+              title="Prva stranica"
+              [disabled]="questionPageSlice.page === 1"
+              (click)="goToQuestionPage(1)">
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button
+              class="page-btn"
+              type="button"
+              title="Prethodna stranica"
+              [disabled]="questionPageSlice.page === 1"
+              (click)="goToQuestionPage(questionPageSlice.page - 1)">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button
+              class="page-btn"
+              type="button"
+              *ngFor="let n of questionPageButtons"
+              [class.active]="n === questionPageSlice.page"
+              (click)="goToQuestionPage(n)">
+              {{ n }}
+            </button>
+            <button
+              class="page-btn"
+              type="button"
+              title="Sljedeća stranica"
+              [disabled]="questionPageSlice.page === questionTotalPages"
+              (click)="goToQuestionPage(questionPageSlice.page + 1)">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button
+              class="page-btn"
+              type="button"
+              title="Zadnja stranica"
+              [disabled]="questionPageSlice.page === questionTotalPages"
+              (click)="goToQuestionPage(questionTotalPages)">
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Previous Attempts Section -->
     <div class="attempts-section">
       <h3>Vaši prethodni pokušaji</h3>
@@ -174,8 +274,9 @@
 <!-- Add Question Modal -->
 <app-add-question-modal
   [isOpen]="showAddQuestionModal"
+  [question]="questionToEdit"
   (closeModal)="closeAddQuestionModal()"
-  (questionAdded)="onQuestionAdded($event)"
+  (questionSaved)="onQuestionSaved($event)"
 ></app-add-question-modal>
 
 <!-- Toast Notifications -->
@@ -203,4 +304,12 @@
   [confirmationData]="confirmationData"
   (close)="closeDeleteAttemptModal()"
   (confirm)="onDeleteAttemptConfirmed($event)">
+</app-confirmation-modal>
+
+<app-confirmation-modal
+  [isOpen]="isDeleteQuestionModalOpen"
+  [isBusy]="isConfirmBusy"
+  [confirmationData]="confirmationData"
+  (close)="closeDeleteQuestionModal()"
+  (confirm)="onDeleteQuestionConfirmed($event)">
 </app-confirmation-modal>

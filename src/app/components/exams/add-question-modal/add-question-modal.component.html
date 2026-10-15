@@ -1,7 +1,7 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
   <div class="modal-container">
     <div class="modal-header">
-      <h3>Kreiraj novo pitanje</h3>
+      <h3>{{ isEditMode ? 'Uredi pitanje' : 'Kreiraj novo pitanje' }}</h3>
       <button class="close-btn" (click)="close()" type="button">
         <span>&times;</span>
       </button>
@@ -53,18 +53,11 @@
           </div>
         </div>
 
-        <!-- Category -->
-        <div class="form-group">
-          <label for="category">Kategorija *</label>
-          <select
-            id="category"
-            name="category"
-            [(ngModel)]="questionData.category"
-          >
-            <option *ngFor="let category of categories" [value]="category">
-              {{ category }}
-            </option>
-          </select>
+        <div class="form-group" *ngIf="isEditMode">
+          <label class="checkbox-label">
+            <input type="checkbox" name="isActive" [(ngModel)]="questionData.isActive">
+            Aktivno (ulazi u nasumični ispit)
+          </label>
         </div>
 
         <!-- Error Message -->
@@ -82,7 +75,7 @@
             class="submit-btn" 
             [disabled]="questionForm.invalid || isSubmitting"
           >
-            {{ isSubmitting ? 'Dodajem...' : 'Dodaj pitanje' }}
+            {{ isSubmitting ? 'Spremam...' : (isEditMode ? 'Spremi pitanje' : 'Dodaj pitanje') }}
           </button>
         </div>
       </form>

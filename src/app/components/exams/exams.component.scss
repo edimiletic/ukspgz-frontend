@@ -346,6 +346,75 @@
     color: #2c3e50;
   }
 
+  .section-hint {
+    margin: -0.75rem 0 1.25rem;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+  }
+
+  .question-filters {
+    margin-bottom: 0.5rem;
+
+    .form-control {
+      width: 100%;
+      max-width: 420px;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #dce1e6;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+  }
+
+  .pagination-container {
+    padding: 1rem 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .pagination-info {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    .pagination {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .page-btn {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #dee2e6;
+      background: white;
+      color: #495057;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 40px;
+      text-align: center;
+
+      &:hover:not(:disabled) {
+        background-color: #e9ecef;
+      }
+
+      &.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .question-text {
+    max-width: 420px;
+    white-space: normal;
+  }
+
   .loading-message,
   .no-attempts-message {
     text-align: center;

@@ -58,4 +58,23 @@ describe('ExamService', () => {
     expect(del.request.method).toBe('DELETE');
     del.flush({ message: 'ok' });
   });
+
+  it('dohvaća, mijenja i briše pitanje u bazi', () => {
+    service.getQuestionBank().subscribe((list) => {
+      expect(list.length).toBe(1);
+    });
+    const list = http.expectOne(`${base}/questions`);
+    expect(list.request.method).toBe('GET');
+    list.flush([{ _id: 'q1', questionText: 'Faul?' }]);
+
+    service.updateQuestion('q1', { correctAnswer: false }).subscribe();
+    const update = http.expectOne(`${base}/questions/q1`);
+    expect(update.request.method).toBe('PUT');
+    update.flush({ _id: 'q1', correctAnswer: false });
+
+    service.deleteQuestion('q1').subscribe();
+    const remove = http.expectOne(`${base}/questions/q1`);
+    expect(remove.request.method).toBe('DELETE');
+    remove.flush({ message: 'ok' });
+  });
 });
