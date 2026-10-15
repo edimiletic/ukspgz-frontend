@@ -1,6 +1,6 @@
 // src/app/components/games-assigned/edit-game-modal/edit-game-modal.component.ts
 import { CommonModule } from '@angular/common';
-import { BasketballGame, CreateGameRequest, GameFormData, RefereeAssignmentData, RefereeSelection } from '../../../model/basketballGame.model';
+import { BasketballGame, CreateGameRequest, GameFormData, NominationRejection, RefereeAssignmentData, RefereeSelection } from '../../../model/basketballGame.model';
 import { User } from '../../../model/user.model';
 import { UserService } from '../../../services/user.service';
 import { BasketballGameService } from './../../../services/basketballGame.service';
@@ -18,6 +18,7 @@ import {
   isRefereeAvailable,
   kontrolorRequiredForForm,
   refereeAssignmentError,
+  sudacSlotsFromAssignments,
   unavailableOfficialsCount
 } from './edit-game-modal.helpers';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
@@ -68,6 +69,8 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     sudci: 0,
     delegati: 0
   };
+
+  rejections: NominationRejection[] = [];
 
   // Referee data
   availableReferees: {
@@ -176,6 +179,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     if (this.isOpen && this.game) {
       this.loadReferees();
       this.loadAbsences();
+      this.loadRejectionHistory();
       this.populateForm();
     }
   }
@@ -250,6 +254,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     this.loadCatalog();
     this.loadReferees();
     this.loadAbsences();
+    this.loadRejectionHistory();
 
     if (this.game) {
       this.populateForm();
@@ -258,6 +263,26 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.resetForm();
       this.currentStep = 1;
     }
+  }
+
+  loadRejectionHistory() {
+    const gameId = this.game?._id;
+    if (!gameId) {
+      this.rejections = [];
+      this.refreshView();
+      return;
+    }
+
+    this.basketballGameService.getRejectionHistory(gameId).subscribe({
+      next: (res) => {
+        this.rejections = res?.rejections || [];
+        this.refreshView();
+      },
+      error: () => {
+        this.rejections = [];
+        this.refreshView();
+      }
+    });
   }
 
   loadAbsences() {
@@ -302,19 +327,11 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   populateRefereeAssignments() {
     if (!this.game) return;
 
-    const sudci: { _id?: string; userId: string; position: number }[] = [];
     let delegat = '';
     let kontrolor = '';
 
     this.game.refereeAssignments.forEach(assignment => {
       switch (assignment.role) {
-        case 'Sudac':
-          sudci.push({
-            _id: assignment._id,
-            userId: assignment.userId._id,
-            position: assignment.position
-          });
-          break;
         case 'Delegat':
           delegat = assignment.userId._id;
           break;
@@ -324,14 +341,8 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       }
     });
 
-    sudci.sort((a, b) => a.position - b.position);
-
-    while (sudci.length < 3) {
-      sudci.push({ userId: '', position: sudci.length + 1 });
-    }
-
     this.selectedReferees = {
-      sudci,
+      sudci: sudacSlotsFromAssignments(this.game.refereeAssignments),
       delegat,
       kontrolor
     };
@@ -824,12 +835,13 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       kontrolor: ''
     };
 
-this.currentStep = 1;
-   this.errorMessage = '';
-   this.allAbsences = [];
-   this.gamesOnSelectedDate = [];
-   this.loadedScheduleDate = '';
- }
+    this.currentStep = 1;
+    this.errorMessage = '';
+    this.allAbsences = [];
+    this.gamesOnSelectedDate = [];
+    this.loadedScheduleDate = '';
+    this.rejections = [];
+  }
 
  // Get minimum date (for editing, we allow past dates since the game might have already happened)
  getMinDate(): string {

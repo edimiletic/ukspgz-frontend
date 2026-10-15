@@ -68,4 +68,16 @@
       </div>
     </div>
   </div>
+
+  <div class="rejection-audit" *ngIf="rejections.length">
+    <h3>Odbijene nominacije</h3>
+    <ul>
+      <li *ngFor="let item of rejections">
+        <strong>{{ item.name }} {{ item.surname }}</strong>
+        <span> ({{ item.role }})</span>
+        <span class="rejection-when" *ngIf="formatWhen(item.rejectedAt)"> — {{ formatWhen(item.rejectedAt) }}</span>
+        <div class="rejection-reason">{{ item.reason }}</div>
+      </li>
+    </ul>
+  </div>
 </div>

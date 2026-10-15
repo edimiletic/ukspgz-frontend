@@ -266,6 +266,11 @@ export const canManageCalendar = (userOrRole?: RoleSource | string | null, compe
 export const canNominateOfficials = (userOrRole?: RoleSource | string | null, competition?: string | null): boolean =>
   userHasRoleForCompetition(userOrRole, 'Povjerenik za službene osobe', competition) || isAdminUser(userOrRole);
 
+export const canViewNominationAudit = (
+  userOrRole?: RoleSource | string | null,
+  competition?: string | null
+): boolean => canNominateOfficials(userOrRole, competition);
+
 export const canSeeAllGames = (userOrRole?: RoleSource | string | null): boolean =>
   isAdminUser(userOrRole) || getRoleNames(userOrRole).some((role) => COMMISSIONER_ROLES.includes(role));
 

@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame } from '../model/basketballGame.model';
+import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame, NominationRejection } from '../model/basketballGame.model';
 import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
@@ -93,5 +93,11 @@ getGamesByRefereeAndDate(refereeId: string, date: string): Observable<any[]> {
 
 getGamesOnDate(date: string): Observable<any[]> {
   return this.http.get<any[]>(`${this.apiUrl}/schedule/${date}`);
+}
+
+getRejectionHistory(gameId: string): Observable<{ gameId: string; rejections: NominationRejection[] }> {
+  return this.http.get<{ gameId: string; rejections: NominationRejection[] }>(
+    `${this.apiUrl}/${gameId}/rejection-history`
+  );
 }
 }

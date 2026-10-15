@@ -73,6 +73,18 @@ export interface RespondAssignmentRequest {
   rejectionReason?: string;
 }
 
+export interface NominationRejection {
+  _id: string;
+  gameId: string;
+  userId: string;
+  name: string;
+  surname: string;
+  role: string;
+  position?: number;
+  reason: string;
+  rejectedAt: string;
+}
+
 export interface GameFilters {
   date?: string;
   competition?: string;

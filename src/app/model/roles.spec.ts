@@ -3,6 +3,7 @@ import {
   canManageCalendar,
   canNominateOfficials,
   canSeeAllGames,
+  canViewNominationAudit,
   canViewEligibleOfficials,
   canViewStatistics,
   formatRoleLabel,
@@ -107,6 +108,9 @@ describe('roles', () => {
 
       expect(canNominateOfficials(officialsPov, 'PRVA MUŠKA LIGA')).toBeTrue();
       expect(canNominateOfficials(calendarPov, 'PRVA MUŠKA LIGA')).toBeFalse();
+      expect(canViewNominationAudit(officialsPov, 'PRVA MUŠKA LIGA')).toBeTrue();
+      expect(canViewNominationAudit(admin, 'SuperSport Premijer liga')).toBeTrue();
+      expect(canViewNominationAudit(calendarPov, 'PRVA MUŠKA LIGA')).toBeFalse();
     });
 
     it('userHasRoleForCompetition: prazna lista natjecanja znači sva', () => {

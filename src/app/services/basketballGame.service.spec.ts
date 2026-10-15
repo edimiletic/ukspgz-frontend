@@ -72,4 +72,13 @@ describe('BasketballGameService', () => {
     expect(respond.request.method).toBe('PATCH');
     respond.flush({ _id: 'g1' });
   });
+
+  it('dohvaća povijest odbijanja', () => {
+    service.getRejectionHistory('g1').subscribe((res) => {
+      expect(res.rejections.length).toBe(1);
+    });
+    const req = http.expectOne(`${base}/g1/rejection-history`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ gameId: 'g1', rejections: [{ _id: 'r1', reason: 'Ozljeda' }] });
+  });
 });

@@ -164,18 +164,16 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    this.isNotificationsOpen = false;
+    this.openNotificationTarget(notification);
+
     if (!notification.isRead) {
       this.notificationService.markAsRead(notification._id).subscribe({
-        next: () => {
-          this.loadNotifications();
-          this.openNotificationTarget(notification);
-        },
+        next: () => this.loadNotifications(),
         error: (error) => {
           console.error('Error marking notification as read:', error);
         }
       });
-    } else {
-      this.openNotificationTarget(notification);
     }
   }
 
@@ -201,6 +199,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   viewAllNotifications() {
+    this.isNotificationsOpen = false;
     this.router.navigate(['/notifications']);
   }
 

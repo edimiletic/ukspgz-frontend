@@ -26,6 +26,40 @@ export function assignmentUserId(assignment: { userId?: unknown } | null | undef
     : String(assignment.userId);
 }
 
+export function sudacSlotsFromAssignments(
+  assignments: Array<{ role?: string; userId?: unknown; position?: number; _id?: string }>
+): Array<{ _id?: string; userId: string; position: number }> {
+  const slots: Array<{ _id?: string; userId: string; position: number }> = [
+    { userId: '', position: 1 },
+    { userId: '', position: 2 },
+    { userId: '', position: 3 }
+  ];
+  const leftovers: Array<{ _id?: string; userId: string }> = [];
+
+  assignments.forEach((assignment) => {
+    if (assignment.role !== 'Sudac') {
+      return;
+    }
+    const userId = assignmentUserId(assignment);
+    const position = Number(assignment.position);
+    if (position >= 1 && position <= 3 && !slots[position - 1].userId) {
+      slots[position - 1] = { _id: assignment._id, userId, position };
+      return;
+    }
+    leftovers.push({ _id: assignment._id, userId });
+  });
+
+  leftovers.forEach((item) => {
+    const empty = slots.find((slot) => !slot.userId);
+    if (empty) {
+      empty.userId = item.userId;
+      empty._id = item._id;
+    }
+  });
+
+  return slots;
+}
+
 export function eligibleOfficials(
   refs: User[],
   competition: string,
@@ -159,6 +193,20 @@ export function kontrolorRequiredForForm(
   awayCompetitions: string[]
 ): boolean {
   return isKontrolorRequired(competition, homeCompetitions, awayCompetitions);
+}
+
+export function formatRejectionWhen(rejectedAt: string): string {
+  const date = new Date(rejectedAt);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toLocaleString('hr-HR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 export function unavailableOfficialsCount(

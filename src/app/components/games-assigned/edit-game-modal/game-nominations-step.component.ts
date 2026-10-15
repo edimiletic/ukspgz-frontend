@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { GameFormData, RefereeSelection } from '../../../model/basketballGame.model';
+import { GameFormData, NominationRejection, RefereeSelection } from '../../../model/basketballGame.model';
 import { User } from '../../../model/user.model';
+import { formatRejectionWhen } from './edit-game-modal.helpers';
 
 @Component({
   selector: 'app-game-nominations-step',
@@ -22,6 +23,9 @@ export class GameNominationsStepComponent {
   @Input() canNominate = false;
   @Input() showKontrolor = false;
   @Input() kontrolorHeading = 'Kontrolor (opcionalno)';
+  @Input() rejections: NominationRejection[] = [];
 
   @Output() selectionChange = new EventEmitter<void>();
+
+  formatWhen = formatRejectionWhen;
 }

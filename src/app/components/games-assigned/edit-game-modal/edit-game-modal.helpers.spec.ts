@@ -4,9 +4,11 @@ import { User } from '../../../model/user.model';
 import {
   assignmentUserId,
   eligibleOfficials,
+  formatRejectionWhen,
   gameFormError,
   isRefereeAvailable,
   refereeAssignmentError,
+  sudacSlotsFromAssignments,
   unavailableOfficialsCount
 } from './edit-game-modal.helpers';
 
@@ -181,5 +183,20 @@ describe('edit-game-modal.helpers', () => {
     const refs = [official({ _id: 'a' }), official({ _id: 'b' })];
     expect(unavailableOfficialsCount(refs, () => false, false)).toBe(0);
     expect(unavailableOfficialsCount(refs, (r) => r._id === 'a', true)).toBe(1);
+  });
+
+  it('formatRejectionWhen formatira datum', () => {
+    expect(formatRejectionWhen('nije-datum')).toBe('');
+    expect(formatRejectionWhen('2026-10-20T18:00:00.000Z')).toMatch(/2026/);
+  });
+
+  it('sudacSlotsFromAssignments drži mjesta 1-2-3 kad fali sudac 2', () => {
+    const slots = sudacSlotsFromAssignments([
+      { role: 'Sudac', userId: { _id: 's1' }, position: 1 },
+      { role: 'Sudac', userId: { _id: 's3' }, position: 3 },
+      { role: 'Delegat', userId: { _id: 'd1' }, position: 1 }
+    ]);
+    expect(slots.map((slot) => slot.position)).toEqual([1, 2, 3]);
+    expect(slots.map((slot) => slot.userId)).toEqual(['s1', '', 's3']);
   });
 });
