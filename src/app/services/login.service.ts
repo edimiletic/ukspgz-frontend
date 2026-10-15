@@ -2,21 +2,11 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { tap, catchError, map, finalize } from 'rxjs/operators';
 import { canManageCalendar, canNominateOfficials, canSeeAllGames, canViewEligibleOfficials, canViewStatistics, GAME_ASSIGNMENT_ROLES, getRoleNames, isAdminUser, normalizeRoleAssignments, pickPrimaryRole, userHasRole } from '../model/roles';
 import { User } from '../model/user.model';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-
-function decodeJwtPayload(token: string): { exp?: number } {
-  const parts = token.split('.');
-  if (parts.length !== 3) {
-    throw new Error('Invalid token');
-  }
-  const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-  return JSON.parse(atob(padded));
-}
 
 @Injectable({
   providedIn: 'root'
@@ -33,6 +23,13 @@ export class AuthService {
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
+    this.discardLegacyToken();
+  }
+
+  private discardLegacyToken(): void {
+    if (this.isBrowser) {
+      localStorage.removeItem('token');
+    }
   }
 
   private normalizeUser(user: any): User | null {
@@ -66,12 +63,10 @@ export class AuthService {
       headers: { 'Content-Type': 'application/json' }
     }).pipe(
       tap(response => {
-        if (response.token && this.isBrowser) {
-          localStorage.setItem('token', response.token);
-          const user = this.normalizeUser(response.user);
-          if (user) {
-            this.currentUserSubject.next(user);
-          }
+        this.discardLegacyToken();
+        const user = this.normalizeUser(response.user);
+        if (user) {
+          this.currentUserSubject.next(user);
         }
       }),
       catchError(error => throwError(() => error))
@@ -79,38 +74,28 @@ export class AuthService {
   }
 
   logout(): void {
-    this.clearSession();
-    this.router.navigate(['/login']);
+    const finish = () => {
+      this.clearSession();
+      this.router.navigate(['/login']);
+    };
+
+    if (!this.isBrowser) {
+      finish();
+      return;
+    }
+
+    this.http.post(`${this.apiUrl}/logout`, {}).pipe(
+      finalize(finish)
+    ).subscribe({ error: () => undefined });
   }
 
   clearSession(): void {
-    if (this.isBrowser) {
-      localStorage.removeItem('token');
-    }
+    this.discardLegacyToken();
     this.currentUserSubject.next(null);
   }
 
   isAuthenticated(): boolean {
-    if (!this.isBrowser) return false;
-
-    const token = localStorage.getItem('token');
-    if (!token) return false;
-
-    try {
-      const payload = decodeJwtPayload(token);
-      const isExpired = typeof payload.exp === 'number' && payload.exp * 1000 < Date.now();
-
-      if (isExpired) {
-        localStorage.removeItem('token');
-        this.currentUserSubject.next(null);
-        return false;
-      }
-
-      return true;
-    } catch {
-      localStorage.removeItem('token');
-      return false;
-    }
+    return !!this.currentUserValue;
   }
 
   getCurrentUser(): Observable<User> {
@@ -122,18 +107,12 @@ export class AuthService {
       return of(null as any);
     }
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return throwError(() => new Error('No token found'));
-    }
-
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       map(user => this.normalizeUser(user) as User),
       tap(user => this.currentUserSubject.next(user)),
       catchError(error => {
-        if (error.status === 401 && this.isBrowser) {
-          localStorage.removeItem('token');
-          this.currentUserSubject.next(null);
+        if (error.status === 401 || error.status === 403) {
+          this.clearSession();
         }
         return throwError(() => error);
       })
@@ -182,15 +161,10 @@ export class AuthService {
   }
 
   loadUserData(): void {
-    if (this.isBrowser && this.isAuthenticated() && !this.currentUserValue) {
+    if (this.isBrowser && !this.currentUserValue) {
       this.getCurrentUser().subscribe({
         next: (user) => this.currentUserSubject.next(user),
-        error: () => {
-          if (this.isBrowser) {
-            localStorage.removeItem('token');
-          }
-          this.currentUserSubject.next(null);
-        }
+        error: () => this.clearSession()
       });
     }
   }
@@ -210,13 +184,6 @@ export class AuthService {
   refreshUser(): Observable<User> {
     this.currentUserSubject.next(null);
     return this.getCurrentUser();
-  }
-
-  getToken(): string | null {
-    if (!this.isBrowser) {
-      return null;
-    }
-    return localStorage.getItem('token');
   }
 
   isUserLoaded(): boolean {

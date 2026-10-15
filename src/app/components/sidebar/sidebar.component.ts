@@ -33,7 +33,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.openSubscription = this.sidebarNav.isOpen$.subscribe(open => this.isSidebarOpen = open);
 
     // Load user data if not available
-    if (this.authService.isAuthenticated() && !this.authService.currentUserValue) {
+    if (!this.authService.currentUserValue) {
       this.authService.loadUserData();
     }
   }

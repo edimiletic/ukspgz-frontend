@@ -32,11 +32,6 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    if (!this.authService.isAuthenticated()) {
-      this.isInitializing = false;
-      return;
-    }
-
     if (this.authService.currentUserValue) {
       this.isInitializing = false;
       return;

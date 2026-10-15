@@ -110,13 +110,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   navigateToPage(route: string) {
     // Check auth before navigating to prevent login flash
-    if (this.isBrowser) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        this.router.navigate([route]);
-      } else {
-        this.router.navigate(['/login']);
-      }
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate([route]);
     } else {
       this.router.navigate(['/login']);
     }

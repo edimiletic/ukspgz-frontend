@@ -11,23 +11,23 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
   const isBrowser = isPlatformBrowser(platformId);
   const isPublicAuthRequest =
-    req.url.includes('/login') || req.url.includes('/reset-password');
+    req.url.includes('/login') ||
+    req.url.includes('/reset-password') ||
+    req.url.includes('/logout');
+  const isSessionProbe = req.url.includes('/me');
 
-  if (isBrowser && !isPublicAuthRequest) {
-    const token = authService.getToken() ?? localStorage.getItem('token');
-    if (token) {
-      req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-    }
+  if (isBrowser) {
+    req = req.clone({ withCredentials: true });
   }
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const sentAuth = req.headers.has('Authorization');
-      if (isBrowser && error.status === 401 && !isPublicAuthRequest && sentAuth) {
+      if (
+        isBrowser &&
+        error.status === 401 &&
+        !isPublicAuthRequest &&
+        !isSessionProbe
+      ) {
         authService.clearSession();
         router.navigate(['/login']);
       }

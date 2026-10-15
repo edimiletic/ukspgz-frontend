@@ -5,12 +5,6 @@ import { Router } from '@angular/router';
 import { AuthService } from './login.service';
 import { environment } from '../../environments/environment';
 
-function jwt(expOffsetSeconds: number): string {
-  const header = btoa(JSON.stringify({ alg: 'none' }));
-  const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expOffsetSeconds }));
-  return `${header}.${payload}.sig`;
-}
-
 describe('AuthService', () => {
   let service: AuthService;
   let http: HttpTestingController;
@@ -36,27 +30,25 @@ describe('AuthService', () => {
     localStorage.clear();
   });
 
-  it('login sprema token i normalizira korisnika', () => {
-    const token = jwt(3600);
+  it('login sprema korisnika bez JWT-a u localStorage', () => {
+    localStorage.setItem('token', 'legacy');
     service.login({ username: 'iva', password: 'x' }).subscribe();
     const req = http.expectOne(`${api}/login`);
     expect(req.request.method).toBe('POST');
     req.flush({
-      token,
       user: { _id: 'u1', name: 'Iva', surname: 'I', role: 'Sudac' }
     });
 
-    expect(localStorage.getItem('token')).toBe(token);
+    expect(localStorage.getItem('token')).toBeNull();
     expect(service.getCurrentUserId()).toBe('u1');
     expect(service.hasRole('Sudac')).toBeTrue();
     expect(service.isAdmin()).toBeFalse();
+    expect(service.isAuthenticated()).toBeTrue();
   });
 
   it('isAdmin ako je Admin u roles[], čak i kad je role Sudac', () => {
-    const token = jwt(3600);
     service.login({ username: 'admin', password: 'x' }).subscribe();
     http.expectOne(`${api}/login`).flush({
-      token,
       user: {
         _id: 'a1',
         role: 'Sudac',
@@ -78,35 +70,28 @@ describe('AuthService', () => {
     req.flush({ message: 'ok' });
   });
 
-  it('logout čisti token i ide na login', () => {
-    localStorage.setItem('token', jwt(3600));
+  it('logout zove /logout, čisti sesiju i ide na login', () => {
+    (service as any).currentUserSubject.next({
+      _id: 'u1',
+      id: 'u1',
+      role: 'Sudac',
+      roles: [{ name: 'Sudac', competitions: [] }]
+    });
     service.logout();
-    expect(localStorage.getItem('token')).toBeNull();
+    const req = http.expectOne(`${api}/logout`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ message: 'Logged out' });
     expect(service.currentUserValue).toBeNull();
+    expect(service.isAuthenticated()).toBeFalse();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
-  it('isAuthenticated: nevažeći i istekli token', () => {
+  it('isAuthenticated ovisi o učitanom korisniku, ne o localStorage', () => {
+    localStorage.setItem('token', 'whatever');
     expect(service.isAuthenticated()).toBeFalse();
-
-    localStorage.setItem('token', 'nije.jwt');
-    expect(service.isAuthenticated()).toBeFalse();
-    expect(localStorage.getItem('token')).toBeNull();
-
-    localStorage.setItem('token', jwt(-10));
-    expect(service.isAuthenticated()).toBeFalse();
-    expect(localStorage.getItem('token')).toBeNull();
-
-    localStorage.setItem('token', jwt(3600));
-    expect(service.isAuthenticated()).toBeTrue();
-
-    const unpadded = jwt(3600).replace(/=/g, '');
-    localStorage.setItem('token', unpadded);
-    expect(service.isAuthenticated()).toBeTrue();
   });
 
   it('getCurrentUser ide na /me kad nema cachea', () => {
-    localStorage.setItem('token', jwt(3600));
     service.getCurrentUser().subscribe(user => {
       expect(user._id).toBe('u1');
       expect(user.role).toBe('Sudac');
@@ -116,15 +101,14 @@ describe('AuthService', () => {
     req.flush({ _id: 'u1', roles: [{ name: 'Sudac', competitions: [] }] });
   });
 
-  it('getCurrentUser na 401 briše token', () => {
-    localStorage.setItem('token', jwt(3600));
+  it('getCurrentUser na 401 briše sesiju', () => {
     service.getCurrentUser().subscribe({
       next: () => fail('očekivana 401'),
       error: err => expect(err.status).toBe(401)
     });
     http.expectOne(`${api}/me`).flush({}, { status: 401, statusText: 'Unauthorized' });
-    expect(localStorage.getItem('token')).toBeNull();
     expect(service.currentUserValue).toBeNull();
+    expect(service.isAuthenticated()).toBeFalse();
   });
 
   it('canPerformAction: admin smije sve, inače samo vlasnik', () => {
