@@ -59,6 +59,21 @@ describe('edit-game-modal.helpers', () => {
     expect(result.map((r) => r._id)).toEqual(['ok']);
   });
 
+  it('Premijer ženska je ispod Prve muške: svi suci u capu smiju suditi', () => {
+    const actor = official({
+      _id: 'me',
+      role: 'Povjerenik za službene osobe',
+      roles: [{ name: 'Povjerenik za službene osobe', competitions: [] }]
+    });
+    const supersport = official({ _id: 'ss', najvisaLiga: 'SuperSport Premijer liga' });
+    const prvaMuska = official({ _id: 'pm', najvisaLiga: 'PRVA MUŠKA LIGA' });
+    const zenska = official({ _id: 'pz', najvisaLiga: 'PREMIJER ŽENSKA LIGA' });
+
+    expect(
+      eligibleOfficials([supersport, prvaMuska, zenska, actor], 'PREMIJER ŽENSKA LIGA', actor).map((r) => r._id)
+    ).toEqual(['ss', 'pm', 'pz']);
+  });
+
   it('admin smije nominirati samog sebe ako je u capu', () => {
     const admin = official({
       _id: 'me',

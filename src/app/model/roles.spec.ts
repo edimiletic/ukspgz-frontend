@@ -155,6 +155,8 @@ describe('roles', () => {
     it('cap lige sprječava nominaciju iznad najviše lige', () => {
       expect(isWithinNominationCap({ najvisaLiga: 'PRVA MUŠKA LIGA' }, 'SuperSport Premijer liga', 'Sudac')).toBeFalse();
       expect(isWithinNominationCap({ najvisaLiga: 'SuperSport Premijer liga' }, 'PRVA MUŠKA LIGA', 'Sudac')).toBeTrue();
+      expect(isWithinNominationCap({ najvisaLiga: 'PRVA MUŠKA LIGA' }, 'PREMIJER ŽENSKA LIGA', 'Sudac')).toBeTrue();
+      expect(isWithinNominationCap({ najvisaLiga: 'PREMIJER ŽENSKA LIGA' }, 'PRVA MUŠKA LIGA', 'Sudac')).toBeFalse();
     });
 
     it('viša postojeća liga blokira novu nižu isti dan', () => {
