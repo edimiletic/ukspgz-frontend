@@ -22,7 +22,7 @@
     </div>
 
 <div class="filter-section">
-  <button class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()">
+  <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" [attr.aria-expanded]="isMobileFiltersOpen">
     <i class="fas fa-filter"></i>
     {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
     <i class="fas fa-chevron-down"></i>
@@ -31,14 +31,14 @@
   <div class="filter-content" [class.open]="isMobileFiltersOpen">
     <div class="filter-row">
       <div class="filter-group">
-        <label>ID</label>
-        <input type="text" class="form-control" placeholder="Pretraži po ID-u"
-               [(ngModel)]="filterValues.id" (input)="applyFilters()" />
+        <label for="expense-filter-id">ID</label>
+        <input id="expense-filter-id" type="text" class="form-control" placeholder="Pretraži po ID-u"
+               [value]="filterValues.id" (input)="filterValues.id = $any($event.target).value; applyFilters()" />
       </div>
 
       <div class="filter-group" *ngIf="showNamedOverview">
-        <label>Uloga</label>
-        <select class="form-control" [(ngModel)]="filterValues.assignmentRole" (change)="applyFilters()">
+        <label for="expense-filter-role">Uloga</label>
+        <select id="expense-filter-role" class="form-control" [value]="filterValues.assignmentRole" (change)="filterValues.assignmentRole = $any($event.target).value; applyFilters()">
           <option value="">Sve uloge</option>
           <option value="Sudac">Sudac</option>
           <option value="Delegat">Delegat</option>
@@ -47,14 +47,14 @@
       </div>
 
       <div class="filter-group" *ngIf="showNamedOverview">
-        <label>Korisnik</label>
-        <input type="text" class="form-control" placeholder="Pretraži po korisniku"
-               [(ngModel)]="filterValues.userName" (input)="applyFilters()" />
+        <label for="expense-filter-user">Korisnik</label>
+        <input id="expense-filter-user" type="text" class="form-control" placeholder="Pretraži po korisniku"
+               [value]="filterValues.userName" (input)="filterValues.userName = $any($event.target).value; applyFilters()" />
       </div>
 
       <div class="filter-group">
-        <label>Godina</label>
-        <select class="form-control" [(ngModel)]="filterValues.year" (change)="applyFilters()">
+        <label for="expense-filter-year">Godina</label>
+        <select id="expense-filter-year" class="form-control" [value]="filterValues.year" (change)="filterValues.year = $any($event.target).value; applyFilters()">
           <option value="">Sve godine</option>
           <option value="2027">2027</option>
           <option value="2026">2026</option>
@@ -64,16 +64,16 @@
       </div>
 
       <div class="filter-group">
-        <label>Mjesec</label>
-        <select class="form-control" [(ngModel)]="filterValues.month" (change)="applyFilters()">
+        <label for="expense-filter-month">Mjesec</label>
+        <select id="expense-filter-month" class="form-control" [value]="filterValues.month" (change)="filterValues.month = $any($event.target).value; applyFilters()">
           <option value="">Svi mjeseci</option>
           <option *ngFor="let month of months" [value]="month">{{ month }}</option>
         </select>
       </div>
 
       <div class="filter-group">
-        <label>Status</label>
-        <select class="form-control" [(ngModel)]="filterValues.state" (change)="applyFilters()">
+        <label for="expense-filter-state">Status</label>
+        <select id="expense-filter-state" class="form-control" [value]="filterValues.state" (change)="filterValues.state = $any($event.target).value; applyFilters()">
           <option value="">Svi statusi</option>
           <option value="Predano">Predano</option>
           <option value="Potvrđeno">Potvrđeno</option>

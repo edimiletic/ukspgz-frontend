@@ -1,44 +1,42 @@
 <div class="filter-section">
   <button
+    type="button"
     class="mobile-filter-toggle"
     [class.active]="isMobileOpen"
-    (click)="toggleMobile()">
-    <i class="fas fa-filter"></i>
+    (click)="toggleMobile()"
+    [attr.aria-expanded]="isMobileOpen">
+    <i class="fas fa-filter" aria-hidden="true"></i>
     {{ isMobileOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
-    <i class="fas fa-chevron-down"></i>
+    <i class="fas fa-chevron-down" aria-hidden="true"></i>
   </button>
 
   <div class="filter-content" [class.open]="isMobileOpen">
-    <div class="filter-row">
+    <form class="filter-row" [formGroup]="form">
       <div class="filter-group">
-        <label>Datum</label>
-        <input type="date" class="form-control" [(ngModel)]="filterValues.date" (change)="filterChange.emit()">
+        <label for="games-filter-date">Datum</label>
+        <input id="games-filter-date" type="date" class="form-control" formControlName="date">
       </div>
       <div class="filter-group">
-        <label>Mjesto</label>
-        <input type="text" class="form-control" placeholder="Pretraži po mjestu" [(ngModel)]="filterValues.venue"
-          (input)="filterChange.emit()">
+        <label for="games-filter-venue">Mjesto</label>
+        <input id="games-filter-venue" type="text" class="form-control" placeholder="Pretraži po mjestu" formControlName="venue">
       </div>
       <div class="filter-group">
-        <label>Domaći tim</label>
-        <input type="text" class="form-control" placeholder="Pretraži po domaćem timu"
-          [(ngModel)]="filterValues.homeTeam" (input)="filterChange.emit()">
+        <label for="games-filter-home">Domaći tim</label>
+        <input id="games-filter-home" type="text" class="form-control" placeholder="Pretraži po domaćem timu" formControlName="homeTeam">
       </div>
       <div class="filter-group">
-        <label>Gostujući tim</label>
-        <input type="text" class="form-control" placeholder="Pretraži po gostujućem timu"
-          [(ngModel)]="filterValues.awayTeam" (input)="filterChange.emit()">
+        <label for="games-filter-away">Gostujući tim</label>
+        <input id="games-filter-away" type="text" class="form-control" placeholder="Pretraži po gostujućem timu" formControlName="awayTeam">
       </div>
       <div class="filter-group">
-        <label>Natjecanje</label>
-        <input type="text" class="form-control" placeholder="Pretraži po natjecanju"
-          [(ngModel)]="filterValues.competition" (input)="filterChange.emit()">
+        <label for="games-filter-competition">Natjecanje</label>
+        <input id="games-filter-competition" type="text" class="form-control" placeholder="Pretraži po natjecanju" formControlName="competition">
       </div>
       <div class="filter-group">
-        <button class="btn btn-outline-secondary filter-btn" (click)="clear.emit()">
-          <i class="fas fa-times"></i> Očisti
+        <button class="btn btn-outline-secondary filter-btn" type="button" (click)="clear.emit()">
+          <i class="fas fa-times" aria-hidden="true"></i> Očisti
         </button>
       </div>
-    </div>
+    </form>
   </div>
 </div>

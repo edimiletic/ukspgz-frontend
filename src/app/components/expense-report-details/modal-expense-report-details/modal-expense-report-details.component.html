@@ -31,8 +31,8 @@
         <div class="form-group">
           <label for="gameId">Utakmica<span class="required">*</span></label>
           <div class="select-wrapper">
-            <select id="gameId" class="form-control" [(ngModel)]="selectedGameId" name="gameId"
-              (change)="onGameChange()" required [disabled]="busy || isLoadingGames">
+            <select id="gameId" class="form-control" [value]="selectedGameId"
+              (change)="onGameSelect($event)" required [disabled]="busy || isLoadingGames">
               <option value="">
                 {{ isLoadingGames ? 'Učitavanje utakmica...' : 'Odaberite utakmicu' }}
               </option>
@@ -69,8 +69,8 @@
             <div class="form-group">
               <label for="startLocation">Polazna Lokacija<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select id="startLocation" class="form-control" [(ngModel)]="startLocation" name="startLocation"
-                  (change)="onLocationChange()" required [disabled]="busy">
+                <select id="startLocation" class="form-control" [value]="startLocation"
+                  (change)="onStartLocationSelect($event)" required [disabled]="busy">
                   <option value="">Odaberite polazište</option>
                   <option *ngFor="let location of locations" [value]="location">
                     {{ location }}
@@ -83,8 +83,8 @@
             <div class="form-group">
               <label for="endLocation">Odredišna Lokacija<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select id="endLocation" class="form-control" [(ngModel)]="endLocation" name="endLocation"
-                  (change)="onLocationChange()" required [disabled]="busy">
+                <select id="endLocation" class="form-control" [value]="endLocation"
+                  (change)="onEndLocationSelect($event)" required [disabled]="busy">
                   <option value="">Odaberite odredište</option>
                   <option *ngFor="let location of getAvailableEndLocations()" [value]="location">
                     {{ location }}
@@ -109,7 +109,8 @@
           <!-- Description -->
           <div class="form-group">
             <label for="description">Opis<span class="required">*</span></label>
-            <textarea id="description" class="form-control" [(ngModel)]="expenseData.description" name="description"
+            <textarea id="description" class="form-control" [value]="expenseData.description"
+              (input)="onDescriptionInput($event)"
               rows="3" placeholder="Opis troška..." [disabled]="busy"></textarea>
           </div>
         </div>
@@ -125,8 +126,8 @@
             <div class="form-group">
               <label for="type">Vrsta troška<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select id="type" class="form-control" [(ngModel)]="expenseData.type" name="type" required
-                  [disabled]="busy"           (ngModelChange)="onExpenseTypeChange()">
+                <select id="type" class="form-control" [value]="expenseData.type" required
+                  [disabled]="busy" (change)="onTypeSelect($event)">
                   <option *ngFor="let type of expenseTypes" [value]="type">
                     {{ type }}
                   </option>
@@ -138,8 +139,8 @@
 
           <div class="form-group">
             <label for="manualDescription">Opis<span class="required">*</span></label>
-            <textarea id="manualDescription" class="form-control" [(ngModel)]="expenseData.description"
-              name="manualDescription" rows="3" placeholder="Opis troška..."
+            <textarea id="manualDescription" class="form-control" [value]="expenseData.description"
+              (input)="onDescriptionInput($event)" rows="3" placeholder="Opis troška..."
               [disabled]="busy"></textarea>
           </div>
 
@@ -149,8 +150,8 @@
             <div class="form-group">
               <label for="unit">Mjerna jedinica<span class="required">*</span></label>
               <div class="select-wrapper">
-                <select id="unit" class="form-control" [(ngModel)]="expenseData.unit" name="unit" required
-                  [disabled]="true">
+                <select id="unit" class="form-control" [value]="expenseData.unit" required
+                  disabled>
                   <option *ngFor="let unit of units" [value]="unit">
                     {{ unit }}
                   </option>
@@ -162,13 +163,13 @@
             <!-- Quantity and Unit Price Row -->
             <div class="form-group">
               <label for="quantity">Količina<span class="required">*</span></label>
-              <input type="number" id="quantity" class="form-control" [(ngModel)]="expenseData.quantity" name="quantity"      (ngModelChange)="calculateAmount()"  min="0" step="1" required [disabled]="busy">
+              <input type="number" id="quantity" class="form-control" [value]="expenseData.quantity" (input)="onQuantityInput($event)" min="0" step="1" required [disabled]="busy">
             </div>
 
             <div class="form-group">
               <label for="unitPrice">Cijena po jedinici<span class="required">*</span></label>
-              <input type="number" id="unitPrice" class="form-control" [(ngModel)]="expenseData.unitPrice"
-                      (ngModelChange)="calculateAmount()" name="unitPrice" min="0" step="0.1" required [disabled]="busy || expenseData.type === 'Prijevoz automobilom'">
+              <input type="number" id="unitPrice" class="form-control" [value]="expenseData.unitPrice"
+                      (input)="onUnitPriceInput($event)" min="0" step="0.1" required [disabled]="busy || expenseData.type === 'Prijevoz automobilom'">
             </div>
           </div>
 

@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, HostList
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/login.service';
 import { BasketballGame, RefereeAssignment } from '../../model/basketballGame.model';
-import { FormsModule } from '@angular/forms';
 import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
 import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
 import { EditGameModalComponent } from "./edit-game-modal/edit-game-modal.component";
@@ -26,7 +25,7 @@ import { GamesListSectionComponent } from './games-list-section.component';
 @Component({
   selector: 'app-games-assigned',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent, GamesFilterBarComponent, GamesListSectionComponent],
+  imports: [CommonModule, ReasonModalComponent, ConfirmationModalComponent, EditGameModalComponent, GamesFilterBarComponent, GamesListSectionComponent],
   templateUrl: './games-assigned.component.html',
   styleUrl: './games-assigned.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -21,7 +21,7 @@ describe('ReasonModalComponent', () => {
   it('ne emitira dok je razlog prekratak', () => {
     const spy = jasmine.createSpy();
     component.confirm.subscribe(spy);
-    component.reason = 'kratko';
+    component.form.controls.reason.setValue('kratko');
     component.confirmAction();
     expect(spy).not.toHaveBeenCalled();
     expect(component.errorMessage).toContain('10');
@@ -30,7 +30,7 @@ describe('ReasonModalComponent', () => {
   it('emitira trimani razlog kad je valjan', () => {
     const spy = jasmine.createSpy();
     component.confirm.subscribe(spy);
-    component.reason = '  Ovo je dovoljno dugačak razlog  ';
+    component.form.controls.reason.setValue('  Ovo je dovoljno dugačak razlog  ');
     component.confirmAction();
     expect(spy).toHaveBeenCalledWith('Ovo je dovoljno dugačak razlog');
   });

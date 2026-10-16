@@ -17,21 +17,20 @@
       ako osoba ima nominacije ili ako bi ostalo natjecanje bez pokrivenog povjerenika.
     </div>
 
-    <div class="filter-section">
+    <div class="filter-section" [formGroup]="filterForm">
       <div class="filter-row">
         <div class="filter-group">
           <label for="user-search">Pretraga</label>
           <input
             id="user-search"
             type="text"
-            [(ngModel)]="search"
-            (input)="onFilterChange()"
+            formControlName="search"
             placeholder="Ime, prezime, korisničko ime, e-pošta..."
           />
         </div>
         <div class="filter-group">
           <label for="user-role-filter">Uloga</label>
-          <select id="user-role-filter" [(ngModel)]="roleFilter" (change)="onFilterChange()">
+          <select id="user-role-filter" formControlName="roleFilter">
             <option value="">Sve uloge</option>
             <option *ngFor="let role of roleOptions" [value]="role">{{ role }}</option>
           </select>

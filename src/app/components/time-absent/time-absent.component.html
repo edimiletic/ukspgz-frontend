@@ -22,7 +22,7 @@
         <!-- Updated Filter Section HTML - Replace your existing filter section with this -->
         <div class="filter-section">
             <!-- Mobile Filter Toggle Button (visible only on mobile) -->
-            <button class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()">
+            <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" [attr.aria-expanded]="isMobileFiltersOpen">
                 <i class="fas fa-filter"></i>
                 {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
                 <i class="fas fa-chevron-down"></i>
@@ -32,31 +32,31 @@
             <div class="filter-content" [class.open]="isMobileFiltersOpen">
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>ID</label>
-                        <input type="text" class="form-control" placeholder="Pretraži po ID"
-                            [(ngModel)]="filterValues.id" (input)="onFilterChange()">
+                        <label for="absence-filter-id">ID</label>
+                        <input id="absence-filter-id" type="text" class="form-control" placeholder="Pretraži po ID"
+                            [value]="filterValues.id" (input)="filterValues.id = $any($event.target).value; onFilterChange()">
                     </div>
                     <div class="filter-group" *ngIf="showNamedOverview">
-                        <label>Korisnik</label>
-                        <input type="text" class="form-control" placeholder="Pretraži po imenu"
-                            [(ngModel)]="filterValues.userName" (input)="onFilterChange()">
+                        <label for="absence-filter-user">Korisnik</label>
+                        <input id="absence-filter-user" type="text" class="form-control" placeholder="Pretraži po imenu"
+                            [value]="filterValues.userName" (input)="filterValues.userName = $any($event.target).value; onFilterChange()">
                     </div>
                     <div class="filter-group" *ngIf="canChangeRoleFilter">
-                        <label>Uloga</label>
-                        <select class="form-control" [(ngModel)]="filterValues.role" (change)="onFilterChange()">
+                        <label for="absence-filter-role">Uloga</label>
+                        <select id="absence-filter-role" class="form-control" [value]="filterValues.role" (change)="filterValues.role = $any($event.target).value; onFilterChange()">
                             <option value="">Sve uloge</option>
                             <option *ngFor="let role of roleFilterOptions" [value]="role">{{ role }}</option>
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label>Početak odsustva</label>
-                        <input type="date" class="form-control" placeholder="Točan datum početka"
-                            [(ngModel)]="filterValues.startDate" (change)="onFilterChange()">
+                        <label for="absence-filter-start">Početak odsustva</label>
+                        <input id="absence-filter-start" type="date" class="form-control" placeholder="Točan datum početka"
+                            [value]="filterValues.startDate" (change)="filterValues.startDate = $any($event.target).value; onFilterChange()">
                     </div>
                     <div class="filter-group">
-                        <label>Završetak odsustva</label>
-                        <input type="date" class="form-control" placeholder="Točan datum završetka"
-                            [(ngModel)]="filterValues.endDate" (change)="onFilterChange()">
+                        <label for="absence-filter-end">Završetak odsustva</label>
+                        <input id="absence-filter-end" type="date" class="form-control" placeholder="Točan datum završetka"
+                            [value]="filterValues.endDate" (change)="filterValues.endDate = $any($event.target).value; onFilterChange()">
                     </div>
                     <div class="filter-group">
                         <button class="btn btn-outline-secondary filter-btn" (click)="clearFilters()">

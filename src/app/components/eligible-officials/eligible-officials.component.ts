@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { UserService, EligibleOfficialsGroup } from '../../services/user.service';
 
 @Component({
   selector: 'app-eligible-officials',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './eligible-officials.component.html',
   styleUrl: './eligible-officials.component.scss'
 })

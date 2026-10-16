@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-reason-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './reason-modal.component.html',
   styleUrl: './reason-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -25,14 +25,27 @@ export class ReasonModalComponent implements OnChanges {
   @Output() close = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<string>();
 
-  reason = '';
   errorMessage = '';
+
+  private readonly fb = inject(FormBuilder);
+  readonly form = this.fb.nonNullable.group({
+    reason: ['']
+  });
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && !this.isOpen) {
-      this.reason = '';
+      this.form.reset({ reason: '' });
       this.errorMessage = '';
     }
+    if (this.isBusy) {
+      this.form.disable({ emitEvent: false });
+    } else {
+      this.form.enable({ emitEvent: false });
+    }
+  }
+
+  get reason(): string {
+    return this.form.controls.reason.value;
   }
 
   get isFormValid(): boolean {
@@ -44,7 +57,7 @@ export class ReasonModalComponent implements OnChanges {
     if (this.isBusy) {
       return;
     }
-    this.reason = '';
+    this.form.reset({ reason: '' });
     this.errorMessage = '';
     this.close.emit();
   }

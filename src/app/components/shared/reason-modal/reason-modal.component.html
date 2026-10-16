@@ -11,17 +11,18 @@
       <p class="lead" *ngIf="message">{{ message }}</p>
       <p class="detail" *ngFor="let line of details; trackBy: trackByDetail">{{ line }}</p>
 
-      <label class="form-label" [attr.for]="'reason-field'">{{ label }}<span class="required">*</span></label>
+      <form [formGroup]="form">
+      <label class="form-label" for="reason-field">{{ label }}<span class="required">*</span></label>
       <textarea
         id="reason-field"
         class="form-control"
         rows="4"
-        [(ngModel)]="reason"
+        formControlName="reason"
         [placeholder]="placeholder"
-        [disabled]="isBusy"
         [maxlength]="maxLength"></textarea>
       <div class="character-count">{{ reason.length }}/{{ maxLength }} znakova</div>
-      <p class="error-text" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="error-text" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+      </form>
     </div>
 
     <div class="button-group">

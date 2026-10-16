@@ -12,16 +12,16 @@
         Preuzmite prazan nalog, popunite ga i prenesite ovdje. Obavezno priložite račun goriva, a ako ste putovali autocestom i račun cestarine.
       </p>
 
-      <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+      <div *ngIf="errorMessage" class="alert alert-error" role="alert">{{ errorMessage }}</div>
 
       <button type="button" class="btn-template" (click)="downloadTemplate()">
         <i class="fas fa-download"></i>
         Preuzmi prazan putni nalog (HKS)
       </button>
 
-      <div class="form-group">
+      <div class="form-group" [formGroup]="form">
         <label for="travel-game">Utakmica *</label>
-        <select id="travel-game" class="form-control" [(ngModel)]="gameId" [disabled]="isLoading || isLoadingGames">
+        <select id="travel-game" class="form-control" formControlName="gameId">
           <option value="">Odaberite utakmicu</option>
           <option *ngFor="let game of eligibleGames" [value]="game._id">{{ gameLabel(game) }}</option>
         </select>
@@ -30,8 +30,8 @@
         </small>
       </div>
 
-      <label class="highway">
-        <input type="checkbox" [(ngModel)]="usedHighway" (ngModelChange)="onHighwayChange($event)" [disabled]="isLoading" />
+      <label class="highway" [formGroup]="form">
+        <input type="checkbox" formControlName="usedHighway" (change)="onHighwayChange(usedHighway)" />
         Putovao/la sam autocestom
       </label>
 

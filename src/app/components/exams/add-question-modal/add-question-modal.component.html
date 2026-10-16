@@ -1,42 +1,37 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
-  <div class="modal-container">
+  <div class="modal-container" role="dialog" aria-modal="true" [attr.aria-labelledby]="'question-modal-title'">
     <div class="modal-header">
-      <h3>{{ isEditMode ? 'Uredi pitanje' : 'Kreiraj novo pitanje' }}</h3>
-      <button class="close-btn" (click)="close()" type="button">
-        <span>&times;</span>
+      <h3 id="question-modal-title">{{ isEditMode ? 'Uredi pitanje' : 'Kreiraj novo pitanje' }}</h3>
+      <button class="close-btn" (click)="close()" type="button" aria-label="Zatvori">
+        <span aria-hidden="true">&times;</span>
       </button>
     </div>
 
     <div class="modal-body">
-      <form (ngSubmit)="onSubmit()" #questionForm="ngForm">
-        <!-- Question Text -->
+      <form (ngSubmit)="onSubmit()" [formGroup]="form">
         <div class="form-group">
           <label for="questionText">Tekst pitanja *</label>
           <textarea
             id="questionText"
-            name="questionText"
-            [(ngModel)]="questionData.questionText"
-            #questionText="ngModel"
+            formControlName="questionText"
             required
             rows="4"
             placeholder="Unesite tekst pitanja..."
           ></textarea>
-          <div class="validation-error" *ngIf="questionText.invalid && questionText.touched">
+          <div class="validation-error" *ngIf="form.controls.questionText.invalid && form.controls.questionText.touched">
             Tekst pitanja je obavezan.
           </div>
         </div>
 
-        <!-- Correct Answer -->
         <div class="form-group">
-          <label>Točan odgovor *</label>
-          <div class="radio-group">
+          <span id="correct-answer-label">Točan odgovor *</span>
+          <div class="radio-group" role="radiogroup" aria-labelledby="correct-answer-label">
             <div class="radio-option">
               <input
                 type="radio"
                 id="answerTrue"
-                name="correctAnswer"
+                formControlName="correctAnswer"
                 [value]="true"
-                [(ngModel)]="questionData.correctAnswer"
               >
               <label for="answerTrue">Da (Točno)</label>
             </div>
@@ -44,9 +39,8 @@
               <input
                 type="radio"
                 id="answerFalse"
-                name="correctAnswer"
+                formControlName="correctAnswer"
                 [value]="false"
-                [(ngModel)]="questionData.correctAnswer"
               >
               <label for="answerFalse">Ne (Netočno)</label>
             </div>
@@ -54,26 +48,24 @@
         </div>
 
         <div class="form-group" *ngIf="isEditMode">
-          <label class="checkbox-label">
-            <input type="checkbox" name="isActive" [(ngModel)]="questionData.isActive">
+          <label class="checkbox-label" for="question-active">
+            <input id="question-active" type="checkbox" formControlName="isActive">
             Aktivno (ulazi u nasumični ispit)
           </label>
         </div>
 
-        <!-- Error Message -->
-        <div class="error-message" *ngIf="error">
+        <div class="error-message" *ngIf="error" role="alert">
           {{ error }}
         </div>
 
-        <!-- Form Actions -->
         <div class="form-actions">
           <button type="button" class="cancel-btn" (click)="close()" [disabled]="isSubmitting">
             Odustani
           </button>
-          <button 
-            type="submit" 
-            class="submit-btn" 
-            [disabled]="questionForm.invalid || isSubmitting"
+          <button
+            type="submit"
+            class="submit-btn"
+            [disabled]="form.invalid || isSubmitting"
           >
             {{ isSubmitting ? 'Spremam...' : (isEditMode ? 'Spremi pitanje' : 'Dodaj pitanje') }}
           </button>

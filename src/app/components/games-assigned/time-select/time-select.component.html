@@ -1,25 +1,21 @@
-<div class="time-select">
+<div class="time-select" role="group" aria-label="Vrijeme utakmice">
   <select
     class="form-control"
     name="timeHour"
-    [ngModel]="hour"
-    (ngModelChange)="onHourChange($event)"
-    [ngModelOptions]="{standalone: true}"
+    (change)="onHourChange($any($event.target).value)"
     [disabled]="disabled"
     aria-label="Sat">
-    <option value="">Sat</option>
-    <option *ngFor="let h of hours" [value]="h">{{ h }}</option>
+    <option value="" [selected]="hour === ''">Sat</option>
+    <option *ngFor="let h of hours" [value]="h" [selected]="hour === h">{{ h }}</option>
   </select>
-  <span class="time-sep">:</span>
+  <span class="time-sep" aria-hidden="true">:</span>
   <select
     class="form-control"
     name="timeMinute"
-    [ngModel]="minute"
-    (ngModelChange)="onMinuteChange($event)"
-    [ngModelOptions]="{standalone: true}"
+    (change)="onMinuteChange($any($event.target).value)"
     [disabled]="disabled"
     aria-label="Minuta">
-    <option value="">Min</option>
-    <option *ngFor="let m of minutes" [value]="m">{{ m }}</option>
+    <option value="" [selected]="minute === ''">Min</option>
+    <option *ngFor="let m of minutes" [value]="m" [selected]="minute === m">{{ m }}</option>
   </select>
 </div>

@@ -17,14 +17,13 @@ interface ExpenseItem {
   homeTeam?: string;
   awayTeam?: string;
 }
-import { FormsModule } from '@angular/forms';
 import { BasketballGame } from '../../../model/basketballGame.model';
 import { BasketballGameService } from '../../../services/basketballGame.service';
 import { getTravelExpenseRate } from './travel-expense-rates';
 
 @Component({
   selector: 'app-modal-expense-report-details',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './modal-expense-report-details.component.html',
   styleUrl: './modal-expense-report-details.component.scss'
 })
@@ -132,6 +131,40 @@ export class ModalExpenseReportDetailsComponent implements OnChanges {
     } else {
       this.expenseData.unitPrice = 0.31;
     }
+  }
+
+  onGameSelect(event: Event): void {
+    this.selectedGameId = (event.target as HTMLSelectElement).value;
+    this.onGameChange();
+  }
+
+  onStartLocationSelect(event: Event): void {
+    this.startLocation = (event.target as HTMLSelectElement).value;
+    this.onLocationChange();
+  }
+
+  onEndLocationSelect(event: Event): void {
+    this.endLocation = (event.target as HTMLSelectElement).value;
+    this.onLocationChange();
+  }
+
+  onDescriptionInput(event: Event): void {
+    this.expenseData.description = (event.target as HTMLTextAreaElement).value;
+  }
+
+  onTypeSelect(event: Event): void {
+    this.expenseData.type = (event.target as HTMLSelectElement).value;
+    this.onExpenseTypeChange();
+  }
+
+  onQuantityInput(event: Event): void {
+    this.expenseData.quantity = Number((event.target as HTMLInputElement).value) || 0;
+    this.calculateAmount();
+  }
+
+  onUnitPriceInput(event: Event): void {
+    this.expenseData.unitPrice = Number((event.target as HTMLInputElement).value) || 0;
+    this.calculateAmount();
   }
 
   onGameChange() {

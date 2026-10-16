@@ -14,12 +14,12 @@
       </h3>
       <div class="referee-list">
         <div *ngFor="let sudac of selectedReferees.sudci; let i = index" class="referee-assignment">
-          <label>Sudac {{ sudac.position }}</label>
+          <label [for]="'sudac-' + i">Sudac {{ sudac.position }}</label>
           <div class="assignment-row">
             <select
-              [(ngModel)]="sudac.userId"
-              name="sudac_{{i}}"
-              (ngModelChange)="selectionChange.emit()"
+              [id]="'sudac-' + i"
+              [value]="sudac.userId"
+              (change)="onSudacChange(i, $event)"
               class="form-control">
               <option value="">Odaberite suca</option>
               <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
@@ -39,10 +39,11 @@
         </span>
       </h3>
       <div class="referee-assignment">
+        <label class="sr-only" for="delegat">Delegat</label>
         <select
-          [(ngModel)]="selectedReferees.delegat"
-          name="delegat"
-          (ngModelChange)="selectionChange.emit()"
+          id="delegat"
+          [value]="selectedReferees.delegat"
+          (change)="onDelegatChange($event)"
           class="form-control">
           <option value="">Odaberite delegata</option>
           <option *ngFor="let ref of availableDelegati" [value]="ref._id">
@@ -55,10 +56,11 @@
     <div class="referee-section" *ngIf="showKontrolor">
       <h3>{{ kontrolorHeading }}</h3>
       <div class="referee-assignment">
+        <label class="sr-only" for="kontrolor">Kontrolor</label>
         <select
-          [(ngModel)]="selectedReferees.kontrolor"
-          name="kontrolor"
-          (ngModelChange)="selectionChange.emit()"
+          id="kontrolor"
+          [value]="selectedReferees.kontrolor"
+          (change)="onKontrolorChange($event)"
           class="form-control">
           <option value="">Odaberite kontrolora</option>
           <option *ngFor="let ref of availableKontrolori" [value]="ref._id">

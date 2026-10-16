@@ -128,6 +128,9 @@ export function isRefereeAvailable(
 export function gameFormError(form: GameFormData): string | null {
   const { homeTeam, awayTeam, date, time, venue, competition } = form;
 
+  if (!competition) {
+    return 'Natjecanje je obavezno.';
+  }
   if (!homeTeam.trim()) {
     return 'Domaći tim je obavezan.';
   }
@@ -145,9 +148,6 @@ export function gameFormError(form: GameFormData): string | null {
   }
   if (!venue.trim()) {
     return 'Mjesto je obavezno.';
-  }
-  if (!competition) {
-    return 'Natjecanje je obavezno.';
   }
   return null;
 }

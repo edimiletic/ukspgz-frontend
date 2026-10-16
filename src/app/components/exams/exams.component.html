@@ -112,11 +112,13 @@
       <p class="section-hint">Pregled, izmjena i brisanje pitanja koja ulaze u sudački ispit. Neaktivno pitanje ostaje u bazi, ali se ne bira u novi ispit.</p>
 
       <div class="question-filters">
+        <label class="sr-only" for="question-search">Pretraži pitanje</label>
         <input
+          id="question-search"
           type="text"
           class="form-control"
-          [(ngModel)]="questionSearch"
-          (ngModelChange)="onQuestionFilterChange()"
+          [value]="questionSearch"
+          (input)="questionSearch = $any($event.target).value; onQuestionFilterChange()"
           placeholder="Pretraži pitanje...">
       </div>
 
@@ -210,11 +212,13 @@
       <h3>Svi pokušaji ispita</h3>
       <p class="section-hint">Pregled rezultata svih korisnika. Admin može otvoriti pregled odgovora ili obrisati pokušaj.</p>
       <div class="question-filters">
+        <label class="sr-only" for="attempt-search">Pretraži pokušaje</label>
         <input
+          id="attempt-search"
           type="text"
           class="form-control"
-          [(ngModel)]="attemptSearch"
-          (ngModelChange)="onAttemptFilterChange()"
+          [value]="attemptSearch"
+          (input)="attemptSearch = $any($event.target).value; onAttemptFilterChange()"
           placeholder="Pretraži po imenu...">
       </div>
       <div *ngIf="loadingAllAttempts" class="loading-message">Učitavam pokušaje...</div>

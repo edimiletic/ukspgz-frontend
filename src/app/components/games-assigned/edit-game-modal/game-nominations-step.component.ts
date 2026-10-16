@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { GameFormData, NominationRejection, RefereeSelection } from '../../../model/basketballGame.model';
 import { User } from '../../../model/user.model';
 import { formatRejectionWhen } from './edit-game-modal.helpers';
@@ -8,7 +7,7 @@ import { formatRejectionWhen } from './edit-game-modal.helpers';
 @Component({
   selector: 'app-game-nominations-step',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './game-nominations-step.component.html'
 })
 export class GameNominationsStepComponent {
@@ -28,4 +27,19 @@ export class GameNominationsStepComponent {
   @Output() selectionChange = new EventEmitter<void>();
 
   formatWhen = formatRejectionWhen;
+
+  onSudacChange(index: number, event: Event): void {
+    this.selectedReferees.sudci[index].userId = (event.target as HTMLSelectElement).value;
+    this.selectionChange.emit();
+  }
+
+  onDelegatChange(event: Event): void {
+    this.selectedReferees.delegat = (event.target as HTMLSelectElement).value;
+    this.selectionChange.emit();
+  }
+
+  onKontrolorChange(event: Event): void {
+    this.selectedReferees.kontrolor = (event.target as HTMLSelectElement).value;
+    this.selectionChange.emit();
+  }
 }

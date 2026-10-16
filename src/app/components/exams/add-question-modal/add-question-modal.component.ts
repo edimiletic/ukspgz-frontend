@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { QuestionBank } from '../../../model/exam.model';
 import { ExamService } from '../../../services/exam.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   emptyQuestionForm,
   questionFormError,
@@ -12,7 +12,7 @@ import {
 
 @Component({
   selector: 'app-add-question-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './add-question-modal.component.html',
   styleUrl: './add-question-modal.component.scss'
 })
@@ -26,6 +26,13 @@ export class AddQuestionModalComponent implements OnChanges {
   questionData: QuestionFormData = emptyQuestionForm();
   isSubmitting = false;
   error: string | null = null;
+
+  private readonly fb = inject(FormBuilder);
+  readonly form = this.fb.nonNullable.group({
+    questionText: ['', Validators.required],
+    correctAnswer: [true],
+    isActive: [true]
+  });
 
   constructor(private examService: ExamService) {}
 
@@ -46,9 +53,11 @@ export class AddQuestionModalComponent implements OnChanges {
     this.error = null;
     this.isSubmitting = false;
     this.questionData = this.question ? questionFormFromBank(this.question) : emptyQuestionForm();
+    this.form.reset(this.questionData);
   }
 
   onSubmit(): void {
+    this.questionData = this.form.getRawValue();
     const error = questionFormError(this.questionData);
     if (error) {
       this.error = error;
@@ -93,6 +102,7 @@ export class AddQuestionModalComponent implements OnChanges {
 
   resetForm(): void {
     this.questionData = emptyQuestionForm();
+    this.form.reset(this.questionData);
     this.error = null;
   }
 

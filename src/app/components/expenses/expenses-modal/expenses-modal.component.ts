@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { EligibleTravelGame, TravelExpense, travelExpenseId } from '../../../model/travel-expense.model';
 import { TravelExpenseService } from '../../../services/travel-expense.service';
 
@@ -9,7 +9,7 @@ const PDF_EXTS = ['.pdf'];
 
 @Component({
   selector: 'app-expenses-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './expenses-modal.component.html',
   styleUrl: './expenses-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -20,8 +20,24 @@ export class ExpensesModalComponent implements OnChanges {
   @Output() success = new EventEmitter<{ reportId: string }>();
 
   eligibleGames: EligibleTravelGame[] = [];
-  gameId = '';
-  usedHighway = false;
+  private readonly fb = inject(FormBuilder);
+  readonly form = this.fb.nonNullable.group({
+    gameId: [''],
+    usedHighway: [false]
+  });
+
+  get gameId(): string {
+    return this.form.controls.gameId.value;
+  }
+  set gameId(value: string) {
+    this.form.controls.gameId.setValue(value);
+  }
+  get usedHighway(): boolean {
+    return this.form.controls.usedHighway.value;
+  }
+  set usedHighway(value: boolean) {
+    this.form.controls.usedHighway.setValue(value);
+  }
   nalogFile: File | null = null;
   fuelFile: File | null = null;
   tollFile: File | null = null;

@@ -9,7 +9,7 @@ import {
   inject
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { USER_ROLES, formatRoleLabel, getRoleNames } from '../../model/roles';
 import { User } from '../../model/user.model';
 import { AuthService } from '../../services/login.service';
@@ -23,7 +23,7 @@ import { apiErrorMessage, leagueColumnParts, userMatchesFilters } from './users.
 
 @Component({
   selector: 'app-users',
-  imports: [CommonModule, FormsModule, UserFormModalComponent, ConfirmationModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, UserFormModalComponent, ConfirmationModalComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -38,8 +38,17 @@ export class UsersComponent implements OnInit {
   readonly itemsPerPage = 10;
 
   users: User[] = [];
-  search = '';
-  roleFilter = '';
+  readonly filterForm = inject(FormBuilder).nonNullable.group({
+    search: [''],
+    roleFilter: ['']
+  });
+
+  get search(): string {
+    return this.filterForm.controls.search.value;
+  }
+  get roleFilter(): string {
+    return this.filterForm.controls.roleFilter.value;
+  }
   page = 1;
   isLoading = false;
   errorMessage = '';
@@ -64,6 +73,10 @@ export class UsersComponent implements OnInit {
 
   constructor() {
     this.destroyRef.onDestroy(() => this.clearToast());
+    this.filterForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.onFilterChange();
+      this.cdr.markForCheck();
+    });
   }
 
   ngOnInit(): void {

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import {
@@ -16,7 +15,7 @@ import { isAdminUser, userHasRole } from '../../model/roles';
 
 @Component({
   selector: 'app-notifications',
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss'
 })

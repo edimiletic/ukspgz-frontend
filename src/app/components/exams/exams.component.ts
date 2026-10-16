@@ -4,7 +4,6 @@ import { Exam, ExamStats, ExamAttempt, QuestionBank } from './../../model/exam.m
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ExamService } from '../../services/exam.service';
 import { AuthService } from '../../services/login.service';
 import { isAdminUser } from '../../model/roles';
@@ -22,7 +21,7 @@ import { attemptUserName, filterExamAttempts } from './exam-attempts.helpers';
 @Component({
   selector: 'app-exams',
   standalone: true,
-  imports: [CommonModule, FormsModule, AddQuestionModalComponent, RouterModule, ConfirmationModalComponent],
+  imports: [CommonModule, AddQuestionModalComponent, RouterModule, ConfirmationModalComponent],
   templateUrl: './exams.component.html',
   styleUrl: './exams.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -17,8 +17,8 @@
 <div class="filters-section">
   <div class="filter-row">
     <div class="filter-group">
-      <label>Tip Obavijesti:</label>
-      <select [(ngModel)]="filterType" (change)="onFilterChange()" class="form-control">
+      <label for="notification-type">Tip Obavijesti:</label>
+      <select id="notification-type" [value]="filterType" (change)="filterType = $any($event.target).value; onFilterChange()" class="form-control">
         <option value="">Svi tipovi</option>
         <option value="GAME_ASSIGNMENT">Nominacije</option>
         <option value="GAME_CREATED">Nova utakmica</option>
@@ -34,8 +34,8 @@
       </select>
     </div>
     <div class="filter-group">
-      <label class="checkbox-label">
-        <input type="checkbox" [(ngModel)]="showOnlyUnread" (change)="onFilterChange()">
+      <label class="checkbox-label" for="notification-unread">
+        <input id="notification-unread" type="checkbox" [checked]="showOnlyUnread" (change)="showOnlyUnread = $any($event.target).checked; onFilterChange()">
         Prikaži samo nepročitana
       </label>
     </div>

@@ -2,21 +2,21 @@
   <input
     type="text"
     class="form-control"
-    [ngModel]="query"
-    (ngModelChange)="onQueryChange($event)"
-    [ngModelOptions]="{standalone: true}"
+    [value]="query"
+    (input)="onQueryChange($any($event.target).value)"
     (focus)="onFocus()"
     [disabled]="disabled"
     [placeholder]="placeholder"
     autocomplete="off"
     aria-label="Dvorana">
 
-  <ul class="venue-results" *ngIf="open && !disabled">
+  <ul class="venue-results" *ngIf="open && !disabled" role="listbox">
     <li *ngIf="matches.length === 0" class="venue-hint">Nema dvorane s tim nazivom</li>
     <li
       *ngFor="let venue of matches; trackBy: trackByVenue"
       (mousedown)="choose(venue)"
-      [class.active]="venue === selected">
+      [class.active]="venue === selected"
+      role="option">
       {{ venue }}
     </li>
   </ul>

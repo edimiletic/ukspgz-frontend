@@ -148,9 +148,11 @@ describe('edit-game-modal.helpers', () => {
   });
 
   it('gameFormError pokriva prazna polja i iste timove', () => {
+    expect(gameFormError(form({ competition: '' }))).toBe('Natjecanje je obavezno.');
     expect(gameFormError(form({ homeTeam: '  ' }))).toBe('Domaći tim je obavezan.');
     expect(gameFormError(form({ awayTeam: 'Cibona' }))).toBe('Domaći i gostujući tim ne mogu biti isti.');
     expect(gameFormError(form({ date: '' }))).toBe('Datum je obavezan.');
+    expect(gameFormError(form({ time: '' }))).toBe('Vrijeme je obavezno.');
     expect(gameFormError(form())).toBeNull();
   });
 

@@ -1,14 +1,11 @@
-<form class="game-form">
+<form class="game-form" [formGroup]="form">
   <div class="form-row" [class.form-row-single]="isCreateMode">
     <div class="form-group">
       <label for="competition">Natjecanje</label>
       <select
         id="competition"
-        [(ngModel)]="gameForm.competition"
-        name="competition"
+        formControlName="competition"
         class="form-control"
-        [disabled]="!canEditDetails"
-        (ngModelChange)="competitionChange.emit()"
         required>
         <option value="">Odaberite natjecanje</option>
         <option *ngFor="let comp of competitions" [value]="comp">{{ comp }}</option>
@@ -18,10 +15,8 @@
       <label for="status">Status</label>
       <select
         id="status"
-        [(ngModel)]="gameForm.status"
-        name="status"
+        formControlName="status"
         class="form-control"
-        [disabled]="!canEditDetails"
         required>
         <option *ngFor="let status of statusOptions" [value]="status.value">
           {{ status.label }}
@@ -34,49 +29,41 @@
     <div class="form-group">
       <label for="homeTeam">Domaći Tim</label>
       <select
-        *ngIf="hasTeamCatalog"
+        *ngIf="teamsLocked || hasTeamCatalog"
         id="homeTeam"
-        [(ngModel)]="gameForm.homeTeam"
-        name="homeTeam"
+        formControlName="homeTeam"
         class="form-control"
-        [disabled]="!canEditDetails"
         required>
-        <option value="">Odaberite domaći tim</option>
+        <option value="">{{ teamsLocked ? 'Prvo odaberite natjecanje' : 'Odaberite domaći tim' }}</option>
         <option *ngFor="let team of teamOptions" [value]="team">{{ team }}</option>
       </select>
       <input
-        *ngIf="!hasTeamCatalog"
+        *ngIf="!teamsLocked && !hasTeamCatalog"
         type="text"
         id="homeTeam"
-        [(ngModel)]="gameForm.homeTeam"
-        name="homeTeam"
+        formControlName="homeTeam"
         class="form-control"
         placeholder="Unesite naziv domaćeg tima"
-        [disabled]="!canEditDetails"
         required>
     </div>
     <div class="form-group">
       <label for="awayTeam">Gostujući Tim</label>
       <select
-        *ngIf="hasTeamCatalog"
+        *ngIf="teamsLocked || hasTeamCatalog"
         id="awayTeam"
-        [(ngModel)]="gameForm.awayTeam"
-        name="awayTeam"
+        formControlName="awayTeam"
         class="form-control"
-        [disabled]="!canEditDetails"
         required>
-        <option value="">Odaberite gostujući tim</option>
+        <option value="">{{ teamsLocked ? 'Prvo odaberite natjecanje' : 'Odaberite gostujući tim' }}</option>
         <option *ngFor="let team of awayTeamOptions" [value]="team">{{ team }}</option>
       </select>
       <input
-        *ngIf="!hasTeamCatalog"
+        *ngIf="!teamsLocked && !hasTeamCatalog"
         type="text"
         id="awayTeam"
-        [(ngModel)]="gameForm.awayTeam"
-        name="awayTeam"
+        formControlName="awayTeam"
         class="form-control"
         placeholder="Unesite naziv gostujućeg tima"
-        [disabled]="!canEditDetails"
         required>
     </div>
   </div>
@@ -87,21 +74,16 @@
       <input
         type="date"
         id="date"
-        [(ngModel)]="gameForm.date"
-        name="date"
+        formControlName="date"
         class="form-control"
         [min]="minDate"
-        [disabled]="!canEditDetails"
-        (change)="dateTimeChange.emit()"
         required>
     </div>
     <div class="form-group">
-      <label>Vrijeme</label>
+      <label id="game-time-label">Vrijeme</label>
       <app-time-select
-        name="time"
-        [(ngModel)]="gameForm.time"
-        [disabled]="!canEditDetails"
-        (ngModelChange)="dateTimeChange.emit()">
+        formControlName="time"
+        [attr.aria-labelledby]="'game-time-label'">
       </app-time-select>
     </div>
   </div>
@@ -110,10 +92,8 @@
     <label for="venue">Dvorana</label>
     <app-venue-search
       id="venue"
-      name="venue"
-      [options]="venueOptions"
-      [(ngModel)]="gameForm.venue"
-      [disabled]="!canEditDetails">
+      formControlName="venue"
+      [options]="venueOptions">
     </app-venue-search>
   </div>
 
@@ -121,11 +101,9 @@
     <label for="notes">Napomene</label>
     <textarea
       id="notes"
-      [(ngModel)]="gameForm.notes"
-      name="notes"
+      formControlName="notes"
       class="form-control"
       rows="3"
-      [disabled]="!canEditDetails"
       placeholder="Dodatne napomene o utakmici (opcionalno)"></textarea>
   </div>
 </form>

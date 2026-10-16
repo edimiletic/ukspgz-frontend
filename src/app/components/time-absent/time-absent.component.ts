@@ -7,7 +7,6 @@ import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirma
 import { User } from '../../model/user.model';
 import { AuthService } from '../../services/login.service';
 import { UserService } from '../../services/user.service';
-import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser } from '../../model/roles';
 
@@ -18,7 +17,7 @@ interface AbsenceWithUser extends Absence {
 
 @Component({
   selector: 'app-time-absent',
-  imports: [RouterModule, TimeAbsentModalComponent, CommonModule, ConfirmationModalComponent, FormsModule],
+  imports: [RouterModule, TimeAbsentModalComponent, CommonModule, ConfirmationModalComponent],
   templateUrl: './time-absent.component.html',
   styleUrl: './time-absent.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

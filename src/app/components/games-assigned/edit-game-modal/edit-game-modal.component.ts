@@ -22,13 +22,12 @@ import {
   unavailableOfficialsCount
 } from './edit-game-modal.helpers';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { GameDetailsStepComponent } from './game-details-step.component';
 import { GameNominationsStepComponent } from './game-nominations-step.component';
 
 @Component({
   selector: 'app-game-form-modal',
-  imports: [CommonModule, FormsModule, GameDetailsStepComponent, GameNominationsStepComponent],
+  imports: [CommonModule, GameDetailsStepComponent, GameNominationsStepComponent],
   templateUrl: './edit-game-modal.component.html',
   styleUrl: './edit-game-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -13,7 +13,6 @@ import {
 import { TravelExpenseService } from '../../services/travel-expense.service';
 import { AuthService } from '../../services/login.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ConfirmationData, ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
@@ -27,7 +26,6 @@ type ExpenseSectionKey = 'pending' | 'rejected' | 'approved';
   imports: [
     RouterModule,
     ExpensesModalComponent,
-    FormsModule,
     CommonModule,
     ConfirmationModalComponent
   ],

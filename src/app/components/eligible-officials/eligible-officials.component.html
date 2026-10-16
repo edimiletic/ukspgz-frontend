@@ -12,7 +12,7 @@
   <div *ngIf="!isLoading" class="filter-section">
     <div class="filter-group">
       <label for="roleFilter">Uloga</label>
-      <select id="roleFilter" class="form-control" [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()">
+      <select id="roleFilter" class="form-control" [value]="selectedRole" (change)="selectedRole = $any($event.target).value; onRoleChange()">
         <option *ngFor="let option of roleOptions" [value]="option.value">{{ option.label }}</option>
       </select>
     </div>

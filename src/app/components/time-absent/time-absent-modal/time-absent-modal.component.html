@@ -1,39 +1,40 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>{{ isCreateMode ? 'Kreiraj odsustvo' : 'Uredi odsustvo' }}</h3>
-      <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isSubmitting">
-        <i class="fa-solid fa-xmark"></i>
+      <h3 id="absence-modal-title">{{ isCreateMode ? 'Kreiraj odsustvo' : 'Uredi odsustvo' }}</h3>
+      <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isSubmitting" aria-label="Zatvori">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" [formGroup]="form">
       <div class="form-group">
-        <label>Početak odsustva <span class="required">*</span></label>
+        <label for="absence-start">Početak odsustva <span class="required">*</span></label>
         <input
+          id="absence-start"
           type="date"
           class="form-control"
-          [(ngModel)]="startDate"
+          formControlName="startDate"
           [min]="todayDate"
           (change)="onStartDateChange()"
-          [disabled]="startDateLocked"
           required>
       </div>
       <div class="form-group">
-        <label>Kraj odsustva <span class="required">*</span></label>
+        <label for="absence-end">Kraj odsustva <span class="required">*</span></label>
         <input
+          id="absence-end"
           type="date"
           class="form-control"
-          [(ngModel)]="endDate"
+          formControlName="endDate"
           [min]="minEndDate"
-          [disabled]="endDateLocked || !startDate"
           required>
       </div>
       <div class="form-group">
-        <label>Razlog</label>
+        <label for="absence-reason">Razlog</label>
         <textarea
+          id="absence-reason"
           class="form-control"
           rows="3"
-          [(ngModel)]="reason"
+          formControlName="reason"
           placeholder="Unesite razlog odsustva..."></textarea>
       </div>
       <div class="info-note" *ngIf="absence && endDateLocked">

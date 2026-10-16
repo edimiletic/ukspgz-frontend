@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AbsenceService } from '../../../services/absence.service';
 import { AuthService } from '../../../services/login.service';
 import { User } from '../../../model/user.model';
@@ -8,7 +8,7 @@ import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from '../../../mo
 
 @Component({
   selector: 'app-time-absent-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './time-absent-modal.component.html',
   styleUrl: './time-absent-modal.component.scss'
 })
@@ -20,13 +20,36 @@ export class TimeAbsentModalComponent implements OnChanges {
   @Output() absenceUpdated = new EventEmitter<void>();
   @Output() error = new EventEmitter<string>();
 
-  startDate = '';
-  endDate = '';
-  reason = '';
   todayDate: string;
   minEndDate = '';
   isSubmitting = false;
   currentUser: User | null = null;
+
+  private readonly fb = inject(FormBuilder);
+  readonly form = this.fb.nonNullable.group({
+    startDate: [''],
+    endDate: [''],
+    reason: ['']
+  });
+
+  get startDate(): string {
+    return this.form.controls.startDate.value;
+  }
+  set startDate(value: string) {
+    this.form.controls.startDate.setValue(value);
+  }
+  get endDate(): string {
+    return this.form.controls.endDate.value;
+  }
+  set endDate(value: string) {
+    this.form.controls.endDate.setValue(value);
+  }
+  get reason(): string {
+    return this.form.controls.reason.value;
+  }
+  set reason(value: string) {
+    this.form.controls.reason.setValue(value);
+  }
 
   constructor(
     private absenceService: AbsenceService,
@@ -62,6 +85,7 @@ export class TimeAbsentModalComponent implements OnChanges {
     } else if (changes['isOpen'] || changes['absence']) {
       this.resetFormFields();
     }
+    this.syncDateLocks();
   }
 
   getCurrentUser(): void {
@@ -88,6 +112,20 @@ export class TimeAbsentModalComponent implements OnChanges {
       this.endDate = '';
     }
     this.updateMinEndDate();
+    this.syncDateLocks();
+  }
+
+  private syncDateLocks(): void {
+    if (this.startDateLocked) {
+      this.form.controls.startDate.disable({ emitEvent: false });
+    } else {
+      this.form.controls.startDate.enable({ emitEvent: false });
+    }
+    if (this.endDateLocked || !this.startDate) {
+      this.form.controls.endDate.disable({ emitEvent: false });
+    } else {
+      this.form.controls.endDate.enable({ emitEvent: false });
+    }
   }
 
   updateMinEndDate(): void {
@@ -262,9 +300,7 @@ export class TimeAbsentModalComponent implements OnChanges {
   }
 
   private resetFormFields(): void {
-    this.startDate = '';
-    this.endDate = '';
-    this.reason = '';
+    this.form.reset({ startDate: '', endDate: '', reason: '' });
     this.minEndDate = '';
     this.isSubmitting = false;
   }
