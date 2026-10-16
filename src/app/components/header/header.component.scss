@@ -16,6 +16,21 @@
   z-index: 1006; // Higher than sidebar
 }
 
+.logo-home {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 50px;
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+}
+
 .logo{
   cursor: pointer;
       height: 60px;
@@ -92,6 +107,8 @@ h1{
 }
 
 .user-icon {
+  appearance: none;
+  border: none;
   background-color: #e63946;
   color: white;
   width: 35px;
@@ -121,6 +138,8 @@ h1{
 }
 
 .notification-icon {
+  appearance: none;
+  border: none;
   background-color: #3498db;
   color: white;
   width: 35px;
@@ -247,6 +266,12 @@ h1{
 }
 
 .notification-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  background: none;
+  border: none;
   padding: 12px 16px;
   border-bottom: 1px solid #f1f3f4;
   cursor: pointer;
@@ -347,7 +372,12 @@ h1{
   padding: 10px 16px;
   text-decoration: none;
   display: block;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
   font-size: 14px;
+  background: none;
+  border: none;
   cursor: pointer;
 }
 

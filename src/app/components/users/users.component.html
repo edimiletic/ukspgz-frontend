@@ -74,23 +74,25 @@
             </td>
             <td>
               <div class="action-buttons">
-                <button class="btn-icon btn-edit" type="button" (click)="openEdit(user)" title="Uredi">
-                  <i class="fas fa-pen"></i>
+                <button class="btn-icon btn-edit" type="button" (click)="openEdit(user)" title="Uredi" aria-label="Uredi">
+                  <i class="fas fa-pen" aria-hidden="true"></i>
                 </button>
                 <button
                   class="btn-icon btn-reset"
                   type="button"
                   (click)="issueResetLink(user)"
-                  title="Novi link za lozinku">
-                  <i class="fas fa-key"></i>
+                  title="Novi link za lozinku"
+                  aria-label="Novi link za lozinku">
+                  <i class="fas fa-key" aria-hidden="true"></i>
                 </button>
                 <button
                   class="btn-icon btn-delete"
                   type="button"
                   (click)="askDelete(user)"
                   [disabled]="!canDelete(user)"
-                  title="Obriši">
-                  <i class="fas fa-trash"></i>
+                  title="Obriši"
+                  aria-label="Obriši">
+                  <i class="fas fa-trash" aria-hidden="true"></i>
                 </button>
               </div>
             </td>

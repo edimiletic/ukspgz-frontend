@@ -24,6 +24,11 @@ export class AppShellComponent {
     );
   }
 
+  focusMain(event: Event): void {
+    event.preventDefault();
+    document.getElementById('glavni-sadrzaj')?.focus();
+  }
+
   private leafRouteData(): Record<string, unknown> {
     let route = this.router.routerState.snapshot.root;
     while (route.firstChild) {

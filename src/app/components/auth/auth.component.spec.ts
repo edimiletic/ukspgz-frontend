@@ -41,8 +41,7 @@ describe('AuthComponent', () => {
   });
 
   it('nakon uspješne prijave ide na /home', () => {
-    component.username = 'iva';
-    component.password = 'x';
+    component.form.setValue({ username: 'iva', password: 'x' });
     auth.login.and.returnValue(of({ token: 't' }));
     component.onSubmit();
     expect(auth.login).toHaveBeenCalled();
@@ -50,8 +49,7 @@ describe('AuthComponent', () => {
   });
 
   it('prikazuje poruku kad prijava padne', () => {
-    component.username = 'iva';
-    component.password = 'x';
+    component.form.setValue({ username: 'iva', password: 'x' });
     auth.login.and.returnValue(throwError(() => ({ error: { error: 'Neispravni podaci' } })));
     component.onSubmit();
     expect(component.errorMessage).toBe('Neispravni podaci');

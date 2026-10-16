@@ -1,26 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/login.service';
 
 @Component({
   selector: 'app-auth',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
 export class AuthComponent implements OnInit {
-  username: string = '';
-  password: string = '';
-  isLoading: boolean = false;
-  errorMessage: string = '';
+  isLoading = false;
+  errorMessage = '';
 
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {
-      }
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+
+  readonly form = this.fb.nonNullable.group({
+    username: ['', Validators.required],
+    password: ['', Validators.required]
+  });
 
   ngOnInit() {
     if (this.authService.isAuthenticated()) {
@@ -29,7 +30,8 @@ export class AuthComponent implements OnInit {
   }
 
   onSubmit() {
-    if (!this.username || !this.password) {
+    this.form.markAllAsTouched();
+    if (this.form.invalid) {
       this.errorMessage = 'Molimo unesite korisničko ime i lozinku';
       return;
     }
@@ -39,18 +41,15 @@ export class AuthComponent implements OnInit {
   login() {
     this.isLoading = true;
     this.errorMessage = '';
-    const credentials = {
-      username: this.username.trim(),
-      password: this.password
-    };
-
-    this.authService.login(credentials).subscribe({
-      next: (_response) => {
-                // Always redirect to home after login
+    const { username, password } = this.form.getRawValue();
+    this.form.disable();
+    this.authService.login({ username: username.trim(), password }).subscribe({
+      next: () => {
         this.router.navigate(['/home']);
       },
       error: (error) => {
         this.isLoading = false;
+        this.form.enable();
         this.errorMessage = error.error?.error || 'Neispravno korisničko ime ili lozinka';
       },
       complete: () => {

@@ -1,46 +1,43 @@
-<!-- auth.component.html -->
 <div class="page-container">
   <div class="login-container">
     <div class="logo-image">
-      <img class="logo" src="assets/HKS_Logo.webp" alt="logo image">
+      <img class="logo" src="assets/HKS_Logo.webp" alt="Hrvatski košarkaški savez">
     </div>
-    <h2>Prijava u sustav</h2>
-    
-    <!-- Error message -->
-    <div class="error-message" *ngIf="errorMessage">
-      <i class="fas fa-exclamation-circle"></i>
+    <h2 id="login-heading">Prijava u sustav</h2>
+
+    <div class="error-message" *ngIf="errorMessage" id="login-error" role="alert">
+      <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
       {{ errorMessage }}
     </div>
 
-    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+    <form (ngSubmit)="onSubmit()" [formGroup]="form" aria-labelledby="login-heading">
       <div class="form-group">
-        <label for="username"></label>
+        <label for="username">Korisničko ime</label>
         <input
           type="text"
           id="username"
-          name="username"
-          placeholder="Korisničko ime"
-          [(ngModel)]="username"
-          [disabled]="isLoading"
+          formControlName="username"
+          autocomplete="username"
+          [attr.aria-invalid]="form.controls.username.invalid && form.controls.username.touched ? true : null"
+          [attr.aria-describedby]="errorMessage ? 'login-error' : null"
           required
         />
       </div>
       <div class="form-group">
-        <label for="password"></label>
+        <label for="password">Lozinka</label>
         <input
           type="password"
           id="password"
-          name="password"
-          placeholder="Lozinka"
-          [(ngModel)]="password"
-          [disabled]="isLoading"
+          formControlName="password"
+          autocomplete="current-password"
+          [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched ? true : null"
           required
         />
       </div>
-      <button type="submit" [disabled]="isLoading || !loginForm.form.valid">
+      <button type="submit" [disabled]="isLoading || form.invalid">
         <span *ngIf="!isLoading">Prijava</span>
         <span *ngIf="isLoading">
-          <i class="fas fa-spinner fa-spin"></i> Prijavljivanje...
+          <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Prijavljivanje...
         </span>
       </button>
     </form>

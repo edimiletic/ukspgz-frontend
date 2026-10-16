@@ -1,7 +1,8 @@
+<a class="skip-link" href="#glavni-sadrzaj" (click)="focusMain($event)">Preskoči na sadržaj</a>
 <app-header></app-header>
 <app-sidebar *ngIf="(hideSidebar$ | async) === false"></app-sidebar>
 
-<main class="shell-main" [class.no-sidebar]="hideSidebar$ | async">
+<main id="glavni-sadrzaj" class="shell-main" tabindex="-1" [class.no-sidebar]="hideSidebar$ | async">
   <div class="shell-content">
     <router-outlet></router-outlet>
   </div>
