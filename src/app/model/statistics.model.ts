@@ -3,6 +3,7 @@ export interface RefereeStats {
   referee: any;
   totalGames: number;
   gamesInPeriod: number;
+  rejections: number;
   competitions: { [key: string]: number };
   roles: { [key: string]: number };
 }

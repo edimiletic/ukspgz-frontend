@@ -100,4 +100,20 @@ getRejectionHistory(gameId: string): Observable<{ gameId: string; rejections: No
     `${this.apiUrl}/${gameId}/rejection-history`
   );
 }
+
+getRejectionCounts(filters?: {
+  startDate?: string;
+  endDate?: string;
+  role?: string;
+  competition?: string;
+}): Observable<{ counts: { [userId: string]: number } }> {
+  const params = new URLSearchParams();
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (value) {
+      params.append(key, value);
+    }
+  });
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return this.http.get<{ counts: { [userId: string]: number } }>(`${this.apiUrl}/rejection-counts${query}`);
+}
 }

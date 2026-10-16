@@ -105,6 +105,14 @@ describe('statistics.helpers', () => {
       expect(stats[0].totalGames).toBe(2);
       expect(stats[0].competitions['SuperSport Premijer liga']).toBe(1);
       expect(stats[0].competitions['PRVA MUŠKA LIGA']).toBe(1);
+      expect(stats[0].rejections).toBe(0);
+    });
+
+    it('broji odbijanja i zadržava osobu bez prihvaćenih utakmica', () => {
+      const stats = calculateRefereeStats([], [sudac], 'Sudac', { u1: 4 });
+      expect(stats.length).toBe(1);
+      expect(stats[0].gamesInPeriod).toBe(0);
+      expect(stats[0].rejections).toBe(4);
     });
 
     it('ne broji tuđu ulogu iste osobe', () => {

@@ -1,0 +1,12 @@
+# SPA + nginx proxy to an API already running on the host (port 3000).
+# For API + Mongo as well, use the backend compose:
+#   docker compose --profile fullstack up --build
+# from the backend repo (expects this folder as ../ukspgz-frontend).
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    extra_hosts:
+      - "api:host-gateway"

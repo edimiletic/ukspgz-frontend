@@ -148,8 +148,19 @@
   height: 32px;
   border-radius: 50%;
   border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
   color: #fff;
   cursor: pointer;
+
+  i {
+    display: block;
+    line-height: 1;
+    font-size: 0.8rem;
+  }
 
   &.btn-edit {
     background: #3498db;

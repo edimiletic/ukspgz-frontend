@@ -109,13 +109,19 @@ export function refereesForRole(available: AvailableReferees, role: string): any
   }
 }
 
-export function calculateRefereeStats(games: any[], referees: any[], selectedRole: string): RefereeStats[] {
+export function calculateRefereeStats(
+  games: any[],
+  referees: any[],
+  selectedRole: string,
+  rejectionCounts: { [userId: string]: number } = {}
+): RefereeStats[] {
   const refereesMap = new Map<string, RefereeStats>();
   referees.filter(referee => userHasRole(referee, selectedRole)).forEach(referee => {
-    refereesMap.set(referee._id, {
+    refereesMap.set(String(referee._id), {
       referee,
       totalGames: 0,
       gamesInPeriod: 0,
+      rejections: Number(rejectionCounts[String(referee._id)] || 0),
       competitions: {},
       roles: {}
     });
@@ -129,7 +135,7 @@ export function calculateRefereeStats(games: any[], referees: any[], selectedRol
       if (selectedRole !== 'Admin' && assignment.role !== selectedRole) {
         return;
       }
-      const stats = refereesMap.get(assignment.userId._id);
+      const stats = refereesMap.get(String(assignment.userId._id || assignment.userId));
       if (!stats) {
         return;
       }
@@ -141,8 +147,8 @@ export function calculateRefereeStats(games: any[], referees: any[], selectedRol
   });
 
   return Array.from(refereesMap.values())
-    .filter(stats => stats.gamesInPeriod > 0)
-    .sort((a, b) => b.gamesInPeriod - a.gamesInPeriod);
+    .filter(stats => stats.gamesInPeriod > 0 || stats.rejections > 0)
+    .sort((a, b) => b.gamesInPeriod - a.gamesInPeriod || b.rejections - a.rejections);
 }
 
 export function calculateCompetitionStats(games: any[], selectedRole: string): CompetitionStats[] {

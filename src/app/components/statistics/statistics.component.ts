@@ -137,7 +137,31 @@ export class StatisticsComponent implements OnInit {
 
       const gamesResponse = await firstValueFrom(this.basketballGameService.getAllGames(filters));
       const games = gamesResponse?.games || [];
-      this.refereeStats = calculateRefereeStats(games, referees, this.selectedRole);
+      let rejectionCounts: { [userId: string]: number } = {};
+      try {
+        const rejectionFilters: { startDate?: string; endDate?: string; role?: string; competition?: string } = {
+          role: this.selectedRole
+        };
+        if (dateRange.start && dateRange.end) {
+          rejectionFilters.startDate = dateRange.start;
+          rejectionFilters.endDate = dateRange.end;
+        }
+        if (this.selectedCompetition) {
+          rejectionFilters.competition = this.selectedCompetition;
+        }
+        const rejectionResponse = await firstValueFrom(
+          this.basketballGameService.getRejectionCounts(rejectionFilters)
+        );
+        rejectionCounts = rejectionResponse?.counts || {};
+      } catch (rejectionError) {
+        console.error('Error loading rejection statistics:', rejectionError);
+      }
+      this.refereeStats = calculateRefereeStats(
+        games,
+        referees,
+        this.selectedRole,
+        rejectionCounts
+      );
       this.competitionStats = calculateCompetitionStats(games, this.selectedRole);
       this.totalGamesInPeriod = games.length;
       this.totalRefereesActive = this.refereeStats.length;

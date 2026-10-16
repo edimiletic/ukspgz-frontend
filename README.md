@@ -1,59 +1,44 @@
-# UkspgzFrontend
+# UHKS nominacije — frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.14.
+Angular 19. API je odvojeni repo (`backend-uhks`).
 
-## Development server
+Lokalni razvoj: `ng serve` na `http://localhost:4200` (API `http://localhost:3000/api` iz `environment.ts`).
 
-To start a local development server, run:
+Produkcijski build (Railway / statički hosting) koristi `environment.prod.ts` — trenutno `https://uhks-production.up.railway.app/api`.
 
-```bash
-ng serve
-```
+## Docker
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Build ide s `environment.docker.ts` (`apiUrl: '/api'`). Nginx prosljeđuje `/api` na host `api:3000`.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Ako API već radi na računalu:
 
 ```bash
-ng generate component component-name
+docker compose up --build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Otvori `http://localhost:8080`. `extra_hosts` mapira `api` na host.
+
+Cijeli stack (Mongo + API + SPA) iz backend foldera, ako je ovaj repo pokraj njega kao `ukspgz-frontend`:
 
 ```bash
-ng generate --help
+docker compose --profile fullstack up --build
 ```
 
-## Building
+## Produkcija (odvojeni host od API-ja)
 
-To build the project run:
+Sesijski kolačić je cross-site. Na API-ju mora biti:
+
+- `CORS_ORIGIN` = točan origin ove aplikacije (`https://...`, bez patha)
+- `FRONTEND_URL` = isti origin (invite mailovi)
+- `COOKIE_SECURE=true`
+- `COOKIE_SAMESITE=none`
+
+`withCredentials` je uključen na svim HTTP pozivima.
+
+## Testovi i lint
 
 ```bash
-ng build
+npm run lint
+npm run test:ci
+npm run build
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

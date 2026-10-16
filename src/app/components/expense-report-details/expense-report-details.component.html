@@ -4,13 +4,6 @@
             <div class="loading-spinner"></div>
             <p>Učitavanje putnog naloga...</p>
         </div>
-        <div *ngIf="report && !isLoading">
-        <a href="/expenses" class="back-button-simple">
-            <i class="fa-solid fa-arrow-left"></i>
-            <span class="back-text"></span>
-        </a>
-        </div>
-
         <div *ngIf="report && !isLoading" class="report-container">
             <div class="page-header">
                 <h1 class="page-title">{{ getPageTitle() }}</h1>

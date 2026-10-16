@@ -81,4 +81,15 @@ describe('BasketballGameService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ gameId: 'g1', rejections: [{ _id: 'r1', reason: 'Ozljeda' }] });
   });
+
+  it('dohvaća broj odbijanja po korisniku', () => {
+    service.getRejectionCounts({ startDate: '2026-09-01', endDate: '2026-10-31', role: 'Sudac' }).subscribe((res) => {
+      expect(res.counts['u1']).toBe(3);
+    });
+    const req = http.expectOne(
+      `${base}/rejection-counts?startDate=2026-09-01&endDate=2026-10-31&role=Sudac`
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ counts: { u1: 3 } });
+  });
 });
