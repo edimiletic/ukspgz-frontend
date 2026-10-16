@@ -55,4 +55,11 @@ describe('AuthComponent', () => {
     expect(component.errorMessage).toBe('Neispravni podaci');
     expect(component.isLoading).toBeFalse();
   });
+
+  it('prikazuje poruku kad je prijava privremeno zaključana', () => {
+    component.form.setValue({ username: 'iva', password: 'x' });
+    auth.login.and.returnValue(throwError(() => ({ status: 429, error: {} })));
+    component.onSubmit();
+    expect(component.errorMessage).toContain('Previše neuspjelih prijava');
+  });
 });

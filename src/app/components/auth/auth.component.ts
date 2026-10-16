@@ -50,7 +50,11 @@ export class AuthComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.form.enable();
-        this.errorMessage = error.error?.error || 'Neispravno korisničko ime ili lozinka';
+        this.errorMessage =
+          error.error?.error
+          || (error.status === 429
+            ? 'Previše neuspjelih prijava. Pokušaj ponovo za 15 minuta.'
+            : 'Neispravno korisničko ime ili lozinka');
       },
       complete: () => {
         this.isLoading = false;

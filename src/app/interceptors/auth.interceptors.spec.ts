@@ -75,4 +75,17 @@ describe('authInterceptor', () => {
     expect(auth.clearSession).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
   });
+
+  it('na 429 za login ne čisti sesiju', () => {
+    http.post('/api/login', { username: 'a', password: 'b' }).subscribe({
+      next: () => fail('očekivana 429'),
+      error: err => expect(err.status).toBe(429)
+    });
+    httpMock.expectOne('/api/login').flush(
+      { error: 'Previše neuspjelih prijava. Pokušaj ponovo za 15 minuta.' },
+      { status: 429, statusText: 'Too Many Requests' }
+    );
+    expect(auth.clearSession).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });
