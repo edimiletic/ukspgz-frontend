@@ -239,6 +239,41 @@ export function calculateAbsenceStats(
   return stats;
 }
 
+function calendarDateParts(value: string): { year: number; month: number; day: number } | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || '').trim());
+  if (!match) {
+    return null;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+  return { year, month, day };
+}
+
+/** Inclusive local calendar day. Date-only strings are UTC midnight, so they must not be used as the end instant. */
+function startOfCalendarDate(value: string): Date {
+  const parts = calendarDateParts(value);
+  if (!parts) {
+    return new Date(value);
+  }
+  return new Date(parts.year, parts.month - 1, parts.day, 0, 0, 0, 0);
+}
+
+function endOfCalendarDate(value: string): Date {
+  const parts = calendarDateParts(value);
+  if (!parts) {
+    return new Date(value);
+  }
+  return new Date(parts.year, parts.month - 1, parts.day, 23, 59, 59, 999);
+}
+
+function localMonthKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function calculateExpenseStats(
   expenses: any[],
   available: AvailableReferees,
@@ -247,11 +282,11 @@ export function calculateExpenseStats(
 ): ExpenseStats {
   let filtered = expenses;
   if (dateRange.start && dateRange.end) {
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
+    const startDate = startOfCalendarDate(dateRange.start);
+    const endDate = endOfCalendarDate(dateRange.end);
     filtered = expenses.filter(expense => {
       const expenseDate = new Date(expense.createdAt || expense.dateFrom);
-      return expenseDate >= startDate && expenseDate <= endDate;
+      return !Number.isNaN(expenseDate.getTime()) && expenseDate >= startDate && expenseDate <= endDate;
     });
   }
 
@@ -282,12 +317,15 @@ export function calculateExpenseStats(
     stats.byReferee[refereeName].count++;
     stats.byReferee[refereeName].amount += expenseAmount;
 
-    const monthKey = new Date(expense.createdAt || expense.dateFrom).toISOString().substring(0, 7);
-    if (!stats.byMonth[monthKey]) {
-      stats.byMonth[monthKey] = { count: 0, amount: 0 };
+    const expenseDate = new Date(expense.createdAt || expense.dateFrom);
+    if (!Number.isNaN(expenseDate.getTime())) {
+      const monthKey = localMonthKey(expenseDate);
+      if (!stats.byMonth[monthKey]) {
+        stats.byMonth[monthKey] = { count: 0, amount: 0 };
+      }
+      stats.byMonth[monthKey].count++;
+      stats.byMonth[monthKey].amount += expenseAmount;
     }
-    stats.byMonth[monthKey].count++;
-    stats.byMonth[monthKey].amount += expenseAmount;
 
     const status = expense.state || 'Unknown';
     stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
