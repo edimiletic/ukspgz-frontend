@@ -197,6 +197,41 @@ describe('statistics.helpers', () => {
       expect(stats.byReferee['Iva I'].amount).toBe(15.5);
       expect(stats.byStatus['Predano']).toBe(1);
     });
+
+    it('broji trošak podnesen zadnjeg kalendarskog dana i ne vuče sljedeći dan', () => {
+      const available = {
+        sudci: [referee('s1', 'Sudac', { name: 'Iva', surname: 'I' })],
+        delegati: [],
+        pomocniSudci: [],
+        kontrolori: []
+      };
+      const onLastAfternoon = new Date(2026, 0, 31, 15, 0, 0).toISOString();
+      const nextMorning = new Date(2026, 1, 1, 0, 30, 0).toISOString();
+      const stats = calculateExpenseStats([
+        {
+          userId: 's1',
+          createdAt: onLastAfternoon,
+          state: 'Predano',
+          type: 'Troškovno izvješće suca',
+          expenses: [{ amount: '20' }]
+        },
+        {
+          userId: 's1',
+          createdAt: nextMorning,
+          state: 'Predano',
+          type: 'Troškovno izvješće suca',
+          expenses: [{ amount: '99' }]
+        }
+      ], available, 'Sudac', {
+        start: '2026-01-01',
+        end: '2026-01-31'
+      });
+
+      expect(stats.totalExpenses).toBe(1);
+      expect(stats.totalAmount).toBe(20);
+      expect(stats.byMonth['2026-01'].amount).toBe(20);
+      expect(stats.byMonth['2026-02']).toBeUndefined();
+    });
   });
 
   describe('processKontrolaData', () => {
