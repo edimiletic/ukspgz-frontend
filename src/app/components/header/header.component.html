@@ -13,11 +13,11 @@
     <span class="hamburger-line"></span>
     <span class="hamburger-line"></span>
   </button>
-  <button type="button" class="logo-home" (click)="navigateToPage('/home')" aria-label="Početna stranica">
+  <a routerLink="/home" class="logo-home" aria-label="Početna stranica">
     <img class="logo" src="assets/HKS_Logo.webp" alt="">
-  </button>
-  <h1 class="title-full">Hrvatski Košarkaški Savez</h1>
-    <h1 class="title-short">HKS</h1>
+  </a>
+  <p class="brand-title title-full">Hrvatski Košarkaški Savez</p>
+  <p class="brand-title title-short">HKS</p>
   <div class="user-info">
     <div class="header-buttons">
       
@@ -28,7 +28,7 @@
           class="notification-icon"
           [class.has-notifications]="hasUnreadNotifications"
           (click)="toggleNotifications($event)"
-          aria-label="Obavijesti"
+          [attr.aria-label]="notificationsLabel"
           aria-haspopup="true"
           [attr.aria-expanded]="isNotificationsOpen">
           <i class="fas fa-bell" aria-hidden="true"></i>

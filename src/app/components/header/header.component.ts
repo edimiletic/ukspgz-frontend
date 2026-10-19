@@ -11,13 +11,13 @@ import {
   notificationResponseKind,
   notificationTargetRoute
 } from '../../model/notification.model';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subscription, interval, forkJoin } from 'rxjs';
 import { ChangePasswordModalComponent } from '../change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, ChangePasswordModalComponent],
+  imports: [CommonModule, RouterLink, ChangePasswordModalComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -108,13 +108,14 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isUserMenuOpen = false;
   }
 
-  navigateToPage(route: string) {
-    // Check auth before navigating to prevent login flash
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate([route]);
-    } else {
-      this.router.navigate(['/login']);
+  get notificationsLabel(): string {
+    if (this.unreadCount <= 0) {
+      return 'Obavijesti';
     }
+    if (this.unreadCount === 1) {
+      return 'Obavijesti, 1 nepročitana';
+    }
+    return `Obavijesti, ${this.unreadCount} nepročitanih`;
   }
 
   ngOnDestroy() {

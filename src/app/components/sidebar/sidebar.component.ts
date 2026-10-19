@@ -1,14 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, HostListener, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/login.service';
 import { SidebarNavService } from '../../services/sidebar-nav.service';
 
+interface NavLink {
+  path: string;
+  label: string;
+  icon: string;
+  exact: boolean;
+}
+
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
@@ -20,7 +27,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private openSubscription?: Subscription;
   
   constructor(
-    private router: Router, 
     private authService: AuthService,
     private sidebarNav: SidebarNavService,
     @Inject(PLATFORM_ID) platformId: object
@@ -38,25 +44,38 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  navigateToPage(route: string) {
-    // Check auth before navigating
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate([route]);
-      // Close sidebar on mobile after navigation
-      if (this.isBrowser && window.innerWidth <= 768) {
-        this.closeSidebar();
-      }
-    } else {
-      this.router.navigate(['/login']);
+  get navLinks(): NavLink[] {
+    const links: NavLink[] = [
+      { path: '/home', label: 'Početna stranica', icon: 'fas fa-home', exact: true },
+      { path: '/assigned', label: 'Moje utakmice', icon: 'fas fa-basketball-ball', exact: false },
+      { path: '/absence', label: 'Odsustvo', icon: 'fas fa-calendar-times', exact: false },
+      { path: '/expenses', label: 'Putni troškovi', icon: 'fas fa-money-bill-wave', exact: false },
+      { path: '/documents', label: 'Dokumenti', icon: 'fas fa-file-alt', exact: false },
+      { path: '/exams', label: 'Ispiti', icon: 'fas fa-graduation-cap', exact: false }
+    ];
+    if (this.isAdmin()) {
+      links.push({ path: '/users', label: 'Korisnici', icon: 'fas fa-user-cog', exact: false });
+    }
+    if (this.canViewEligibleOfficials()) {
+      links.push({
+        path: '/eligible-officials',
+        label: 'Osobe za nominaciju',
+        icon: 'fas fa-users',
+        exact: false
+      });
+    }
+    if (this.canViewStatistics()) {
+      links.push({ path: '/statistics', label: 'Statistika', icon: 'fas fa-chart-bar', exact: false });
+    }
+    return links;
+  }
+
+  onNavClick(): void {
+    if (this.isBrowser && window.innerWidth <= 768) {
+      this.closeSidebar();
     }
   }
 
-  // Get current route to show active state
-  isActiveRoute(route: string): boolean {
-    return this.router.url === route;
-  }
-
-  // Check if user is admin
   isAdmin(): boolean {
     return this.authService.isAdmin();
   }
