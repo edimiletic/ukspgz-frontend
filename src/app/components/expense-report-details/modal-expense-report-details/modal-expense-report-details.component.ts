@@ -2,6 +2,7 @@
 
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 interface ExpenseItem {
   _id?: string;
@@ -23,7 +24,7 @@ import { getTravelExpenseRate } from './travel-expense-rates';
 
 @Component({
   selector: 'app-modal-expense-report-details',
-  imports: [CommonModule],
+  imports: [CommonModule, ModalPanelDirective],
   templateUrl: './modal-expense-report-details.component.html',
   styleUrl: './modal-expense-report-details.component.scss'
 })

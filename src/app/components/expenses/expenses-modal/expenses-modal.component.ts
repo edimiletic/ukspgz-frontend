@@ -3,13 +3,14 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { EligibleTravelGame, TravelExpense, travelExpenseId } from '../../../model/travel-expense.model';
 import { TravelExpenseService } from '../../../services/travel-expense.service';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 const NALOG_EXTS = ['.xls', '.xlsx', '.pdf'];
 const PDF_EXTS = ['.pdf'];
 
 @Component({
   selector: 'app-expenses-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalPanelDirective],
   templateUrl: './expenses-modal.component.html',
   styleUrl: './expenses-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,9 +1,16 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
-  <div class="modal-content" [ngClass]="accentClass" (click)="$event.stopPropagation()">
+  <div
+    class="modal-content"
+    [ngClass]="accentClass"
+    appModalPanel
+    [appModalBusy]="isBusy"
+    aria-labelledby="confirmation-modal-title"
+    (dismiss)="closeModal()"
+    (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>{{ confirmationData.title }}</h3>
-      <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isBusy">
-        <i class="fa-solid fa-xmark"></i>
+      <h3 id="confirmation-modal-title">{{ confirmationData.title }}</h3>
+      <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isBusy" aria-label="Zatvori">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
 

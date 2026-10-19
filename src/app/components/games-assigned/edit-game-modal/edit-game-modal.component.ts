@@ -24,10 +24,11 @@ import {
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { GameDetailsStepComponent } from './game-details-step.component';
 import { GameNominationsStepComponent } from './game-nominations-step.component';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 @Component({
   selector: 'app-game-form-modal',
-  imports: [CommonModule, GameDetailsStepComponent, GameNominationsStepComponent],
+  imports: [CommonModule, GameDetailsStepComponent, GameNominationsStepComponent, ModalPanelDirective],
   templateUrl: './edit-game-modal.component.html',
   styleUrl: './edit-game-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

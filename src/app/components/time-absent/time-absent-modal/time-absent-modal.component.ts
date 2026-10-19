@@ -5,10 +5,11 @@ import { AbsenceService } from '../../../services/absence.service';
 import { AuthService } from '../../../services/login.service';
 import { User } from '../../../model/user.model';
 import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from '../../../model/absence.model';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 @Component({
   selector: 'app-time-absent-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalPanelDirective],
   templateUrl: './time-absent-modal.component.html',
   styleUrl: './time-absent-modal.component.scss'
 })

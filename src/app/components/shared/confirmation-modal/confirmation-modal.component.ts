@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 export interface ConfirmationData {
   title: string;
@@ -14,7 +15,7 @@ export interface ConfirmationData {
 
 @Component({
   selector: 'app-confirmation-modal',
-  imports: [CommonModule],
+  imports: [CommonModule, ModalPanelDirective],
   templateUrl: './confirmation-modal.component.html',
   styleUrl: './confirmation-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -3,6 +3,7 @@ import { QuestionBank } from '../../../model/exam.model';
 import { ExamService } from '../../../services/exam.service';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 import {
   emptyQuestionForm,
   questionFormError,
@@ -12,7 +13,7 @@ import {
 
 @Component({
   selector: 'app-add-question-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalPanelDirective],
   templateUrl: './add-question-modal.component.html',
   styleUrl: './add-question-modal.component.scss'
 })

@@ -19,11 +19,12 @@ import {
   ConfirmationModalComponent
 } from '../shared/confirmation-modal/confirmation-modal.component';
 import { UserFormModalComponent, UserFormSave } from './user-form-modal/user-form-modal.component';
+import { ModalPanelDirective } from '../../directives/modal-panel.directive';
 import { apiErrorMessage, leagueColumnParts, userMatchesFilters } from './users.helpers';
 
 @Component({
   selector: 'app-users',
-  imports: [CommonModule, ReactiveFormsModule, UserFormModalComponent, ConfirmationModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, UserFormModalComponent, ConfirmationModalComponent, ModalPanelDirective],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

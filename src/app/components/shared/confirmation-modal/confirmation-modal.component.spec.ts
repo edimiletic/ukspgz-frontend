@@ -57,4 +57,11 @@ describe('ConfirmationModalComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.modal-overlay')).toBeNull();
   });
+
+  it('označava dijalog i gumb zatvori za čitač', () => {
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog).toBeTruthy();
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    expect(fixture.nativeElement.querySelector('.btn-close').getAttribute('aria-label')).toBe('Zatvori');
+  });
 });

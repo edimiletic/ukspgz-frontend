@@ -35,6 +35,11 @@ describe('ReasonModalComponent', () => {
     expect(spy).toHaveBeenCalledWith('Ovo je dovoljno dugačak razlog');
   });
 
+  it('označava dijalog za čitač', () => {
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog.getAttribute('aria-labelledby')).toBe('reason-modal-title');
+  });
+
   it('busy blokira close i confirm', () => {
     const closeSpy = jasmine.createSpy();
     component.close.subscribe(closeSpy);

@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 @Component({
   selector: 'app-reason-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalPanelDirective],
   templateUrl: './reason-modal.component.html',
   styleUrl: './reason-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

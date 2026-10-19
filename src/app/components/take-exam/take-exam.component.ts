@@ -3,10 +3,11 @@ import { Exam, ExamAnswer, ExamQuestion, ExamSubmission } from '../../model/exam
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
 import { CommonModule } from '@angular/common';
+import { ModalPanelDirective } from '../../directives/modal-panel.directive';
 
 @Component({
   selector: 'app-take-exam',
-  imports: [CommonModule],
+  imports: [CommonModule, ModalPanelDirective],
   templateUrl: './take-exam.component.html',
   styleUrl: './take-exam.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

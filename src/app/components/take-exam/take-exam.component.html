@@ -173,9 +173,14 @@
 
 <!-- Confirmation Dialog -->
 <div class="modal-overlay" *ngIf="showConfirmDialog">
-  <div class="confirm-dialog">
+  <div
+    class="confirm-dialog"
+    appModalPanel
+    [appModalBusy]="isSubmitting"
+    aria-labelledby="exam-submit-title"
+    (dismiss)="cancelSubmit()">
     <div class="dialog-header">
-      <h3>Potvrda slanja ispita</h3>
+      <h3 id="exam-submit-title">Potvrda slanja ispita</h3>
     </div>
     
     <div class="dialog-body">
@@ -196,17 +201,21 @@
     </div>
     
     <div class="dialog-actions">
-      <button class="cancel-btn" (click)="cancelSubmit()">Odustani</button>
-      <button class="confirm-btn" (click)="confirmSubmit()">Pošalji ispit</button>
+      <button type="button" class="cancel-btn" (click)="cancelSubmit()">Odustani</button>
+      <button type="button" class="confirm-btn" (click)="confirmSubmit()">Pošalji ispit</button>
     </div>
   </div>
 </div>
 
 <!-- Exit Confirmation Dialog -->
 <div class="modal-overlay" *ngIf="showExitDialog">
-  <div class="confirm-dialog">
+  <div
+    class="confirm-dialog"
+    appModalPanel
+    aria-labelledby="exam-exit-title"
+    (dismiss)="cancelExit()">
     <div class="dialog-header">
-      <h3>Potvrda izlaska</h3>
+      <h3 id="exam-exit-title">Potvrda izlaska</h3>
     </div>
     
     <div class="dialog-body">
@@ -217,8 +226,8 @@
     </div>
     
     <div class="dialog-actions">
-      <button class="cancel-btn" (click)="cancelExit()">Ostani na ispitu</button>
-      <button class="confirm-btn danger" (click)="confirmExit()">Izađi s ispita</button>
+      <button type="button" class="cancel-btn" (click)="cancelExit()">Ostani na ispitu</button>
+      <button type="button" class="confirm-btn danger" (click)="confirmExit()">Izađi s ispita</button>
     </div>
   </div>
 </div>

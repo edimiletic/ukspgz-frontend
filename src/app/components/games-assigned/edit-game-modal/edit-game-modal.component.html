@@ -1,12 +1,18 @@
 <div class="modal-backdrop" *ngIf="isOpen" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
+  <div
+    class="modal-content"
+    appModalPanel
+    [appModalBusy]="isLoading"
+    aria-labelledby="game-modal-title"
+    (dismiss)="closeModal()"
+    (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>
+      <h2 id="game-modal-title">
         <span *ngIf="currentStep === 1">{{ isCreateMode ? 'Kreiraj novu utakmicu' : 'Uredi utakmicu' }}</span>
         <span *ngIf="currentStep === 2">{{ isCreateMode ? 'Dodijeli suce' : 'Uredi suca' }}</span>
       </h2>
-      <button class="close-btn" (click)="closeModal()" [disabled]="isLoading">
-        <i class="fas fa-times"></i>
+      <button class="close-btn" type="button" (click)="closeModal()" [disabled]="isLoading" aria-label="Zatvori">
+        <i class="fas fa-times" aria-hidden="true"></i>
       </button>
     </div>
 
@@ -22,8 +28,8 @@
       </div>
     </div>
 
-    <div class="error-message" *ngIf="errorMessage">
-      <i class="fas fa-exclamation-circle"></i>
+    <div class="error-message" *ngIf="errorMessage" role="alert">
+      <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
       {{ errorMessage }}
     </div>
 

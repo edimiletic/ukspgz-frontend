@@ -22,6 +22,7 @@ import {
   UserRole
 } from '../../../model/roles';
 import { User } from '../../../model/user.model';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 import {
   buildRoleAssignments,
   commissionerHolders,
@@ -45,7 +46,7 @@ export interface UserFormSave {
 
 @Component({
   selector: 'app-user-form-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalPanelDirective],
   templateUrl: './user-form-modal.component.html',
   styleUrl: './user-form-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

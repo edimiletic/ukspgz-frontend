@@ -1,9 +1,15 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onBackdropClick($event)">
-  <div class="modal-container">
+  <div
+    class="modal-container"
+    appModalPanel
+    [appModalBusy]="isLoading"
+    aria-labelledby="expenses-modal-title"
+    (dismiss)="onClose()"
+    (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>Novi putni nalog</h3>
-      <button class="close-btn" type="button" (click)="onClose()" [disabled]="isLoading">
-        <i class="fa-solid fa-xmark"></i>
+      <h3 id="expenses-modal-title">Novi putni nalog</h3>
+      <button class="close-btn" type="button" (click)="onClose()" [disabled]="isLoading" aria-label="Zatvori">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
 
