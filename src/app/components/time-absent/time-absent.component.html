@@ -22,14 +22,14 @@
         <!-- Updated Filter Section HTML - Replace your existing filter section with this -->
         <div class="filter-section">
             <!-- Mobile Filter Toggle Button (visible only on mobile) -->
-            <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" [attr.aria-expanded]="isMobileFiltersOpen">
-                <i class="fas fa-filter"></i>
+            <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" aria-controls="absence-filter-panel" [attr.aria-expanded]="isMobileFiltersOpen">
+                <i class="fas fa-filter" aria-hidden="true"></i>
                 {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
-                <i class="fas fa-chevron-down"></i>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
             </button>
 
             <!-- Filter Content (collapsible on mobile) -->
-            <div class="filter-content" [class.open]="isMobileFiltersOpen">
+            <div id="absence-filter-panel" class="filter-content" [class.open]="isMobileFiltersOpen">
                 <div class="filter-row">
                     <div class="filter-group">
                         <label for="absence-filter-id">ID</label>

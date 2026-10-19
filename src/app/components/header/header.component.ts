@@ -98,6 +98,17 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isNotificationsOpen = false;
   }
 
+  @HostListener('document:keydown.escape', ['$event'])
+  closeHeaderMenusOnEscape(event: KeyboardEvent): void {
+    if (!this.isNotificationsOpen && !this.isUserMenuOpen) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.isNotificationsOpen = false;
+    this.isUserMenuOpen = false;
+  }
+
   @HostListener('document:click', ['$event'])
   closeHeaderMenus(event: Event): void {
     const target = event.target as HTMLElement | null;

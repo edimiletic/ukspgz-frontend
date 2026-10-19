@@ -1,11 +1,11 @@
 <div class="filters-section">
-  <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" [attr.aria-expanded]="isMobileFiltersOpen">
+  <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" aria-controls="statistics-filter-panel" [attr.aria-expanded]="isMobileFiltersOpen">
     <i class="fas fa-filter" aria-hidden="true"></i>
     {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
     <i class="fas fa-chevron-down" aria-hidden="true"></i>
   </button>
 
-  <div class="filter-content" [class.open]="isMobileFiltersOpen">
+  <div id="statistics-filter-panel" class="filter-content" [class.open]="isMobileFiltersOpen">
     <h2>Filteri</h2>
     <div class="filters-grid">
       <div class="filter-group">
