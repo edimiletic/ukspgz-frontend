@@ -1,8 +1,8 @@
 <!-- src/app/components/take-exam/take-exam.component.html -->
-<div class="loading-container" *ngIf="isLoading">
+<div class="loading-container" *ngIf="isLoading" aria-busy="true">
   <div class="loading-message">
-    <div class="spinner"></div>
-    <p>Učitavanje ispita...</p>
+    <div class="spinner" aria-hidden="true"></div>
+    <p aria-live="polite">Učitavanje ispita...</p>
   </div>
 </div>
 
@@ -18,11 +18,12 @@
     </div>
     
     <div class="exam-controls">
-      <div class="timer" [class]="getTimerClass()">
+      <div class="timer" [class]="getTimerClass()" aria-hidden="true">
         <i class="timer-icon fas fa-clock"></i>
         <span class="timer-text">{{ formatTime(timeRemaining) }}</span>
       </div>
-      <button class="exit-btn" (click)="exitExam()" [disabled]="isSubmitting">
+      <div class="sr-only" aria-live="polite" aria-atomic="true">{{ timerLiveMessage }}</div>
+      <button class="exit-btn" type="button" (click)="exitExam()" [disabled]="isSubmitting">
         <i class="exit-icon fas fa-sign-out-alt"></i>
         Izađi
       </button>
@@ -31,7 +32,13 @@
 
   <!-- Progress Bar -->
   <div class="progress-container">
-    <div class="progress-bar">
+    <div
+      class="progress-bar"
+      role="progressbar"
+      aria-label="Napredak odgovora"
+      [attr.aria-valuenow]="getAnsweredCount()"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="getTotalQuestions()">
       <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
     </div>
   </div>
@@ -41,10 +48,13 @@
     <div class="question-nav">
       <h4>Navigacija po pitanjima</h4>
       <div class="question-grid">
-        <button 
+        <button
+          type="button"
           *ngFor="let question of exam.questions; let i = index; trackBy: trackByQuestion"
           class="question-nav-btn"
           [class]="getQuestionStatusClass(i)"
+          [attr.aria-label]="questionNavLabel(i)"
+          [attr.aria-current]="i === currentQuestionIndex ? 'true' : null"
           (click)="goToQuestion(i)"
         >
           {{ i + 1 }}

@@ -2,21 +2,35 @@
   <input
     type="text"
     class="form-control"
+    role="combobox"
+    [id]="inputId"
     [value]="query"
     (input)="onQueryChange($any($event.target).value)"
     (focus)="onFocus()"
+    (keydown)="onInputKey($event)"
     [disabled]="disabled"
     [placeholder]="placeholder"
     autocomplete="off"
-    aria-label="Dvorana">
+    aria-autocomplete="list"
+    [attr.aria-expanded]="open && !disabled"
+    [attr.aria-controls]="open && !disabled ? listboxId : null"
+    [attr.aria-activedescendant]="activeOptionId"
+    [attr.aria-label]="ariaLabel">
 
-  <ul class="venue-results" *ngIf="open && !disabled" role="listbox">
-    <li *ngIf="matches.length === 0" class="venue-hint">Nema dvorane s tim nazivom</li>
+  <ul
+    *ngIf="open && !disabled"
+    [id]="listboxId"
+    class="venue-results"
+    role="listbox"
+    [attr.aria-label]="ariaLabel">
+    <li *ngIf="matches.length === 0" class="venue-hint" role="status">Nema dvorane s tim nazivom</li>
     <li
-      *ngFor="let venue of matches; trackBy: trackByVenue"
+      *ngFor="let venue of matches; let i = index; trackBy: trackByVenue"
+      [id]="optionId(i)"
       (mousedown)="choose(venue)"
-      [class.active]="venue === selected"
-      role="option">
+      [class.active]="i === highlightedIndex"
+      role="option"
+      [attr.aria-selected]="i === highlightedIndex">
       {{ venue }}
     </li>
   </ul>

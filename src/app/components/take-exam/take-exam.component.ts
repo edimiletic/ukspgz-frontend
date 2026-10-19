@@ -23,6 +23,7 @@ exam: Exam | null = null;
   
   // Timer properties
   timeRemaining = 0; // in seconds
+  timerLiveMessage = '';
   timerInterval: any;
   startTime = new Date();
   
@@ -148,6 +149,7 @@ exam: Exam | null = null;
   startTimer(): void {
     this.timerInterval = setInterval(() => {
       this.timeRemaining--;
+      this.updateTimerAnnouncement();
       this.refreshView();
       if (this.timeRemaining <= 0) {
         this.timeUp();
@@ -177,6 +179,30 @@ exam: Exam | null = null;
     if (this.timeRemaining <= 300) return 'timer-critical'; // 5 minutes
     if (this.timeRemaining <= 900) return 'timer-warning'; // 15 minutes
     return 'timer-normal';
+  }
+
+  private updateTimerAnnouncement(): void {
+    if (this.timeRemaining <= 0) {
+      this.timerLiveMessage = 'Vrijeme je isteklo.';
+      return;
+    }
+    if (this.timeRemaining === 900) {
+      this.timerLiveMessage = 'Preostalo je 15 minuta.';
+      return;
+    }
+    if (this.timeRemaining === 300) {
+      this.timerLiveMessage = 'Preostalo je 5 minuta.';
+      return;
+    }
+    if (this.timeRemaining === 60) {
+      this.timerLiveMessage = 'Preostala je 1 minuta.';
+    }
+  }
+
+  questionNavLabel(index: number): string {
+    const state = this.answeredQuestions.has(index) ? 'odgovoreno' : 'neodgovoreno';
+    const current = index === this.currentQuestionIndex ? ', trenutno pitanje' : '';
+    return `Pitanje ${index + 1}, ${state}${current}`;
   }
 
   goToQuestion(index: number): void {
