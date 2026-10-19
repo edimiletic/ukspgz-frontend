@@ -219,3 +219,19 @@ export function unavailableOfficialsCount(
   }
   return pool.filter((ref) => !availability(ref)).length;
 }
+
+export function gameDraftSnapshot(form: GameFormData, referees: RefereeSelection): string {
+  return JSON.stringify({
+    homeTeam: form.homeTeam,
+    awayTeam: form.awayTeam,
+    date: form.date,
+    time: form.time,
+    venue: form.venue,
+    competition: form.competition,
+    notes: form.notes,
+    status: form.status || '',
+    sudci: referees.sudci.map((slot) => ({ userId: slot.userId || '', position: slot.position })),
+    delegat: referees.delegat || '',
+    kontrolor: referees.kontrolor || ''
+  });
+}

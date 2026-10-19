@@ -14,6 +14,7 @@ import { ALL_COMPETITIONS, canManageCalendar, canNominateOfficials, getCalendarC
 import {
   assignmentUserId,
   eligibleOfficials as filterEligibleOfficials,
+  gameDraftSnapshot,
   gameFormError,
   isRefereeAvailable,
   kontrolorRequiredForForm,
@@ -25,10 +26,11 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { GameDetailsStepComponent } from './game-details-step.component';
 import { GameNominationsStepComponent } from './game-nominations-step.component';
 import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
+import { ConfirmationData, ConfirmationModalComponent } from '../../shared/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-game-form-modal',
-  imports: [CommonModule, GameDetailsStepComponent, GameNominationsStepComponent, ModalPanelDirective],
+  imports: [CommonModule, GameDetailsStepComponent, GameNominationsStepComponent, ModalPanelDirective, ConfirmationModalComponent],
   templateUrl: './edit-game-modal.component.html',
   styleUrl: './edit-game-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -111,6 +113,15 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   isLoadingAbsences = false;
   errorMessage = '';
   currentStep = 1; // 1: Game details, 2: Referee assignments
+  discardConfirmOpen = false;
+  private draftBaseline = '';
+  readonly discardConfirmation: ConfirmationData = {
+    title: 'Nespremljene izmjene',
+    message: 'Imate nespremljene izmjene. Želite li odustati bez spremanja?',
+    confirmText: 'Odustani bez spremanja',
+    cancelText: 'Nastavi uređivanje',
+    confirmButtonClass: 'btn-danger'
+  };
 
   // Absence data for availability checking
   allAbsences: Absence[] = [];
@@ -263,6 +274,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.resetForm();
       this.currentStep = 1;
     }
+    this.captureDraftBaseline();
   }
 
   loadRejectionHistory() {
@@ -322,6 +334,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     // Populate referee assignments
     this.populateRefereeAssignments();
+    this.captureDraftBaseline();
   }
 
   populateRefereeAssignments() {
@@ -804,9 +817,39 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   }
 
   // Modal management
+  requestClose(): void {
+    if (this.isLoading || this.discardConfirmOpen) {
+      return;
+    }
+    if (this.hasUnsavedChanges()) {
+      this.discardConfirmOpen = true;
+      this.refreshView();
+      return;
+    }
+    this.closeModal();
+  }
+
+  cancelDiscard(): void {
+    this.discardConfirmOpen = false;
+    this.refreshView();
+  }
+
+  confirmDiscard(): void {
+    this.closeModal();
+  }
+
   closeModal() {
+    this.discardConfirmOpen = false;
     this.close.emit();
     this.resetForm();
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.draftBaseline !== gameDraftSnapshot(this.gameForm, this.selectedReferees);
+  }
+
+  private captureDraftBaseline(): void {
+    this.draftBaseline = gameDraftSnapshot(this.gameForm, this.selectedReferees);
   }
 
   resetForm() {
@@ -837,6 +880,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     this.gamesOnSelectedDate = [];
     this.loadedScheduleDate = '';
     this.rejections = [];
+    this.captureDraftBaseline();
   }
 
  // Get minimum date (for editing, we allow past dates since the game might have already happened)

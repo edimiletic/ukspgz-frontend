@@ -70,6 +70,7 @@ export class GamesAssignedComponent implements OnInit {
   // Error handling
   errorMessage = '';
   successMessage = '';
+  private pendingFocusGameId = '';
   
 isMobileFiltersOpen: boolean = false;
 
@@ -182,11 +183,13 @@ onGameCreated(result: any) {
   } else {
     this.showSuccess('Utakmica je uspješno kreirana');
   }
+  this.pendingFocusGameId = result?._id || '';
   this.loadMyGames();
 }
 
   onGameUpdated(updatedGame: any) {
     this.showSuccess(updatedGame?.message || 'Utakmica je uspješno ažurirana!');
+    this.pendingFocusGameId = updatedGame?._id || '';
     this.loadMyGames();
   }
 
@@ -200,6 +203,7 @@ onGameCreated(result: any) {
                     this.categorizeGames(response.games);
           this.isLoading = false;
           this.refreshView();
+          this.focusPendingGameRow();
         },
         error: (error) => {
           console.error('Error loading games:', error);
@@ -215,6 +219,7 @@ onGameCreated(result: any) {
                     this.categorizeGames(games);
           this.isLoading = false;
           this.refreshView();
+          this.focusPendingGameRow();
         },
         error: (error) => {
           console.error('Error loading games:', error);
@@ -564,6 +569,42 @@ if (window.innerWidth <= 693) {
 
   trackByGameId(_index: number, game: BasketballGame): string {
     return game._id;
+  }
+
+  private revealGamePage(gameId: string): void {
+    const pendingIndex = this.pendingGames.findIndex((game) => game._id === gameId);
+    if (pendingIndex >= 0) {
+      this.pendingPage = Math.floor(pendingIndex / this.pendingLimit) + 1;
+      this.updatePendingPagination();
+      return;
+    }
+    const confirmedIndex = this.confirmedGames.findIndex((game) => game._id === gameId);
+    if (confirmedIndex >= 0) {
+      this.confirmedPage = Math.floor(confirmedIndex / this.confirmedLimit) + 1;
+      this.updateConfirmedPagination();
+      return;
+    }
+    const historyIndex = this.gameHistory.findIndex((game) => game._id === gameId);
+    if (historyIndex >= 0) {
+      this.historyPage = Math.floor(historyIndex / this.historyLimit) + 1;
+      this.updateHistoryPagination();
+    }
+  }
+
+  private focusPendingGameRow(): void {
+    const gameId = this.pendingFocusGameId;
+    if (!gameId) {
+      return;
+    }
+    this.revealGamePage(gameId);
+    this.cdr.detectChanges();
+    this.pendingFocusGameId = '';
+    const row = document.querySelector(`[data-game-id="${CSS.escape(gameId)}"]`) as HTMLElement | null;
+    if (!row) {
+      return;
+    }
+    row.focus();
+    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
 toggleMobileFilters(): void {

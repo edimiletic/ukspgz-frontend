@@ -20,7 +20,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let game of displayedGames; trackBy: trackByGameId">
+        <tr *ngFor="let game of displayedGames; trackBy: trackByGameId" [attr.data-game-id]="game._id" tabindex="-1">
           <td>{{ formatDate(game.date) }}</td>
           <td>{{ game.time }}</td>
           <td>{{ game.venue }}</td>
