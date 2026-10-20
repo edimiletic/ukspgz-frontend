@@ -41,7 +41,7 @@
     <p class="toast success" *ngIf="successMessage">{{ successMessage }}</p>
     <p class="toast error" *ngIf="errorMessage && !isLoading">{{ errorMessage }}</p>
 
-    <div class="loading" *ngIf="isLoading">Učitavanje korisnika...</div>
+    <div class="loading" *ngIf="isLoading" role="status" aria-live="polite">Učitavanje korisnika...</div>
 
     <div class="empty" *ngIf="!isLoading && !filteredUsers.length">
       Nema korisnika za odabrane filtere.

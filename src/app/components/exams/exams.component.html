@@ -122,7 +122,7 @@
           placeholder="Pretraži pitanje...">
       </div>
 
-      <div *ngIf="loadingQuestions" class="loading-message">Učitavam pitanja...</div>
+      <div *ngIf="loadingQuestions" class="loading-message" role="status" aria-live="polite">Učitavam pitanja...</div>
       <div *ngIf="!loadingQuestions && filteredQuestions.length === 0" class="no-attempts-message">
         <p>Nema pitanja za ovaj filter.</p>
       </div>
@@ -221,7 +221,7 @@
           (input)="attemptSearch = $any($event.target).value; onAttemptFilterChange()"
           placeholder="Pretraži po imenu...">
       </div>
-      <div *ngIf="loadingAllAttempts" class="loading-message">Učitavam pokušaje...</div>
+      <div *ngIf="loadingAllAttempts" class="loading-message" role="status" aria-live="polite">Učitavam pokušaje...</div>
       <div *ngIf="!loadingAllAttempts && filteredAllAttempts.length === 0" class="no-attempts-message">
         <p>Nema pokušaja za ovaj filter.</p>
       </div>
@@ -289,7 +289,7 @@
     <div class="attempts-section">
       <h3>Vaši prethodni pokušaji</h3>
       
-      <div *ngIf="loading" class="loading-message">
+      <div *ngIf="loading" class="loading-message" role="status" aria-live="polite">
         Učitavam podatke...
       </div>
 

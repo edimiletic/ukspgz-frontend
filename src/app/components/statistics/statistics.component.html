@@ -23,7 +23,7 @@
     (clear)="clearAllFilters()">
   </app-statistics-filters>
 
-    <div class="loading-section" *ngIf="isLoading">
+    <div class="loading-section" *ngIf="isLoading" role="status" aria-live="polite">
         <div class="loading-spinner"></div>
         <p>Učitavanje statistika...</p>
     </div>

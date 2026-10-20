@@ -1,5 +1,5 @@
 <!-- app.component.html - This should prevent the login flash -->
-<div *ngIf="isInitializing" class="loading-screen">
+<div *ngIf="isInitializing" class="loading-screen" role="status" aria-live="polite">
   <div class="spinner-container">
     <div class="spinner"></div>
     <p>Učitavanje...</p>

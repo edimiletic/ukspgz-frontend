@@ -1,5 +1,5 @@
 <div class="referee-assignments">
-  <div *ngIf="isLoadingReferees || isLoadingAbsences" class="loading-referees">
+  <div *ngIf="isLoadingReferees || isLoadingAbsences" class="loading-referees" role="status" aria-live="polite">
     <div class="loading-spinner"></div>
     <p>Učitavanje sudaca i provjera dostupnosti...</p>
   </div>

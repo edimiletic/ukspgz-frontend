@@ -67,6 +67,15 @@ describe('ModalPanelDirective', () => {
     expect(document.activeElement?.id).toBe('opener');
   });
 
+  it('Escape ne zatvara modal dok je combobox otvoren', () => {
+    openDialog();
+    const first = fixture.nativeElement.querySelector('#first') as HTMLButtonElement;
+    first.setAttribute('aria-expanded', 'true');
+    first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#panel')).toBeTruthy();
+  });
+
   it('Escape ne zatvara dok je busy', () => {
     host.busy = true;
     openDialog();

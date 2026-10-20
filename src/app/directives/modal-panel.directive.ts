@@ -64,6 +64,10 @@ export class ModalPanelDirective implements AfterViewInit, OnDestroy {
       if (this.appModalBusy) {
         return;
       }
+      const target = event.target;
+      if (target instanceof HTMLElement && target.getAttribute('aria-expanded') === 'true') {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       this.zone.run(() => this.dismiss.emit());

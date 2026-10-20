@@ -138,7 +138,7 @@
 
 <ng-template #loadingOrError>
   <div class="loading-container">
-    <div *ngIf="loading" class="loading-message">
+    <div *ngIf="loading" class="loading-message" role="status" aria-live="polite">
       <div class="spinner"></div>
       <p>Učitavam pregled odgovora...</p>
     </div>

@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <div *ngIf="isLoading" class="status-message" aria-busy="true" aria-live="polite">Učitavanje...</div>
+  <div *ngIf="isLoading" class="status-message" role="status" aria-busy="true" aria-live="polite">Učitavanje...</div>
   <div *ngIf="errorMessage" class="status-message error">{{ errorMessage }}</div>
 
   <div *ngIf="!isLoading && !errorMessage && !groups.length" class="status-message">
