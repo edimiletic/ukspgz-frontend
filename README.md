@@ -35,10 +35,20 @@ Sesijski kolačić je cross-site. Na API-ju mora biti:
 
 `withCredentials` je uključen na svim HTTP pozivima.
 
+## Dokumentacija
+
+- [Uloge, rute i nominacije](docs/uloge-i-nominacije.md)
+- [Sesija i lozinke](docs/sesija-i-lozinke.md)
+- [Ispiti, odsustvo i putni nalozi](docs/ispiti-odsustvo-putni.md)
+
 ## Testovi i lint
+
+CI (`.github/workflows/ci.yml`) i Docker build koriste Node 22.
 
 ```bash
 npm run lint
 npm run test:ci
 npm run build
 ```
+
+`test:ci` pokreće Karmu u launcheru `ChromeHeadlessCI`. U Angular predlošku literalni `@` (npr. u primjeru e-pošte) mora biti `&#64;`, inače produkcijski build padne.
