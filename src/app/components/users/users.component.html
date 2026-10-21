@@ -122,11 +122,11 @@
 <div class="modal-overlay" *ngIf="inviteUrl" (click)="closeInvite()">
   <div
     class="invite-dialog"
+    (click)="$event.stopPropagation()"
     appModalPanel
-    aria-labelledby="invite-dialog-title"
     (dismiss)="closeInvite()"
-    (click)="$event.stopPropagation()">
-    <h3 id="invite-dialog-title">Link za lozinku</h3>
+    aria-labelledby="invite-title">
+    <h3 id="invite-title">Link za lozinku</h3>
     <p>
       Pošalji ovaj link korisniku (npr. WhatsApp). Vrijedi 24 sata i vidi se samo jednom.
       Stari link prestaje vrijediti čim napraviš novi.

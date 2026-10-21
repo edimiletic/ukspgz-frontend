@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,7 +23,6 @@ import {
   UserRole
 } from '../../../model/roles';
 import { User } from '../../../model/user.model';
-import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 import {
   buildRoleAssignments,
   commissionerHolders,

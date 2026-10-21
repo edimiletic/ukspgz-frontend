@@ -1,15 +1,59 @@
-<nav id="glavni-izbornik" class="sidebar" [class.sidebar-open]="isSidebarOpen" aria-label="Glavni izbornik">
+<!-- src/app/components/sidebar/sidebar.component.html -->
+<nav id="glavni-izbornik" class="sidebar" [class.sidebar-open]="isSidebarOpen">
   <div class="sidebar-content" [class.open]="isSidebarOpen">
     <ul>
-      <li *ngFor="let item of navLinks">
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.exact }"
-          ariaCurrentWhenActive="page"
-          (click)="onNavClick()">
-          <i [class]="item.icon" aria-hidden="true"></i>
-          <span>{{ item.label }}</span>
+      <li>
+        <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-home" aria-hidden="true"></i>
+          <span>Početna stranica</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/assigned" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-basketball-ball" aria-hidden="true"></i>
+          <span>Moje utakmice</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/absence" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-calendar-times" aria-hidden="true"></i>
+          <span>Odsustvo</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/expenses" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
+          <span>Putni troškovi</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/documents" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-file-alt" aria-hidden="true"></i>
+          <span>Dokumenti</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/exams" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+          <span>Ispiti</span>
+        </a>
+      </li>
+      <li *ngIf="isAdmin()">
+        <a routerLink="/users" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-user-cog" aria-hidden="true"></i>
+          <span>Korisnici</span>
+        </a>
+      </li>
+      <li *ngIf="canViewEligibleOfficials()">
+        <a routerLink="/eligible-officials" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-users" aria-hidden="true"></i>
+          <span>Osobe za nominaciju</span>
+        </a>
+      </li>
+      <li *ngIf="canViewStatistics()">
+        <a routerLink="/statistics" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="onNavClick()">
+          <i class="fas fa-chart-bar" aria-hidden="true"></i>
+          <span>Statistika</span>
         </a>
       </li>
     </ul>

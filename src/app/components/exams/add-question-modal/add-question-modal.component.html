@@ -2,10 +2,8 @@
   <div
     class="modal-container"
     appModalPanel
-    [appModalBusy]="isSubmitting"
-    aria-labelledby="question-modal-title"
     (dismiss)="close()"
-    (click)="$event.stopPropagation()">
+    aria-labelledby="question-modal-title">
     <div class="modal-header">
       <h3 id="question-modal-title">{{ isEditMode ? 'Uredi pitanje' : 'Kreiraj novo pitanje' }}</h3>
       <button class="close-btn" (click)="close()" type="button" aria-label="Zatvori">

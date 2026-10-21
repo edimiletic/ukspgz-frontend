@@ -2,8 +2,8 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, injec
 import { QuestionBank } from '../../../model/exam.model';
 import { ExamService } from '../../../services/exam.service';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   emptyQuestionForm,
   questionFormError,

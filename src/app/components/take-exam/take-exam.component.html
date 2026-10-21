@@ -1,8 +1,8 @@
 <!-- src/app/components/take-exam/take-exam.component.html -->
-<div class="loading-container" *ngIf="isLoading" role="status" aria-busy="true">
+<div class="loading-container" *ngIf="isLoading" role="status" aria-live="polite">
   <div class="loading-message">
     <div class="spinner" aria-hidden="true"></div>
-    <p aria-live="polite">Učitavanje ispita...</p>
+    <p>Učitavanje ispita...</p>
   </div>
 </div>
 
@@ -22,7 +22,7 @@
         <i class="timer-icon fas fa-clock"></i>
         <span class="timer-text">{{ formatTime(timeRemaining) }}</span>
       </div>
-      <div class="sr-only" aria-live="polite" aria-atomic="true">{{ timerLiveMessage }}</div>
+      <div class="sr-only" aria-live="polite" aria-atomic="true">{{ timerAnnouncement }}</div>
       <button class="exit-btn" type="button" (click)="exitExam()" [disabled]="isSubmitting">
         <i class="exit-icon fas fa-sign-out-alt"></i>
         Izađi
@@ -35,11 +35,11 @@
     <div
       class="progress-bar"
       role="progressbar"
-      aria-label="Napredak odgovora"
       [attr.aria-valuenow]="getAnsweredCount()"
-      aria-valuemin="0"
-      [attr.aria-valuemax]="getTotalQuestions()">
-      <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="getTotalQuestions()"
+      [attr.aria-label]="'Odgovoreno pitanja'">
+      <div class="progress-fill" [style.width.%]="getProgressPercentage()" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -48,12 +48,12 @@
     <div class="question-nav">
       <h4>Navigacija po pitanjima</h4>
       <div class="question-grid">
-        <button
-          type="button"
+        <button 
           *ngFor="let question of exam.questions; let i = index; trackBy: trackByQuestion"
+          type="button"
           class="question-nav-btn"
           [class]="getQuestionStatusClass(i)"
-          [attr.aria-label]="questionNavLabel(i)"
+          [attr.aria-label]="questionButtonLabel(i)"
           [attr.aria-current]="i === currentQuestionIndex ? 'true' : null"
           (click)="goToQuestion(i)"
         >
@@ -187,8 +187,8 @@
     class="confirm-dialog"
     appModalPanel
     [appModalBusy]="isSubmitting"
-    aria-labelledby="exam-submit-title"
-    (dismiss)="cancelSubmit()">
+    (dismiss)="cancelSubmit()"
+    aria-labelledby="exam-submit-title">
     <div class="dialog-header">
       <h3 id="exam-submit-title">Potvrda slanja ispita</h3>
     </div>
@@ -211,8 +211,8 @@
     </div>
     
     <div class="dialog-actions">
-      <button type="button" class="cancel-btn" (click)="cancelSubmit()">Odustani</button>
-      <button type="button" class="confirm-btn" (click)="confirmSubmit()">Pošalji ispit</button>
+      <button class="cancel-btn" (click)="cancelSubmit()">Odustani</button>
+      <button class="confirm-btn" (click)="confirmSubmit()">Pošalji ispit</button>
     </div>
   </div>
 </div>
@@ -222,8 +222,8 @@
   <div
     class="confirm-dialog"
     appModalPanel
-    aria-labelledby="exam-exit-title"
-    (dismiss)="cancelExit()">
+    (dismiss)="cancelExit()"
+    aria-labelledby="exam-exit-title">
     <div class="dialog-header">
       <h3 id="exam-exit-title">Potvrda izlaska</h3>
     </div>
@@ -236,8 +236,8 @@
     </div>
     
     <div class="dialog-actions">
-      <button type="button" class="cancel-btn" (click)="cancelExit()">Ostani na ispitu</button>
-      <button type="button" class="confirm-btn danger" (click)="confirmExit()">Izađi s ispita</button>
+      <button class="cancel-btn" (click)="cancelExit()">Ostani na ispitu</button>
+      <button class="confirm-btn danger" (click)="confirmExit()">Izađi s ispita</button>
     </div>
   </div>
 </div>

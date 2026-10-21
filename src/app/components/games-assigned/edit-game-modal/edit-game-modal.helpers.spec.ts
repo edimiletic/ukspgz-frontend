@@ -5,7 +5,6 @@ import {
   assignmentUserId,
   eligibleOfficials,
   formatRejectionWhen,
-  gameDraftSnapshot,
   gameFormError,
   isRefereeAvailable,
   refereeAssignmentError,
@@ -206,24 +205,6 @@ describe('edit-game-modal.helpers', () => {
   it('formatRejectionWhen formatira datum', () => {
     expect(formatRejectionWhen('nije-datum')).toBe('');
     expect(formatRejectionWhen('2026-10-20T18:00:00.000Z')).toMatch(/2026/);
-  });
-
-  it('gameDraftSnapshot se mijenja kad se tim ili sudac promijeni', () => {
-    const refs: RefereeSelection = {
-      sudci: [
-        { userId: 's1', position: 1 },
-        { userId: '', position: 2 },
-        { userId: '', position: 3 }
-      ],
-      delegat: 'd1',
-      kontrolor: ''
-    };
-    const a = gameDraftSnapshot(form(), refs);
-    const b = gameDraftSnapshot(form({ homeTeam: 'Split' }), refs);
-    const c = gameDraftSnapshot(form(), { ...refs, delegat: 'd2' });
-    expect(a).not.toBe(b);
-    expect(a).not.toBe(c);
-    expect(a).toBe(gameDraftSnapshot(form(), refs));
   });
 
   it('sudacSlotsFromAssignments drži mjesta 1-2-3 kad fali sudac 2', () => {

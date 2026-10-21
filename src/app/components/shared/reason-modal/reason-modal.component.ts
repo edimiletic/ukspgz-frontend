@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
+import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ModalPanelDirective } from '../../../directives/modal-panel.directive';
 
 @Component({
   selector: 'app-reason-modal',

@@ -1,11 +1,11 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
   <div
     class="modal-content"
+    (click)="$event.stopPropagation()"
     appModalPanel
     [appModalBusy]="isBusy"
-    aria-labelledby="reason-modal-title"
     (dismiss)="closeModal()"
-    (click)="$event.stopPropagation()">
+    aria-labelledby="reason-modal-title">
     <div class="modal-header">
       <h3 id="reason-modal-title">{{ title }}</h3>
       <button class="btn-close" type="button" (click)="closeModal()" [disabled]="isBusy" aria-label="Zatvori">

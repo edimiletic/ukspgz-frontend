@@ -3,34 +3,29 @@
     type="text"
     class="form-control"
     role="combobox"
-    [id]="inputId"
+    aria-label="Dvorana"
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    [attr.aria-expanded]="open && !disabled ? 'true' : 'false'"
+    [attr.aria-controls]="listId"
+    [attr.aria-activedescendant]="activeOptionId"
     [value]="query"
     (input)="onQueryChange($any($event.target).value)"
     (focus)="onFocus()"
-    (keydown)="onInputKey($event)"
+    (keydown)="onKeydown($event)"
     [disabled]="disabled"
     [placeholder]="placeholder"
-    autocomplete="off"
-    aria-autocomplete="list"
-    [attr.aria-expanded]="open && !disabled"
-    [attr.aria-controls]="open && !disabled ? listboxId : null"
-    [attr.aria-activedescendant]="activeOptionId"
-    [attr.aria-label]="ariaLabel">
+    autocomplete="off">
 
-  <ul
-    *ngIf="open && !disabled"
-    [id]="listboxId"
-    class="venue-results"
-    role="listbox"
-    [attr.aria-label]="ariaLabel">
-    <li *ngIf="matches.length === 0" class="venue-hint" role="status">Nema dvorane s tim nazivom</li>
+  <ul class="venue-results" *ngIf="open && !disabled" [id]="listId" role="listbox">
+    <li *ngIf="matches.length === 0" class="venue-hint">Nema dvorane s tim nazivom</li>
     <li
       *ngFor="let venue of matches; let i = index; trackBy: trackByVenue"
       [id]="optionId(i)"
       (mousedown)="choose(venue)"
-      [class.active]="i === highlightedIndex"
+      [class.active]="i === activeIndex"
       role="option"
-      [attr.aria-selected]="i === highlightedIndex">
+      [attr.aria-selected]="i === activeIndex">
       {{ venue }}
     </li>
   </ul>

@@ -18,8 +18,8 @@ import {
   ConfirmationData,
   ConfirmationModalComponent
 } from '../shared/confirmation-modal/confirmation-modal.component';
-import { UserFormModalComponent, UserFormSave } from './user-form-modal/user-form-modal.component';
 import { ModalPanelDirective } from '../../directives/modal-panel.directive';
+import { UserFormModalComponent, UserFormSave } from './user-form-modal/user-form-modal.component';
 import { apiErrorMessage, leagueColumnParts, userMatchesFilters } from './users.helpers';
 
 @Component({

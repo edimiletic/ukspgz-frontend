@@ -22,13 +22,13 @@
     </div>
 
 <div class="filter-section">
-  <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" aria-controls="expenses-filter-panel" [attr.aria-expanded]="isMobileFiltersOpen">
-    <i class="fas fa-filter" aria-hidden="true"></i>
+  <button type="button" class="mobile-filter-toggle" [class.active]="isMobileFiltersOpen" (click)="toggleMobileFilters()" [attr.aria-expanded]="isMobileFiltersOpen">
+    <i class="fas fa-filter"></i>
     {{ isMobileFiltersOpen ? 'Sakrij filtere' : 'Prikaži filtere' }}
-    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+    <i class="fas fa-chevron-down"></i>
   </button>
 
-  <div id="expenses-filter-panel" class="filter-content" [class.open]="isMobileFiltersOpen">
+  <div class="filter-content" [class.open]="isMobileFiltersOpen">
     <div class="filter-row">
       <div class="filter-group">
         <label for="expense-filter-id">ID</label>

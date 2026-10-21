@@ -13,11 +13,11 @@
     <span class="hamburger-line"></span>
     <span class="hamburger-line"></span>
   </button>
-  <a routerLink="/home" class="logo-home" aria-label="Početna stranica">
+  <button type="button" class="logo-home" (click)="navigateToPage('/home')" aria-label="Početna stranica">
     <img class="logo" src="assets/HKS_Logo.webp" alt="">
-  </a>
-  <p class="brand-title title-full">Hrvatski Košarkaški Savez</p>
-  <p class="brand-title title-short">HKS</p>
+  </button>
+  <p class="title-full">Hrvatski Košarkaški Savez</p>
+  <p class="title-short">HKS</p>
   <div class="user-info">
     <div class="header-buttons">
       
@@ -28,20 +28,13 @@
           class="notification-icon"
           [class.has-notifications]="hasUnreadNotifications"
           (click)="toggleNotifications($event)"
-          [attr.aria-label]="notificationsLabel"
+          aria-label="Obavijesti"
           aria-haspopup="true"
-          aria-controls="header-notifications-menu"
           [attr.aria-expanded]="isNotificationsOpen">
           <i class="fas fa-bell" aria-hidden="true"></i>
           <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         </button>
-        <div
-          id="header-notifications-menu"
-          class="dropdown-menu notification-menu"
-          role="region"
-          aria-label="Obavijesti"
-          *ngIf="isNotificationsOpen"
-          (click)="$event.stopPropagation()">
+        <div class="dropdown-menu notification-menu" *ngIf="isNotificationsOpen" (click)="$event.stopPropagation()">
           <div class="notification-header">
             <span>Obavijesti</span>
             <button *ngIf="notifications.length > 0" class="mark-all-read" type="button" (click)="markAllAsRead()">
@@ -93,20 +86,13 @@
           class="user-icon"
           (click)="toggleUserMenu($event)"
           aria-label="Korisnički izbornik"
-          aria-haspopup="menu"
-          aria-controls="header-user-menu"
+          aria-haspopup="true"
           [attr.aria-expanded]="isUserMenuOpen">
           <i class="fas fa-user" aria-hidden="true"></i>
         </button>
-        <div
-          id="header-user-menu"
-          class="dropdown-menu"
-          role="menu"
-          aria-label="Korisnički izbornik"
-          *ngIf="isUserMenuOpen"
-          (click)="$event.stopPropagation()">
-          <button type="button" class="dropdown-item" role="menuitem" (click)="openChangePassword()">Promijeni lozinku</button>
-          <button type="button" class="dropdown-item" role="menuitem" (click)="logout()">Odjava</button>
+        <div class="dropdown-menu" *ngIf="isUserMenuOpen" (click)="$event.stopPropagation()">
+          <button type="button" class="dropdown-item" (click)="openChangePassword()">Promijeni lozinku</button>
+          <button type="button" class="dropdown-item" (click)="logout()">Odjava</button>
         </div>
       </div>
     </div>

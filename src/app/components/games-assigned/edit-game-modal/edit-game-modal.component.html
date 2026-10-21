@@ -1,17 +1,17 @@
-<div class="modal-backdrop" *ngIf="isOpen" (click)="requestClose()">
+<div class="modal-backdrop" *ngIf="isOpen" (click)="closeModal()">
   <div
     class="modal-content"
+    (click)="$event.stopPropagation()"
     appModalPanel
-    [appModalBusy]="isLoading || discardConfirmOpen"
-    aria-labelledby="game-modal-title"
-    (dismiss)="requestClose()"
-    (click)="$event.stopPropagation()">
+    [appModalBusy]="isLoading"
+    (dismiss)="closeModal()"
+    aria-labelledby="game-modal-title">
     <div class="modal-header">
       <h2 id="game-modal-title">
         <span *ngIf="currentStep === 1">{{ isCreateMode ? 'Kreiraj novu utakmicu' : 'Uredi utakmicu' }}</span>
         <span *ngIf="currentStep === 2">{{ isCreateMode ? 'Dodijeli suce' : 'Uredi suca' }}</span>
       </h2>
-      <button class="close-btn" type="button" (click)="requestClose()" [disabled]="isLoading" aria-label="Zatvori">
+      <button class="close-btn" type="button" (click)="closeModal()" [disabled]="isLoading" aria-label="Zatvori">
         <i class="fas fa-times" aria-hidden="true"></i>
       </button>
     </div>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="error-message" *ngIf="errorMessage" role="alert">
-      <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+      <i class="fas fa-exclamation-circle"></i>
       {{ errorMessage }}
     </div>
 
@@ -74,7 +74,7 @@
     <div class="modal-footer">
       <div class="footer-buttons">
         <ng-container *ngIf="currentStep === 1">
-          <button type="button" class="btn btn-secondary" (click)="requestClose()" [disabled]="isLoading">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
             Odustani
           </button>
           <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="isLoading">
@@ -86,7 +86,7 @@
           <button type="button" class="btn btn-secondary" (click)="previousStep()" [disabled]="isLoading">
             <i class="fas fa-arrow-left"></i> Nazad
           </button>
-          <button type="button" class="btn btn-secondary" (click)="requestClose()" [disabled]="isLoading">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isLoading">
             Odustani
           </button>
           <button
@@ -106,9 +106,3 @@
     </div>
   </div>
 </div>
-<app-confirmation-modal
-  [isOpen]="discardConfirmOpen"
-  [confirmationData]="discardConfirmation"
-  (confirm)="confirmDiscard()"
-  (close)="cancelDiscard()">
-</app-confirmation-modal>

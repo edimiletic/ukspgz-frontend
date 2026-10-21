@@ -24,8 +24,6 @@
   cursor: pointer;
   line-height: 0;
   border-radius: 50px;
-  text-decoration: none;
-  color: inherit;
 
   &:focus-visible {
     outline: 2px solid #fff;
@@ -39,20 +37,17 @@
     border-radius: 50px;
 }
 
-.brand-title {
+.title-full {
   flex: auto;
   margin: 0 0 0 2rem;
-  color: inherit;
-  font-weight: 600;
-}
-
-.title-full {
-  display: block;
-  font-size: 1.8rem;
+  display: block; // Show on desktop
 }
 
 .title-short {
-  display: none;
+  flex: auto;
+  margin: 0 0 0 2rem;
+  display: none; // Hide on desktop
+  font-weight: 600;
   font-size: 1.8rem;
 }
 

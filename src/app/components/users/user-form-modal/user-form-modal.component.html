@@ -3,13 +3,12 @@
     class="modal-container"
     appModalPanel
     [appModalBusy]="isBusy"
-    aria-labelledby="user-form-title"
     (dismiss)="close.emit()"
-    (click)="$event.stopPropagation()">
+    aria-labelledby="user-form-title">
     <div class="modal-header">
       <h3 id="user-form-title">{{ isEdit ? 'Uredi korisnika' : 'Novi korisnik' }}</h3>
       <button class="close-btn" type="button" (click)="close.emit()" [disabled]="isBusy" aria-label="Zatvori">
-        <span aria-hidden="true">&times;</span>
+        <span>&times;</span>
       </button>
     </div>
 

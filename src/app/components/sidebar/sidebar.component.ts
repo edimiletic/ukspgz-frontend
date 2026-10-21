@@ -6,13 +6,6 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/login.service';
 import { SidebarNavService } from '../../services/sidebar-nav.service';
 
-interface NavLink {
-  path: string;
-  label: string;
-  icon: string;
-  exact: boolean;
-}
-
 @Component({
   selector: 'app-sidebar',
   imports: [CommonModule, RouterLink, RouterLinkActive],
@@ -44,38 +37,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  get navLinks(): NavLink[] {
-    const links: NavLink[] = [
-      { path: '/home', label: 'Početna stranica', icon: 'fas fa-home', exact: true },
-      { path: '/assigned', label: 'Moje utakmice', icon: 'fas fa-basketball-ball', exact: false },
-      { path: '/absence', label: 'Odsustvo', icon: 'fas fa-calendar-times', exact: false },
-      { path: '/expenses', label: 'Putni troškovi', icon: 'fas fa-money-bill-wave', exact: false },
-      { path: '/documents', label: 'Dokumenti', icon: 'fas fa-file-alt', exact: false },
-      { path: '/exams', label: 'Ispiti', icon: 'fas fa-graduation-cap', exact: false }
-    ];
-    if (this.isAdmin()) {
-      links.push({ path: '/users', label: 'Korisnici', icon: 'fas fa-user-cog', exact: false });
-    }
-    if (this.canViewEligibleOfficials()) {
-      links.push({
-        path: '/eligible-officials',
-        label: 'Osobe za nominaciju',
-        icon: 'fas fa-users',
-        exact: false
-      });
-    }
-    if (this.canViewStatistics()) {
-      links.push({ path: '/statistics', label: 'Statistika', icon: 'fas fa-chart-bar', exact: false });
-    }
-    return links;
-  }
-
   onNavClick(): void {
     if (this.isBrowser && window.innerWidth <= 768) {
       this.closeSidebar();
     }
   }
 
+  // Check if user is admin
   isAdmin(): boolean {
     return this.authService.isAdmin();
   }

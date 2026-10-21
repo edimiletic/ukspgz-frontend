@@ -3,9 +3,8 @@
     class="modal-container"
     appModalPanel
     [appModalBusy]="isLoading"
-    aria-labelledby="expenses-modal-title"
     (dismiss)="onClose()"
-    (click)="$event.stopPropagation()">
+    aria-labelledby="expenses-modal-title">
     <div class="modal-header">
       <h3 id="expenses-modal-title">Novi putni nalog</h3>
       <button class="close-btn" type="button" (click)="onClose()" [disabled]="isLoading" aria-label="Zatvori">

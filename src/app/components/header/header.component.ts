@@ -11,13 +11,13 @@ import {
   notificationResponseKind,
   notificationTargetRoute
 } from '../../model/notification.model';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subscription, interval, forkJoin } from 'rxjs';
 import { ChangePasswordModalComponent } from '../change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, RouterLink, ChangePasswordModalComponent],
+  imports: [CommonModule, ChangePasswordModalComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -26,6 +26,16 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   notifications: Notification[] = [];
   unreadCount = 0;
   hasUnreadNotifications = false;
+
+  get notificationsAriaLabel(): string {
+    if (this.unreadCount <= 0) {
+      return 'Obavijesti';
+    }
+    if (this.unreadCount === 1) {
+      return 'Obavijesti, 1 nepročitana';
+    }
+    return `Obavijesti, ${this.unreadCount} nepročitanih`;
+  }
   showMenuButton = false;
   isMenuOpen = false;
   isNotificationsOpen = false;
@@ -98,17 +108,6 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isNotificationsOpen = false;
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  closeHeaderMenusOnEscape(event: KeyboardEvent): void {
-    if (!this.isNotificationsOpen && !this.isUserMenuOpen) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    this.isNotificationsOpen = false;
-    this.isUserMenuOpen = false;
-  }
-
   @HostListener('document:click', ['$event'])
   closeHeaderMenus(event: Event): void {
     const target = event.target as HTMLElement | null;
@@ -119,14 +118,13 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isUserMenuOpen = false;
   }
 
-  get notificationsLabel(): string {
-    if (this.unreadCount <= 0) {
-      return 'Obavijesti';
+  navigateToPage(route: string) {
+    // Check auth before navigating to prevent login flash
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate([route]);
+    } else {
+      this.router.navigate(['/login']);
     }
-    if (this.unreadCount === 1) {
-      return 'Obavijesti, 1 nepročitana';
-    }
-    return `Obavijesti, ${this.unreadCount} nepročitanih`;
   }
 
   ngOnDestroy() {

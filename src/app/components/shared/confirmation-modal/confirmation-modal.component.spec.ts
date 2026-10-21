@@ -30,6 +30,13 @@ describe('ConfirmationModalComponent', () => {
     expect(text).toContain('Utakmica A vs B');
   });
 
+  it('označava panel kao dijalog', () => {
+    const panel = fixture.nativeElement.querySelector('.modal-content') as HTMLElement;
+    expect(panel.getAttribute('role')).toBe('dialog');
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[aria-label="Zatvori"]')).toBeTruthy();
+  });
+
   it('emitira data na potvrdu', () => {
     const spy = jasmine.createSpy();
     component.confirm.subscribe(spy);
@@ -56,12 +63,5 @@ describe('ConfirmationModalComponent', () => {
     fixture.componentRef.setInput('isOpen', false);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.modal-overlay')).toBeNull();
-  });
-
-  it('označava dijalog i gumb zatvori za čitač', () => {
-    const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
-    expect(dialog).toBeTruthy();
-    expect(dialog.getAttribute('aria-modal')).toBe('true');
-    expect(fixture.nativeElement.querySelector('.btn-close').getAttribute('aria-label')).toBe('Zatvori');
   });
 });

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { ModalPanelDirective } from '../../directives/modal-panel.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/login.service';
-import { ModalPanelDirective } from '../../directives/modal-panel.directive';
 
 @Component({
   selector: 'app-change-password-modal',
