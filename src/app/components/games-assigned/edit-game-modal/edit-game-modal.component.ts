@@ -12,11 +12,15 @@ import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
 import { firstValueFrom } from 'rxjs';
 import { ALL_COMPETITIONS, canManageCalendar, canNominateOfficials, getCalendarCompetitions, isAdminUser, teamEligibleForCompetition, userHasRole } from '../../../model/roles';
 import {
+  assignedOfficialFromNomination,
   assignmentUserId,
   eligibleOfficials as filterEligibleOfficials,
   gameFormError,
+  isLiveNomination,
   isRefereeAvailable,
   kontrolorRequiredForForm,
+  officialRecordId,
+  optionsWithSelected,
   refereeAssignmentError,
   sudacSlotsFromAssignments,
   unavailableOfficialsCount
@@ -177,10 +181,10 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.loadCatalog();
     if (this.isOpen && this.game) {
+      this.populateForm();
       this.loadReferees();
       this.loadAbsences();
       this.loadRejectionHistory();
-      this.populateForm();
     }
   }
 
@@ -252,9 +256,6 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     this.errorMessage = '';
     this.loadCatalog();
-    this.loadReferees();
-    this.loadAbsences();
-    this.loadRejectionHistory();
 
     if (this.game) {
       this.populateForm();
@@ -263,6 +264,10 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.resetForm();
       this.currentStep = 1;
     }
+
+    this.loadReferees();
+    this.loadAbsences();
+    this.loadRejectionHistory();
   }
 
   loadRejectionHistory() {
@@ -327,22 +332,24 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   populateRefereeAssignments() {
     if (!this.game) return;
 
+    const live = (this.game.refereeAssignments || []).filter(isLiveNomination);
     let delegat = '';
     let kontrolor = '';
 
-    this.game.refereeAssignments.forEach(assignment => {
+    live.forEach(assignment => {
+      const userId = assignmentUserId(assignment);
       switch (assignment.role) {
         case 'Delegat':
-          delegat = assignment.userId._id;
+          delegat = userId;
           break;
         case 'Kontrolor':
-          kontrolor = assignment.userId._id;
+          kontrolor = userId;
           break;
       }
     });
 
     this.selectedReferees = {
-      sudci: sudacSlotsFromAssignments(this.game.refereeAssignments),
+      sudci: sudacSlotsFromAssignments(live),
       delegat,
       kontrolor
     };
@@ -351,16 +358,14 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   loadReferees() {
     this.isLoadingReferees = true;
     this.userService.getReferees().subscribe({
-      next: (referees) => {
+      next: async (referees) => {
         this.availableReferees = {
           sudci: referees.filter(ref => userHasRole(ref, 'Sudac')),
           delegati: referees.filter(ref => userHasRole(ref, 'Delegat')),
           kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
         };
+        await this.initializeAvailabilityArrays();
         this.isLoadingReferees = false;
-        if (this.currentStep === 2) {
-          this.initializeAvailabilityArrays();
-        }
         this.refreshView();
       },
       error: (error) => {
@@ -487,8 +492,12 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.selectedReferees.kontrolor
     ].filter((id): id is string => !!id);
 
-    return this.eligibleOfficials(this.availableReferees.sudci).filter(ref =>
-      !excludedIds.includes(ref._id) && this.isOfficialFree(ref)
+    return optionsWithSelected(
+      this.eligibleOfficials(this.availableReferees.sudci).filter(ref =>
+        !excludedIds.includes(officialRecordId(ref)) && this.isOfficialFree(ref)
+      ),
+      this.selectedReferees.sudci[currentIndex]?.userId,
+      [...this.availableReferees.sudci, ...this.nominationStubs()]
     );
   }
 
@@ -498,8 +507,12 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       this.selectedReferees.kontrolor
     ].filter((id): id is string => !!id);
 
-    return this.eligibleOfficials(this.availableReferees.delegati).filter(ref =>
-      !excludedIds.includes(ref._id) && this.isOfficialFree(ref)
+    return optionsWithSelected(
+      this.eligibleOfficials(this.availableReferees.delegati).filter(ref =>
+        !excludedIds.includes(officialRecordId(ref)) && this.isOfficialFree(ref)
+      ),
+      this.selectedReferees.delegat,
+      [...this.availableReferees.delegati, ...this.nominationStubs()]
     );
   }
 
@@ -866,26 +879,45 @@ export class EditGameModalComponent implements OnInit, OnChanges {
  }
 
  private updateAvailableReferees() {
+   const nextSudci: { [key: number]: User[] } = {};
    if (!this.gameForm.date || !this.gameForm.time) {
-     this.availableDelegati = this.eligibleOfficials(this.availableReferees.delegati);
-     this.availableKontrolori = this.eligibleOfficials(this.availableReferees.kontrolori);
+     this.availableDelegati = optionsWithSelected(
+       this.eligibleOfficials(this.availableReferees.delegati),
+       this.selectedReferees.delegat,
+       [...this.availableReferees.delegati, ...this.nominationStubs()]
+     );
+     this.availableKontrolori = optionsWithSelected(
+       this.eligibleOfficials(this.availableReferees.kontrolori),
+       this.selectedReferees.kontrolor,
+       [...this.availableReferees.kontrolori, ...this.nominationStubs()]
+     );
      for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
-       this.availableSudciForIndex[i] = this.eligibleOfficials(this.availableReferees.sudci);
+       nextSudci[i] = optionsWithSelected(
+         this.eligibleOfficials(this.availableReferees.sudci),
+         this.selectedReferees.sudci[i]?.userId,
+         [...this.availableReferees.sudci, ...this.nominationStubs()]
+       );
      }
+     this.availableSudciForIndex = nextSudci;
      this.unavailableCounts = { sudci: 0, delegati: 0 };
      return;
    }
 
    for (let i = 0; i < this.selectedReferees.sudci.length; i++) {
-     this.availableSudciForIndex[i] = this.getAvailableSudci(i);
+     nextSudci[i] = this.getAvailableSudci(i);
    }
+   this.availableSudciForIndex = nextSudci;
 
    this.availableDelegati = this.getAvailableDelegati();
-   this.availableKontrolori = this.eligibleOfficials(this.availableReferees.kontrolori).filter(ref =>
-     ![
-       ...this.selectedReferees.sudci.map(s => s.userId),
-       this.selectedReferees.delegat
-     ].includes(ref._id) && this.isOfficialFree(ref)
+   this.availableKontrolori = optionsWithSelected(
+     this.eligibleOfficials(this.availableReferees.kontrolori).filter(ref =>
+       ![
+         ...this.selectedReferees.sudci.map(s => s.userId),
+         this.selectedReferees.delegat
+       ].includes(officialRecordId(ref)) && this.isOfficialFree(ref)
+     ),
+     this.selectedReferees.kontrolor,
+     [...this.availableReferees.kontrolori, ...this.nominationStubs()]
    );
 
    this.unavailableCounts = {
@@ -904,10 +936,30 @@ export class EditGameModalComponent implements OnInit, OnChanges {
    this.clearUnavailableSelections();
  }
 
+ private nominationStubs(): User[] {
+   return (this.game?.refereeAssignments || [])
+     .map((assignment) => assignedOfficialFromNomination(assignment))
+     .filter((user): user is User => Boolean(user));
+ }
+
+ private isCurrentGameNomination(userId: string): boolean {
+   if (!userId) {
+     return false;
+   }
+   return (this.game?.refereeAssignments || []).some((assignment) =>
+     isLiveNomination(assignment) && assignmentUserId(assignment) === String(userId)
+   );
+ }
+
  private clearUnavailableSelections() {
    this.selectedReferees.sudci.forEach((sudac, index) => {
      if (sudac.userId) {
-       const isStillAvailable = this.availableSudciForIndex[index]?.some(ref => ref._id === sudac.userId);
+       if (this.isCurrentGameNomination(sudac.userId)) {
+         return;
+       }
+       const isStillAvailable = this.availableSudciForIndex[index]?.some(
+         (ref) => officialRecordId(ref) === String(sudac.userId)
+       );
        if (!isStillAvailable) {
          this.selectedReferees.sudci[index].userId = '';
        }
@@ -915,16 +967,24 @@ export class EditGameModalComponent implements OnInit, OnChanges {
    });
 
    if (this.selectedReferees.delegat) {
-     const isStillAvailable = this.availableDelegati.some(ref => ref._id === this.selectedReferees.delegat);
-     if (!isStillAvailable) {
-       this.selectedReferees.delegat = '';
+     if (!this.isCurrentGameNomination(this.selectedReferees.delegat)) {
+       const isStillAvailable = this.availableDelegati.some(
+         (ref) => officialRecordId(ref) === String(this.selectedReferees.delegat)
+       );
+       if (!isStillAvailable) {
+         this.selectedReferees.delegat = '';
+       }
      }
    }
 
    if (this.selectedReferees.kontrolor) {
-     const isStillAvailable = this.availableKontrolori.some(ref => ref._id === this.selectedReferees.kontrolor);
-     if (!isStillAvailable) {
-       this.selectedReferees.kontrolor = '';
+     if (!this.isCurrentGameNomination(this.selectedReferees.kontrolor)) {
+       const isStillAvailable = this.availableKontrolori.some(
+         (ref) => officialRecordId(ref) === String(this.selectedReferees.kontrolor)
+       );
+       if (!isStillAvailable) {
+         this.selectedReferees.kontrolor = '';
+       }
      }
    }
  }

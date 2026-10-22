@@ -2,8 +2,10 @@ import { Absence } from '../../../model/absence.model';
 import { GameFormData, RefereeSelection } from '../../../model/basketballGame.model';
 import { User } from '../../../model/user.model';
 import {
+  assignedOfficialFromNomination,
   assignmentUserId,
   eligibleOfficials,
+  optionsWithSelected,
   formatRejectionWhen,
   gameFormError,
   isRefereeAvailable,
@@ -42,8 +44,34 @@ const form = (overrides: Partial<GameFormData> = {}): GameFormData => ({
 describe('edit-game-modal.helpers', () => {
   it('assignmentUserId čita i objekt i string', () => {
     expect(assignmentUserId({ userId: { _id: 'u1' } })).toBe('u1');
+    expect(assignmentUserId({ userId: { id: 'u3' } })).toBe('u3');
     expect(assignmentUserId({ userId: 'u2' })).toBe('u2');
     expect(assignmentUserId({ userId: null })).toBe('');
+    expect(assignmentUserId({
+      userId: { toHexString: () => '507f1f77bcf86cd799439011' }
+    })).toBe('507f1f77bcf86cd799439011');
+  });
+
+  it('optionsWithSelected zadržava već nominiranog suca i kad nije u filtriranoj listi', () => {
+    const selected = official({ _id: 's1', name: 'Josip' });
+    const other = official({ _id: 's2', name: 'Ante' });
+    expect(optionsWithSelected([other], 's1', [selected]).map((u) => u._id)).toEqual(['s1', 's2']);
+    expect(optionsWithSelected([selected, other], 's1').map((u) => u._id)).toEqual(['s1', 's2']);
+  });
+
+  it('assignedOfficialFromNomination preskače odbijene i čita ime s populate-a', () => {
+    expect(assignedOfficialFromNomination({
+      role: 'Sudac',
+      assignmentStatus: 'Rejected',
+      userId: { _id: 's1', name: 'Josip', surname: 'Perić' }
+    })).toBeNull();
+    const pending = assignedOfficialFromNomination({
+      role: 'Sudac',
+      assignmentStatus: 'Pending',
+      userId: { _id: 's1', name: 'Josip', surname: 'Perić' }
+    });
+    expect(pending?._id).toBe('s1');
+    expect(pending?.name).toBe('Josip');
   });
 
   it('eligibleOfficials izbacuje suca iznad capa i actor-a koji se ne smije nominirati', () => {

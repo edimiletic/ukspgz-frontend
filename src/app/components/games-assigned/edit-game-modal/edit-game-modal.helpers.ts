@@ -18,12 +18,93 @@ export interface ScheduleGameOnDate {
 }
 
 export function assignmentUserId(assignment: { userId?: unknown } | null | undefined): string {
-  if (!assignment?.userId) {
+  const value = assignment?.userId as
+    | string
+    | { _id?: unknown; id?: unknown; toHexString?: () => string }
+    | null
+    | undefined;
+  if (value == null || value === '') {
     return '';
   }
-  return typeof assignment.userId === 'object'
-    ? String((assignment.userId as { _id?: string })._id || '')
-    : String(assignment.userId);
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'object') {
+    const nested = value._id ?? value.id;
+    if (typeof nested === 'string' && nested) {
+      return nested;
+    }
+    if (nested && typeof nested === 'object') {
+      const nestedId = (nested as { _id?: string; id?: string })._id || (nested as { id?: string }).id;
+      if (nestedId) {
+        return String(nestedId);
+      }
+    }
+    if (typeof value.toHexString === 'function') {
+      return value.toHexString();
+    }
+    const asString = String(value);
+    return asString === '[object Object]' ? '' : asString;
+  }
+  return String(value);
+}
+
+export function officialRecordId(user: { _id?: unknown; id?: unknown } | null | undefined): string {
+  return assignmentUserId({ userId: user?._id ?? user?.id ?? user });
+}
+
+export function isLiveNomination(assignment: { assignmentStatus?: string } | null | undefined): boolean {
+  return assignment?.assignmentStatus !== 'Rejected';
+}
+
+export function assignedOfficialFromNomination(assignment: {
+  role?: string;
+  userId?: unknown;
+  assignmentStatus?: string;
+}): User | null {
+  if (!isLiveNomination(assignment)) {
+    return null;
+  }
+  const userId = assignmentUserId(assignment);
+  if (!userId) {
+    return null;
+  }
+  const source = assignment.userId;
+  const name = typeof source === 'object' && source
+    ? String((source as { name?: string }).name || '')
+    : '';
+  const surname = typeof source === 'object' && source
+    ? String((source as { surname?: string }).surname || '')
+    : '';
+  const role = (assignment.role as User['role']) || 'Sudac';
+  return {
+    _id: userId,
+    username: userId,
+    name: name || 'Nominirana osoba',
+    surname,
+    email: '',
+    birthdate: '',
+    personalCode: '',
+    address: '',
+    role,
+    roles: [{ name: role, competitions: [] }]
+  };
+}
+
+export function optionsWithSelected(
+  options: User[],
+  selectedId: string,
+  extras: User[] = []
+): User[] {
+  if (!selectedId) {
+    return options;
+  }
+  const id = String(selectedId);
+  if (options.some((user) => officialRecordId(user) === id)) {
+    return options;
+  }
+  const extra = extras.find((user) => officialRecordId(user) === id);
+  return extra ? [extra, ...options] : options;
 }
 
 export function sudacSlotsFromAssignments(

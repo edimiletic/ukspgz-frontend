@@ -37,18 +37,21 @@
     border-radius: 50px;
 }
 
-.title-full {
-  flex: auto;
-  margin: 0 0 0 2rem;
-  display: block; // Show on desktop
-}
-
+.title-full,
 .title-short {
   flex: auto;
   margin: 0 0 0 2rem;
-  display: none; // Hide on desktop
-  font-weight: 600;
   font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.title-full {
+  display: block;
+}
+
+.title-short {
+  display: none;
 }
 
 

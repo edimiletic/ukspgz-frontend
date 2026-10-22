@@ -18,11 +18,12 @@
           <div class="assignment-row">
             <select
               [id]="'sudac-' + i"
-              [value]="sudac.userId"
-              (change)="onSudacChange(i, $event)"
+              [name]="'sudac-' + i"
+              [ngModel]="sudac.userId"
+              (ngModelChange)="onSudacChange(i, $event)"
               class="form-control">
               <option value="">Odaberite suca</option>
-              <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="ref._id">
+              <option *ngFor="let ref of availableSudciForIndex[i] || []" [value]="officialId(ref)">
                 {{ ref.name }} {{ ref.surname }}
               </option>
             </select>
@@ -42,11 +43,12 @@
         <label class="sr-only" for="delegat">Delegat</label>
         <select
           id="delegat"
-          [value]="selectedReferees.delegat"
-          (change)="onDelegatChange($event)"
+          name="delegat"
+          [ngModel]="selectedReferees.delegat"
+          (ngModelChange)="onDelegatChange($event)"
           class="form-control">
           <option value="">Odaberite delegata</option>
-          <option *ngFor="let ref of availableDelegati" [value]="ref._id">
+          <option *ngFor="let ref of availableDelegati" [value]="officialId(ref)">
             {{ ref.name }} {{ ref.surname }}
           </option>
         </select>
@@ -59,11 +61,12 @@
         <label class="sr-only" for="kontrolor">Kontrolor</label>
         <select
           id="kontrolor"
-          [value]="selectedReferees.kontrolor"
-          (change)="onKontrolorChange($event)"
+          name="kontrolor"
+          [ngModel]="selectedReferees.kontrolor"
+          (ngModelChange)="onKontrolorChange($event)"
           class="form-control">
           <option value="">Odaberite kontrolora</option>
-          <option *ngFor="let ref of availableKontrolori" [value]="ref._id">
+          <option *ngFor="let ref of availableKontrolori" [value]="officialId(ref)">
             {{ ref.name }} {{ ref.surname }}
           </option>
         </select>
