@@ -16,6 +16,7 @@ import {
   GamesListFilters,
   hasActiveFilters,
   isGameInPast,
+  nominationDecisionDetails,
   pageWindow,
   paginate
 } from './games-assigned.helpers';
@@ -268,12 +269,7 @@ onGameCreated(result: any) {
     this.acceptConfirmationData = {
       title: 'Prihvati nominaciju',
       message: 'Jeste li sigurni da želite prihvatiti ovu nominaciju?',
-      details: [
-        `${game.homeTeam} vs ${game.awayTeam}`,
-        `${this.formatDate(game.date)} u ${game.time}`,
-        game.venue,
-        game.competition
-      ],
+      details: nominationDecisionDetails(game),
       confirmText: 'Prihvati nominaciju',
       cancelText: 'Odustani',
       confirmButtonClass: 'btn-success',
@@ -303,12 +299,7 @@ onGameCreated(result: any) {
     const game = this.pendingGames.find(g => g._id === gameId);
     if (game) {
       this.gameToReject = game;
-      this.rejectionDetails = [
-        `${game.homeTeam} vs ${game.awayTeam}`,
-        `${this.formatDate(game.date)} u ${game.time}`,
-        game.venue,
-        game.competition
-      ];
+      this.rejectionDetails = nominationDecisionDetails(game);
       this.isRejectionModalOpen = true;
     }
   }

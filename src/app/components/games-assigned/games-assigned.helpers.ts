@@ -66,6 +66,19 @@ export function findMyAssignment(game: BasketballGame, userId: string): RefereeA
   return game.refereeAssignments.find((assignment) => gamesAssignmentUserId(assignment) === userId);
 }
 
+export function ownPendingNominations(games: BasketballGame[], userId: string): BasketballGame[] {
+  return games.filter((game) => findMyAssignment(game, userId)?.assignmentStatus === 'Pending');
+}
+
+export function nominationDecisionDetails(game: BasketballGame): string[] {
+  return [
+    `${game.homeTeam} vs ${game.awayTeam}`,
+    `${formatGameDate(game.date)} u ${game.time}`,
+    game.venue,
+    game.competition
+  ].filter((line): line is string => Boolean(line));
+}
+
 export function categorizeGames(
   games: BasketballGame[],
   options: { seeAllGames: boolean; userId: string; now?: Date }

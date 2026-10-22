@@ -43,7 +43,7 @@
             <h3>{{ dashboardStats.pendingGames }}</h3>
             <p>Nominacije na čekanju</p>
           </div>
-          <button class="stat-action" (click)="navigateTo('/assigned')">
+          <button class="stat-action" (click)="navigateTo('/assigned')" aria-label="Otvori nominacije na čekanju">
             <i class="fas fa-arrow-right"></i>
           </button>
         </div>
@@ -126,6 +126,49 @@
             <i class="fas fa-arrow-right"></i>
           </button>
         </div>
+      </div>
+
+      <div *ngIf="isFieldOfficial && pendingNominations.length > 0" class="nomination-inbox">
+        <div class="section-header">
+          <h2>
+            <i class="fas fa-clipboard-check"></i>
+            Nominacije koje čekaju odluku
+          </h2>
+          <button type="button" class="view-all-btn" (click)="navigateTo('/assigned')">
+            Sve nominacije <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        <ul class="nomination-list">
+          <li *ngFor="let game of pendingNominations; trackBy: trackByGameId" class="nomination-item">
+            <div class="nomination-info">
+              <h3>{{ game.homeTeam }} vs {{ game.awayTeam }}</h3>
+              <p>
+                {{ formatDate(game.date) }} · {{ game.time }} · {{ game.venue }}
+                <span *ngIf="game.competition"> · {{ game.competition }}</span>
+              </p>
+            </div>
+            <div class="action-buttons labeled">
+              <button
+                type="button"
+                class="btn btn-success btn-sm"
+                (click)="acceptNomination(game)"
+                [disabled]="isResponding"
+                aria-label="Prihvati nominaciju">
+                <i class="fas fa-check" aria-hidden="true"></i>
+                <span>Prihvati</span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                (click)="rejectNomination(game)"
+                [disabled]="isResponding"
+                aria-label="Odbij nominaciju">
+                <i class="fas fa-times" aria-hidden="true"></i>
+                <span>Odbij</span>
+              </button>
+            </div>
+          </li>
+        </ul>
       </div>
 
       <!-- Recent Activity Section -->
@@ -300,3 +343,25 @@
   (close)="closeExpensesModal()"
   (success)="onExpenseReportCreated($event)">
 </app-expenses-modal>
+
+<app-reason-modal
+  [isOpen]="isRejectionModalOpen"
+  [isBusy]="isRejectBusy"
+  title="Odbij nominaciju"
+  label="Razlog odbijanja"
+  placeholder="Molimo unesite razlog zašto odbijate ovu nominaciju..."
+  confirmText="Odbij nominaciju"
+  busyText="Odbijanje..."
+  [minLength]="10"
+  [details]="rejectionDetails"
+  (close)="closeRejectionModal()"
+  (confirm)="onRejectionConfirmed($event)">
+</app-reason-modal>
+
+<app-confirmation-modal
+  [isOpen]="isAcceptModalOpen"
+  [isBusy]="isResponding"
+  [confirmationData]="acceptConfirmationData"
+  (close)="closeAcceptModal()"
+  (confirm)="onAcceptConfirmed($event)">
+</app-confirmation-modal>

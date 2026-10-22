@@ -9,7 +9,7 @@
     </div>
 
     <div *ngIf="!canManageCalendar() && !isLoading" class="header">
-      <h1 class="title">Sve utakmice</h1>
+      <h1 class="title">{{ canSeeAllGames() ? 'Sve utakmice' : 'Moje utakmice' }}</h1>
     </div>
 
     <app-games-filter-bar

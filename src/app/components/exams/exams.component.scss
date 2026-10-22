@@ -663,9 +663,13 @@
 
     .continue-exam-btn,
     .start-exam-btn {
-      align-self: center;
+      align-self: stretch;
+      width: 100%;
+      justify-content: center;
+      min-height: 48px;
       padding: 0.875rem 1.5rem;
       font-size: 1rem;
+      white-space: normal;
     }
   }
 

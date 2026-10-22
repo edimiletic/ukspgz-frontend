@@ -3,6 +3,7 @@ import { Exam, ExamAnswer, ExamQuestion, ExamSubmission } from '../../model/exam
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExamService } from '../../services/exam.service';
 import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs/operators';
 import { ModalPanelDirective } from '../../directives/modal-panel.directive';
 import { questionNavLabel, timerLiveMessage } from './take-exam.helpers';
 
@@ -30,6 +31,7 @@ exam: Exam | null = null;
   
   // Navigation state
   answeredQuestions: Set<number> = new Set();
+  questionNavOpen = false;
   
   // Modal states
   showExitDialog = false;
@@ -64,24 +66,24 @@ exam: Exam | null = null;
   loadExam(examId: string): void {
     this.isLoading = true;
     this.error = null;
-    this.examService.getCurrentExam().subscribe({
-      next: (exam: Exam) => {
-        if (exam._id === examId) {
-          this.exam = exam;
-          this.initializeAnswers();
-          this.calculateTimeRemaining();
-          this.startTimer();
-        } else {
-          this.error = 'Ispit nije pronađen ili je istekao.';
-        }
+    this.examService.getExamById(examId).pipe(
+      finalize(() => {
         this.isLoading = false;
         this.refreshView();
+      })
+    ).subscribe({
+      next: (exam: Exam) => {
+        if (String(exam._id) !== String(examId)) {
+          this.error = 'Ispit nije pronađen ili je istekao.';
+          return;
+        }
+        this.exam = exam;
+        this.initializeAnswers();
+        this.calculateTimeRemaining();
+        this.startTimer();
       },
       error: (err) => {
-        console.error('Failed to load exam:', err);
-        this.error = 'Greška prilikom učitavanja ispita.';
-        this.isLoading = false;
-        this.refreshView();
+        this.error = err?.error?.error || 'Ispit nije pronađen ili je istekao.';
       }
     });
   }
@@ -105,6 +107,7 @@ exam: Exam | null = null;
     this.userAnswers[questionIndex] = answer;
     this.answeredQuestions.add(questionIndex);
     this.persistAnswers();
+    this.refreshView();
   }
 
   private storageKey(examId: string): string {
@@ -186,8 +189,14 @@ exam: Exam | null = null;
     return 'timer-normal';
   }
 
+  toggleQuestionNav(): void {
+    this.questionNavOpen = !this.questionNavOpen;
+  }
+
   goToQuestion(index: number): void {
     this.currentQuestionIndex = index;
+    this.questionNavOpen = false;
+    this.refreshView();
   }
 
   previousQuestion(): void {

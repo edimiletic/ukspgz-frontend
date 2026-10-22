@@ -10,7 +10,7 @@
   <!-- Exam Header -->
   <div class="exam-header">
     <div class="exam-info">
-      <h2>{{ exam.title }}</h2>
+      <h1>{{ exam.title }}</h1>
       <div class="exam-meta">
         <span class="question-counter">Pitanje {{ getQuestionNumber() }} od {{ getTotalQuestions() }}</span>
         <span class="progress-text">{{ getAnsweredCount() }}/{{ getTotalQuestions() }} odgovoreno</span>
@@ -24,7 +24,7 @@
       </div>
       <div class="sr-only" aria-live="polite" aria-atomic="true">{{ timerAnnouncement }}</div>
       <button class="exit-btn" type="button" (click)="exitExam()" [disabled]="isSubmitting">
-        <i class="exit-icon fas fa-sign-out-alt"></i>
+        <i class="exit-icon fas fa-sign-out-alt" aria-hidden="true"></i>
         Izađi
       </button>
     </div>
@@ -45,34 +45,46 @@
 
   <div class="exam-content">
     <!-- Question Navigation -->
-    <div class="question-nav">
-      <h4>Navigacija po pitanjima</h4>
-      <div class="question-grid">
-        <button 
-          *ngFor="let question of exam.questions; let i = index; trackBy: trackByQuestion"
+    <div class="question-nav" [class.open]="questionNavOpen">
+      <div class="question-nav-header">
+        <h2>Navigacija po pitanjima</h2>
+        <button
           type="button"
-          class="question-nav-btn"
-          [class]="getQuestionStatusClass(i)"
-          [attr.aria-label]="questionButtonLabel(i)"
-          [attr.aria-current]="i === currentQuestionIndex ? 'true' : null"
-          (click)="goToQuestion(i)"
-        >
-          {{ i + 1 }}
+          class="nav-toggle"
+          (click)="toggleQuestionNav()"
+          [attr.aria-expanded]="questionNavOpen"
+          aria-controls="exam-question-grid">
+          {{ questionNavOpen ? 'Sakrij pitanja' : 'Prikaži pitanja' }}
         </button>
       </div>
-      
-      <div class="nav-legend">
-        <div class="legend-item">
-          <span class="legend-dot current"></span>
-          <span>Trenutno</span>
+      <div class="question-nav-body" id="exam-question-grid">
+        <div class="question-grid">
+          <button 
+            *ngFor="let question of exam.questions; let i = index; trackBy: trackByQuestion"
+            type="button"
+            class="question-nav-btn"
+            [class]="getQuestionStatusClass(i)"
+            [attr.aria-label]="questionButtonLabel(i)"
+            [attr.aria-current]="i === currentQuestionIndex ? 'true' : null"
+            (click)="goToQuestion(i)"
+          >
+            {{ i + 1 }}
+          </button>
         </div>
-        <div class="legend-item">
-          <span class="legend-dot answered"></span>
-          <span>Odgovoreno</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot unanswered"></span>
-          <span>Neodgovoreno</span>
+        
+        <div class="nav-legend">
+          <div class="legend-item">
+            <span class="legend-dot current"></span>
+            <span>Trenutno</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot answered"></span>
+            <span>Odgovoreno</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot unanswered"></span>
+            <span>Neodgovoreno</span>
+          </div>
         </div>
       </div>
     </div>
@@ -88,7 +100,7 @@
           {{ getCurrentQuestion()?.questionText }}
         </div>
 
-        <div class="answer-options">
+        <div class="answer-options" role="radiogroup" [attr.aria-label]="'Odgovor na pitanje ' + getQuestionNumber()">
           <div class="answer-option">
             <input 
               type="radio" 
@@ -124,11 +136,12 @@
       <!-- Question Navigation Controls -->
       <div class="question-controls">
         <button 
+          type="button"
           class="nav-btn prev-btn" 
           (click)="previousQuestion()" 
           [disabled]="currentQuestionIndex === 0"
         >
-          <i class="nav-icon fas fa-chevron-left"></i>
+          <i class="nav-icon fas fa-chevron-left" aria-hidden="true"></i>
           Prethodno
         </button>
 
@@ -139,12 +152,13 @@
         </div>
 
         <button 
+          type="button"
           class="nav-btn next-btn" 
           (click)="nextQuestion()" 
           [disabled]="currentQuestionIndex === getTotalQuestions() - 1"
         >
           Sljedeće
-          <i class="nav-icon fas fa-chevron-right"></i>
+          <i class="nav-icon fas fa-chevron-right" aria-hidden="true"></i>
         </button>
       </div>
     </div>
@@ -170,12 +184,13 @@
     </div>
     
     <button 
+      type="button"
       class="submit-btn"
       (click)="showSubmitDialog()"
       [disabled]="isSubmitting"
       [class.ready]="canSubmit()"
     >
-      <i class="submit-icon fas fa-paper-plane"></i>
+      <i class="submit-icon fas fa-paper-plane" aria-hidden="true"></i>
       {{ isSubmitting ? 'Šalje se...' : 'Pošalji ispit' }}
     </button>
   </div>

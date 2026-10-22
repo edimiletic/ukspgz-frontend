@@ -9,6 +9,8 @@ import {
   hasActiveFilters,
   isGameInPast,
   isGameUpcoming,
+  nominationDecisionDetails,
+  ownPendingNominations,
   pageWindow,
   paginate,
   refereesFormatted,
@@ -151,6 +153,28 @@ describe('games-assigned.helpers', () => {
     expect(refereesFormatted(g, { seeAllGames: false, userId: 'me' })).toEqual([
       { label: 'Sudci', text: 'Vi (potvrđeno)' },
       { label: 'Delegat', text: 'Ime other (na čekanju)' }
+    ]);
+  });
+
+  it('izdvaja vlastite pending nominacije i detalje odluke', () => {
+    const pending = game({
+      _id: 'p',
+      date: '2026-10-20T00:00:00',
+      time: '18:00',
+      refereeAssignments: [assignment('me', 'Sudac', 'Pending')]
+    });
+    const accepted = game({
+      _id: 'a',
+      date: '2026-10-21T00:00:00',
+      time: '19:00',
+      refereeAssignments: [assignment('me', 'Sudac', 'Accepted')]
+    });
+    expect(ownPendingNominations([pending, accepted], 'me').map((g) => g._id)).toEqual(['p']);
+    expect(nominationDecisionDetails(pending)).toEqual([
+      'Cibona vs Zadar',
+      `${formatGameDate(pending.date)} u 18:00`,
+      'Zagreb',
+      'SuperSport Premijer liga'
     ]);
   });
 });

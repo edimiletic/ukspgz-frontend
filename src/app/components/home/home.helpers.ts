@@ -2,7 +2,12 @@ import { Absence } from '../../model/absence.model';
 import { BasketballGame } from '../../model/basketballGame.model';
 import { ExamAttempt } from '../../model/exam.model';
 import { TravelExpense } from '../../model/travel-expense.model';
-import { findMyAssignment, isGameInPast, isGameUpcoming } from '../games-assigned/games-assigned.helpers';
+import {
+  findMyAssignment,
+  isGameInPast,
+  isGameUpcoming,
+  ownPendingNominations
+} from '../games-assigned/games-assigned.helpers';
 
 export function safeDate(dateString: string | undefined, fallback: string | Date = new Date(0)): Date {
   if (!dateString) {
@@ -12,14 +17,20 @@ export function safeDate(dateString: string | undefined, fallback: string | Date
 }
 
 export function countOwnPendingNominations(games: BasketballGame[], userId: string): number {
-  return games.filter((game) => findMyAssignment(game, userId)?.assignmentStatus === 'Pending').length;
+  return ownPendingNominations(games, userId).length;
 }
 
 export function summarizeOfficialGames(
   games: BasketballGame[],
   userId: string,
   now = new Date()
-): { pendingGames: number; upcomingGames: number; recentGames: BasketballGame[] } {
+): {
+  pendingGames: number;
+  pendingNominations: BasketballGame[];
+  upcomingGames: number;
+  recentGames: BasketballGame[];
+} {
+  const pendingNominations = ownPendingNominations(games, userId);
   const recentGames = games
     .filter((game) => {
       const assignment = findMyAssignment(game, userId);
@@ -29,7 +40,8 @@ export function summarizeOfficialGames(
     .slice(0, 3);
 
   return {
-    pendingGames: countOwnPendingNominations(games, userId),
+    pendingGames: pendingNominations.length,
+    pendingNominations,
     upcomingGames: games.filter((game) => {
       const assignment = findMyAssignment(game, userId);
       return assignment?.assignmentStatus === 'Accepted' && isGameUpcoming(game, now);

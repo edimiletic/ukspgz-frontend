@@ -62,4 +62,11 @@ describe('AuthComponent', () => {
     component.onSubmit();
     expect(component.errorMessage).toContain('Previše neuspjelih prijava');
   });
+
+  it('prikazuje da poslužitelj nije dostupan kad API ne odgovara', () => {
+    component.form.setValue({ username: 'iva', password: 'x' });
+    auth.login.and.returnValue(throwError(() => ({ status: 0 })));
+    component.onSubmit();
+    expect(component.errorMessage).toContain('Poslužitelj nije dostupan');
+  });
 });

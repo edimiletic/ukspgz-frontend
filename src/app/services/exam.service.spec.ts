@@ -33,6 +33,15 @@ describe('ExamService', () => {
     current.flush({ _id: 'ex1' });
   });
 
+  it('dohvaća ispit po id-u za polaganje', () => {
+    service.getExamById('ex1').subscribe(exam => {
+      expect(exam._id).toBe('ex1');
+    });
+    const req = http.expectOne(`${base}/ex1`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ _id: 'ex1' });
+  });
+
   it('šalje ispit i dohvaća pregled pokušaja', () => {
     const submission = { examId: 'ex1', answers: [], timeSpent: 12 };
     service.submitExam(submission).subscribe();

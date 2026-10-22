@@ -16,6 +16,9 @@ import { EditGameModalComponent } from "../games-assigned/edit-game-modal/edit-g
 import { AddQuestionModalComponent } from "../exams/add-question-modal/add-question-modal.component";
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
+import { ReasonModalComponent } from "../shared/reason-modal/reason-modal.component";
+import { ConfirmationData, ConfirmationModalComponent } from "../shared/confirmation-modal/confirmation-modal.component";
+import { nominationDecisionDetails, ownPendingNominations } from "../games-assigned/games-assigned.helpers";
 import {
   GAME_ASSIGNMENT_ROLES,
   canManageCalendar,
@@ -27,7 +30,6 @@ import {
 } from '../../model/roles';
 import {
   activeAbsences,
-  countOwnPendingNominations,
   expenseStatusClass,
   formatAmount as formatEuroAmount,
   formatHomeDate,
@@ -45,7 +47,16 @@ import {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, EditGameModalComponent, AddQuestionModalComponent, TimeAbsentModalComponent, ExpensesModalComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    EditGameModalComponent,
+    AddQuestionModalComponent,
+    TimeAbsentModalComponent,
+    ExpensesModalComponent,
+    ReasonModalComponent,
+    ConfirmationModalComponent
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -88,6 +99,22 @@ isExpensesModalOpen = false;
   hasError = false;
   
   // Quick stats for admin
+  pendingNominations: BasketballGame[] = [];
+  isResponding = false;
+  isRejectBusy = false;
+  isAcceptModalOpen = false;
+  isRejectionModalOpen = false;
+  gameToAccept: BasketballGame | null = null;
+  gameToReject: BasketballGame | null = null;
+  rejectionDetails: string[] = [];
+  acceptConfirmationData: ConfirmationData = {
+    title: 'Prihvati nominaciju',
+    message: 'Jeste li sigurni da želite prihvatiti ovu nominaciju?',
+    confirmText: 'Prihvati nominaciju',
+    cancelText: 'Odustani',
+    confirmButtonClass: 'btn-success',
+    loadingText: 'Prihvaćanje...'
+  };
   adminStats = {
     totalUsers: 0,
     totalGames: 0,
@@ -224,7 +251,8 @@ private loadOwnPendingNominations(): Promise<void> {
   return new Promise((resolve, reject) => {
     this.gameService.getMyAssignments().subscribe({
       next: (games) => {
-        this.dashboardStats.pendingGames = countOwnPendingNominations(games, this.currentUserId());
+        this.pendingNominations = ownPendingNominations(games, this.currentUserId());
+        this.dashboardStats.pendingGames = this.pendingNominations.length;
         resolve();
       },
       error: reject
@@ -238,6 +266,7 @@ private loadUserGames(): Promise<void> {
       next: (games) => {
         const summary = summarizeOfficialGames(games, this.currentUserId());
         this.dashboardStats.pendingGames = summary.pendingGames;
+        this.pendingNominations = summary.pendingNominations;
         this.dashboardStats.upcomingGames = summary.upcomingGames;
         this.recentGames = summary.recentGames;
         this.dashboardStats.completedGames = summary.recentGames.length;
@@ -398,6 +427,99 @@ getGameStatusText(game: BasketballGame): string {
 
   closeCreateGameModal(): void {
     this.isCreateGameModalOpen = false;
+  }
+
+  acceptNomination(game: BasketballGame): void {
+    if (this.isResponding) {
+      return;
+    }
+    this.gameToAccept = game;
+    this.acceptConfirmationData = {
+      title: 'Prihvati nominaciju',
+      message: 'Jeste li sigurni da želite prihvatiti ovu nominaciju?',
+      details: nominationDecisionDetails(game),
+      confirmText: 'Prihvati nominaciju',
+      cancelText: 'Odustani',
+      confirmButtonClass: 'btn-success',
+      loadingText: 'Prihvaćanje...',
+      data: game._id
+    };
+    this.isAcceptModalOpen = true;
+  }
+
+  closeAcceptModal(): void {
+    if (this.isResponding) {
+      return;
+    }
+    this.isAcceptModalOpen = false;
+    this.gameToAccept = null;
+  }
+
+  onAcceptConfirmed(payload: unknown): void {
+    const gameId = payload as string | undefined;
+    if (!gameId || this.isResponding) {
+      return;
+    }
+    this.respondToAssignment(gameId, 'Accepted');
+  }
+
+  rejectNomination(game: BasketballGame): void {
+    if (this.isResponding) {
+      return;
+    }
+    this.gameToReject = game;
+    this.rejectionDetails = nominationDecisionDetails(game);
+    this.isRejectionModalOpen = true;
+  }
+
+  closeRejectionModal(): void {
+    if (this.isRejectBusy) {
+      return;
+    }
+    this.isRejectionModalOpen = false;
+    this.isRejectBusy = false;
+    this.gameToReject = null;
+    this.rejectionDetails = [];
+  }
+
+  onRejectionConfirmed(rejectionReason: string): void {
+    if (!this.gameToReject || this.isRejectBusy) {
+      return;
+    }
+    this.isRejectBusy = true;
+    this.respondToAssignment(this.gameToReject._id, 'Rejected', rejectionReason);
+  }
+
+  private respondToAssignment(gameId: string, response: 'Accepted' | 'Rejected', rejectionReason?: string): void {
+    const requestBody: { response: 'Accepted' | 'Rejected'; rejectionReason?: string } = { response };
+    if (rejectionReason) {
+      requestBody.rejectionReason = rejectionReason;
+    }
+
+    this.isResponding = true;
+    this.refreshView();
+    this.gameService.respondToAssignment(gameId, requestBody).subscribe({
+      next: () => {
+        this.isResponding = false;
+        if (response === 'Accepted') {
+          this.showSuccess('Nominacija je uspješno prihvaćena! Povjerenik je obaviješten.');
+          this.isAcceptModalOpen = false;
+          this.gameToAccept = null;
+        } else {
+          this.showSuccess('Nominacija je uspješno odbijena! Povjerenik je obaviješten.');
+          this.isRejectBusy = false;
+          this.closeRejectionModal();
+        }
+        this.loadDashboardData();
+        this.refreshView();
+      },
+      error: () => {
+        this.isResponding = false;
+        this.isRejectBusy = false;
+        this.refreshView();
+        this.showError('Greška pri odgovaranju na nominaciju.');
+      }
+    });
   }
 
    onGameCreated(result: any): void {

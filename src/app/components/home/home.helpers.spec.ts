@@ -58,6 +58,7 @@ describe('home.helpers', () => {
       now
     );
     expect(summary.pendingGames).toBe(1);
+    expect(summary.pendingNominations.map((g) => g._id)).toEqual(['p']);
     expect(summary.upcomingGames).toBe(1);
     expect(summary.recentGames.map((g) => g._id)).toEqual(['old1', 'old2']);
   });

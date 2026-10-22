@@ -77,7 +77,6 @@ private apiUrl = environment.apiUrl + '/exams';
     return this.http.get<Exam[]>(`${this.apiUrl}`);
   }
 
-  // Get exam by ID (Admin only)
   getExamById(examId: string): Observable<Exam> {
     return this.http.get<Exam>(`${this.apiUrl}/${examId}`);
   }

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/login.service';
+import { loginFailureMessage } from './auth.helpers';
 
 @Component({
   selector: 'app-auth',
@@ -50,11 +51,7 @@ export class AuthComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.form.enable();
-        this.errorMessage =
-          error.error?.error
-          || (error.status === 429
-            ? 'Previše neuspjelih prijava. Pokušaj ponovo za 15 minuta.'
-            : 'Neispravno korisničko ime ili lozinka');
+        this.errorMessage = loginFailureMessage(error);
       },
       complete: () => {
         this.isLoading = false;
