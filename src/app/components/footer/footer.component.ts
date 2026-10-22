@@ -8,5 +8,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FooterComponent {
-
+  readonly year = new Date().getFullYear();
+  readonly supportEmail = 'edi.miletic@uniri.hr';
 }

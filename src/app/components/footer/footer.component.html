@@ -1,4 +1,14 @@
 <footer class="footer">
-    <p>Tehnička podrška: edi.miletic&#64;uniri.hr</p>
-    <p>© Copyright</p>
+  <div class="footer-inner">
+    <p class="footer-brand">
+      <span class="footer-app">UHKS IS</span>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <span>Hrvatski košarkaški savez</span>
+    </p>
+    <p class="footer-support">
+      Podrška:
+      <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+    </p>
+    <p class="footer-copy">© {{ year }} Hrvatski košarkaški savez</p>
+  </div>
 </footer>
