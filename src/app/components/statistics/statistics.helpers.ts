@@ -315,6 +315,10 @@ export function processKontrolaData(kontrolaData: any[], selectedRole: string): 
 
   const tempRefereeData: any = {};
   const categories = ['ocjena', 'pogreske', 'prekrsaji', 'tehnikaMehanika', 'timskiRad', 'kontrolaUtakmice'];
+  const categoryCounts: { [key: string]: number } = {};
+  categories.forEach(category => {
+    categoryCounts[category] = 0;
+  });
 
   kontrolaData.forEach(kontrola => {
     if (!kontrola.refereeGrades) {
@@ -335,6 +339,10 @@ export function processKontrolaData(kontrolaData: any[], selectedRole: string): 
             ocjena: 0, pogreske: 0, prekrsaji: 0,
             tehnikaMehanika: 0, timskiRad: 0, kontrolaUtakmice: 0
           },
+          gradeCounts: {
+            ocjena: 0, pogreske: 0, prekrsaji: 0,
+            tehnikaMehanika: 0, timskiRad: 0, kontrolaUtakmice: 0
+          },
           totalSum: 0,
           totalCount: 0
         };
@@ -347,9 +355,11 @@ export function processKontrolaData(kontrolaData: any[], selectedRole: string): 
         if (gradeText && typeof gradeText === 'string' && gradeValues[gradeText] != null) {
           const gradeValue = gradeValues[gradeText];
           tempRef.gradeSums[category] += gradeValue;
+          tempRef.gradeCounts[category]++;
           tempRef.totalSum += gradeValue;
           tempRef.totalCount++;
           stats.byCategory[category] += gradeValue;
+          categoryCounts[category]++;
           stats.gradeDistribution[gradeText] = (stats.gradeDistribution[gradeText] || 0) + 1;
         }
       });
@@ -365,12 +375,12 @@ export function processKontrolaData(kontrolaData: any[], selectedRole: string): 
       totalEvaluations: tempRef.evaluationCount,
       averageGrade: tempRef.totalCount > 0 ? tempRef.totalSum / tempRef.totalCount : 0,
       categoryAverages: {
-        ocjena: tempRef.evaluationCount > 0 ? tempRef.gradeSums.ocjena / tempRef.evaluationCount : 0,
-        pogreske: tempRef.evaluationCount > 0 ? tempRef.gradeSums.pogreske / tempRef.evaluationCount : 0,
-        prekrsaji: tempRef.evaluationCount > 0 ? tempRef.gradeSums.prekrsaji / tempRef.evaluationCount : 0,
-        tehnikaMehanika: tempRef.evaluationCount > 0 ? tempRef.gradeSums.tehnikaMehanika / tempRef.evaluationCount : 0,
-        timskiRad: tempRef.evaluationCount > 0 ? tempRef.gradeSums.timskiRad / tempRef.evaluationCount : 0,
-        kontrolaUtakmice: tempRef.evaluationCount > 0 ? tempRef.gradeSums.kontrolaUtakmice / tempRef.evaluationCount : 0
+        ocjena: tempRef.gradeCounts.ocjena > 0 ? tempRef.gradeSums.ocjena / tempRef.gradeCounts.ocjena : 0,
+        pogreske: tempRef.gradeCounts.pogreske > 0 ? tempRef.gradeSums.pogreske / tempRef.gradeCounts.pogreske : 0,
+        prekrsaji: tempRef.gradeCounts.prekrsaji > 0 ? tempRef.gradeSums.prekrsaji / tempRef.gradeCounts.prekrsaji : 0,
+        tehnikaMehanika: tempRef.gradeCounts.tehnikaMehanika > 0 ? tempRef.gradeSums.tehnikaMehanika / tempRef.gradeCounts.tehnikaMehanika : 0,
+        timskiRad: tempRef.gradeCounts.timskiRad > 0 ? tempRef.gradeSums.timskiRad / tempRef.gradeCounts.timskiRad : 0,
+        kontrolaUtakmice: tempRef.gradeCounts.kontrolaUtakmice > 0 ? tempRef.gradeSums.kontrolaUtakmice / tempRef.gradeCounts.kontrolaUtakmice : 0
       },
       trend: 'stable'
     };
@@ -380,8 +390,8 @@ export function processKontrolaData(kontrolaData: any[], selectedRole: string): 
   const totalGradeCount = Object.values(tempRefereeData).reduce((sum: number, ref: any) => sum + ref.totalCount, 0);
   stats.averageGrade = totalGradeCount > 0 ? totalGradeSum / totalGradeCount : 0;
   Object.keys(stats.byCategory).forEach(category => {
-    stats.byCategory[category] = stats.totalEvaluations > 0
-      ? stats.byCategory[category] / stats.totalEvaluations
+    stats.byCategory[category] = categoryCounts[category] > 0
+      ? stats.byCategory[category] / categoryCounts[category]
       : 0;
   });
 
