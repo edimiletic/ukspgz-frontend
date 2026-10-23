@@ -289,8 +289,8 @@ const refereeGrades: RefereeGrade[] = acceptedReferees.map(assignment => ({
     
     if (!referee) return true;
 
-    // Check grade categories
-    const emptyGrades = this.gradeCategories.filter(category => 
+    // Overall grade is stored separately from the detailed categories, but it is required.
+    const emptyGrades = [this.overallGrade, ...this.gradeCategories].filter(category =>
       !this.getGradeValue(referee, category.key)
     );
     

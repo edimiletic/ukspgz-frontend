@@ -228,7 +228,44 @@ describe('statistics.helpers', () => {
       expect(stats.totalEvaluations).toBe(1);
       expect(stats.gradeDistribution['Izvrsno']).toBe(1);
       expect(stats.byReferee['Iva Ivić'].averageGrade).toBeCloseTo((5 + 3 + 3 + 3 + 3 + 3) / 6);
+      expect(stats.byCategory['ocjena']).toBe(5);
       expect(stats.byReferee['Delegat X']).toBeUndefined();
+    });
+
+    it('ne računa praznu ukupnu ocjenu kao nulu', () => {
+      const stats = processKontrolaData([
+        {
+          refereeGrades: [
+            {
+              refereeName: 'Iva Ivić',
+              refereeId: 'u1',
+              refereeRole: 'Sudac',
+              ocjena: 'Izvrsno',
+              pogreske: 'Izvrsno',
+              prekrsaji: 'Izvrsno',
+              tehnikaMehanika: 'Izvrsno',
+              timskiRad: 'Izvrsno',
+              kontrolaUtakmice: 'Izvrsno'
+            },
+            {
+              refereeName: 'Iva Ivić',
+              refereeId: 'u1',
+              refereeRole: 'Sudac',
+              ocjena: '',
+              pogreske: 'Izvrsno',
+              prekrsaji: 'Izvrsno',
+              tehnikaMehanika: 'Izvrsno',
+              timskiRad: 'Izvrsno',
+              kontrolaUtakmice: 'Izvrsno'
+            }
+          ]
+        }
+      ], 'Sudac');
+
+      expect(stats.totalEvaluations).toBe(2);
+      expect(stats.byCategory['ocjena']).toBe(5);
+      expect(stats.byReferee['Iva Ivić'].categoryAverages.ocjena).toBe(5);
+      expect(stats.byReferee['Iva Ivić'].categoryAverages.pogreske).toBe(5);
     });
   });
 
