@@ -15,6 +15,7 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
 import { VenueSearchComponent } from '../venue-search/venue-search.component';
+import { findRescheduleConflicts, RescheduleOfficial } from './reschedule-conflicts';
 
 @Component({
   selector: 'app-game-form-modal',
@@ -106,12 +107,18 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   // Absence data for availability checking
   allAbsences: Absence[] = [];
   private gamesOnSelectedDate: Array<{
-    _id: string;
-    time: string;
-    competition: string;
-    refereeAssignments?: Array<{ userId: any; assignmentStatus: string }>;
+    _id?: string;
+    id?: string;
+    time?: string;
+    competition?: string;
+    homeTeam?: string;
+    awayTeam?: string;
+    refereeAssignments?: Array<{ userId: any; assignmentStatus?: string }>;
   }> = [];
   private loadedScheduleDate = '';
+  private scheduleLoadFailed = false;
+  private absencesLoadFailed = false;
+  private absencesRequest: Promise<void> | null = null;
 
   constructor(
     private basketballGameService: BasketballGameService,
@@ -239,19 +246,26 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   loadAbsences() {
     this.isLoadingAbsences = true;
-    this.absenceService.getAllAbsences().subscribe({
-      next: (absences) => {
-        this.allAbsences = absences || [];
-        this.isLoadingAbsences = false;
-        if (this.isOpen && this.gameForm.date && this.gameForm.time) {
-          this.refreshAvailability();
+    this.absencesLoadFailed = false;
+    this.absencesRequest = new Promise(resolve => {
+      this.absenceService.getAllAbsences().subscribe({
+        next: (absences) => {
+          this.allAbsences = absences || [];
+          this.absencesLoadFailed = false;
+          this.isLoadingAbsences = false;
+          if (this.isOpen && this.gameForm.date && this.gameForm.time) {
+            this.refreshAvailability();
+          }
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error loading absences in edit modal:', error);
+          this.allAbsences = [];
+          this.absencesLoadFailed = true;
+          this.isLoadingAbsences = false;
+          resolve();
         }
-      },
-      error: (error) => {
-        console.error('Error loading absences in edit modal:', error);
-        this.allAbsences = [];
-        this.isLoadingAbsences = false;
-      }
+      });
     });
   }
 
@@ -355,24 +369,36 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     return typeof assignment.userId === 'object' ? assignment.userId._id : String(assignment.userId);
   }
 
-  private async loadScheduleForDate(): Promise<void> {
-    if (!this.gameForm.date) {
+  private async loadScheduleForDate(): Promise<boolean> {
+    const date = this.gameForm.date;
+    if (!date) {
       this.gamesOnSelectedDate = [];
       this.loadedScheduleDate = '';
-      return;
+      this.scheduleLoadFailed = false;
+      return true;
     }
-    if (this.loadedScheduleDate === this.gameForm.date) {
-      return;
+    if (this.loadedScheduleDate === date && !this.scheduleLoadFailed) {
+      return true;
     }
     try {
-      this.gamesOnSelectedDate = await firstValueFrom(
-        this.basketballGameService.getGamesOnDate(this.gameForm.date)
-      ) || [];
+      const games = await firstValueFrom(this.basketballGameService.getGamesOnDate(date)) || [];
+      if (this.gameForm.date !== date) {
+        return this.loadScheduleForDate();
+      }
+      this.gamesOnSelectedDate = games;
+      this.loadedScheduleDate = date;
+      this.scheduleLoadFailed = false;
+      return true;
     } catch (error) {
       console.error('Error loading games for date:', error);
+      if (this.gameForm.date !== date) {
+        return this.loadScheduleForDate();
+      }
       this.gamesOnSelectedDate = [];
+      this.loadedScheduleDate = '';
+      this.scheduleLoadFailed = true;
+      return false;
     }
-    this.loadedScheduleDate = this.gameForm.date;
   }
 
   private isRefereeAvailable(referee: User): boolean {
@@ -411,7 +437,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         return false;
       }
       return (game.refereeAssignments || []).some(assignment => {
-        if (!['Accepted', 'Pending'].includes(assignment.assignmentStatus)) {
+        if (assignment.assignmentStatus !== 'Accepted' && assignment.assignmentStatus !== 'Pending') {
           return false;
         }
         return this.assignmentUserId(assignment) === referee._id;
@@ -740,6 +766,16 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     this.errorMessage = '';
 
     try {
+      const slotChanged = this.game.date.split('T')[0] !== this.gameForm.date
+        || this.game.time !== this.gameForm.time;
+      if (slotChanged && this.canManageCalendar()) {
+        const conflict = await this.rescheduleConflictMessage();
+        if (conflict) {
+          this.errorMessage = conflict;
+          return;
+        }
+      }
+
       let updatedGame = this.game;
 
       const assignmentResult = this.shouldShowNominations()
@@ -786,6 +822,71 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  private async rescheduleConflictMessage(): Promise<string | null> {
+    if (this.absencesLoadFailed || !this.absencesRequest) {
+      this.loadAbsences();
+    }
+    await this.absencesRequest;
+    const scheduleOk = await this.loadScheduleForDate();
+    if (!scheduleOk || this.absencesLoadFailed) {
+      return 'Nije moguće provjeriti zauzetost službenih osoba za novi termin. Pokušajte ponovo.';
+    }
+
+    return findRescheduleConflicts({
+      date: this.gameForm.date,
+      time: this.gameForm.time,
+      gameId: this.game?._id,
+      officials: this.officialsStayingOnGame(),
+      gamesOnDate: this.gamesOnSelectedDate,
+      absences: this.allAbsences
+    });
+  }
+
+  private officialsStayingOnGame(): RescheduleOfficial[] {
+    if (!this.game) {
+      return [];
+    }
+    if (!this.shouldShowNominations()) {
+      return this.game.refereeAssignments
+        .filter(assignment => assignment.assignmentStatus === 'Accepted' || assignment.assignmentStatus === 'Pending')
+        .map(assignment => {
+          const id = this.assignmentUserId(assignment);
+          const known = this.findOfficial(id);
+          const assigned = assignment.userId as { name?: string; surname?: string };
+          const name = known
+            ? `${known.name} ${known.surname}`
+            : (assigned?.name ? `${assigned.name} ${assigned.surname}` : 'Službena osoba');
+          return { id, name, personalCode: known?.personalCode };
+        })
+        .filter(official => !!official.id);
+    }
+
+    const ids = [
+      ...this.selectedReferees.sudci.map(sudac => sudac.userId),
+      this.selectedReferees.delegat,
+      this.showKontrolorField() ? this.selectedReferees.kontrolor : '',
+      ...this.selectedReferees.pomocniSudci.map(sudac => sudac.userId)
+    ].filter((id): id is string => !!id);
+
+    return [...new Set(ids)].map(id => {
+      const known = this.findOfficial(id);
+      return {
+        id,
+        name: known ? `${known.name} ${known.surname}` : 'Odabrana osoba',
+        personalCode: known?.personalCode
+      };
+    });
+  }
+
+  private findOfficial(userId: string): User | undefined {
+    return [
+      ...this.availableReferees.sudci,
+      ...this.availableReferees.delegati,
+      ...this.availableReferees.pomocniSudci,
+      ...this.availableReferees.kontrolori
+    ].find(official => official._id === userId);
   }
 
   private managedAssignmentRoles(): Array<'Sudac' | 'Delegat' | 'Pomoćni Sudac' | 'Kontrolor'> {
@@ -972,6 +1073,8 @@ this.currentStep = 1;
    this.allAbsences = [];
    this.gamesOnSelectedDate = [];
    this.loadedScheduleDate = '';
+   this.scheduleLoadFailed = false;
+   this.absencesLoadFailed = false;
  }
 
  // Get minimum date (for editing, we allow past dates since the game might have already happened)
