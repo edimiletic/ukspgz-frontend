@@ -16,6 +16,10 @@ import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
 import { VenueSearchComponent } from '../venue-search/venue-search.component';
 
+const ABSENCE_CHECK_ERROR = 'Greška pri učitavanju odsustva. Nominacije nisu spremljene da se odsutna osoba ne bi dodijelila.';
+const SCHEDULE_CHECK_ERROR = 'Greška pri učitavanju rasporeda. Nominacije nisu spremljene da osoba ne ostane na dvije utakmice.';
+const AVAILABILITY_PENDING_ERROR = 'Provjera dostupnosti još traje. Pričekajte prije spremanja nominacija.';
+
 @Component({
   selector: 'app-game-form-modal',
   imports: [CommonModule, FormsModule, TimeSelectComponent, VenueSearchComponent],
@@ -112,6 +116,11 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     refereeAssignments?: Array<{ userId: any; assignmentStatus: string }>;
   }> = [];
   private loadedScheduleDate = '';
+  private absenceLoadFailed = false;
+  private absencesLoaded = false;
+  private scheduleLoadFailed = false;
+  private isLoadingSchedule = false;
+  private absencesRequest: Promise<void> | null = null;
 
   constructor(
     private basketballGameService: BasketballGameService,
@@ -138,6 +147,26 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   shouldShowNominations(): boolean {
     return this.canNominateOfficials() || this.canNominateAssistants();
+  }
+
+  get availabilityLoading(): boolean {
+    return this.isLoadingAbsences || this.isLoadingSchedule;
+  }
+
+  get nominationsBlocked(): boolean {
+    if (!this.shouldShowNominations()) {
+      return false;
+    }
+    if (!this.gameForm.date || !this.gameForm.time) {
+      return true;
+    }
+    if (this.isLoadingAbsences || this.isLoadingSchedule || !this.absencesLoaded) {
+      return true;
+    }
+    if (this.absenceLoadFailed || this.scheduleLoadFailed) {
+      return true;
+    }
+    return this.loadedScheduleDate !== this.gameForm.date;
   }
 
   showKontrolorField(): boolean {
@@ -237,22 +266,38 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     }
   }
 
-  loadAbsences() {
+  loadAbsences(refreshAfter = true): Promise<void> {
+    if (this.absencesRequest && this.isLoadingAbsences) {
+      return this.absencesRequest;
+    }
+
     this.isLoadingAbsences = true;
-    this.absenceService.getAllAbsences().subscribe({
-      next: (absences) => {
-        this.allAbsences = absences || [];
-        this.isLoadingAbsences = false;
-        if (this.isOpen && this.gameForm.date && this.gameForm.time) {
-          this.refreshAvailability();
+    this.absenceLoadFailed = false;
+    this.absencesRequest = new Promise(resolve => {
+      this.absenceService.getAllAbsences().subscribe({
+        next: (absences) => {
+          this.allAbsences = absences || [];
+          this.absenceLoadFailed = false;
+          this.absencesLoaded = true;
+          this.isLoadingAbsences = false;
+          this.clearAvailabilityError();
+          if (refreshAfter && this.isOpen && this.gameForm.date && this.gameForm.time) {
+            void this.refreshAvailability();
+          }
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error loading absences in edit modal:', error);
+          this.allAbsences = [];
+          this.absenceLoadFailed = true;
+          this.absencesLoaded = true;
+          this.isLoadingAbsences = false;
+          this.errorMessage = ABSENCE_CHECK_ERROR;
+          resolve();
         }
-      },
-      error: (error) => {
-        console.error('Error loading absences in edit modal:', error);
-        this.allAbsences = [];
-        this.isLoadingAbsences = false;
-      }
+      });
     });
+    return this.absencesRequest;
   }
 
   populateForm() {
@@ -356,23 +401,40 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   }
 
   private async loadScheduleForDate(): Promise<void> {
-    if (!this.gameForm.date) {
+    const date = this.gameForm.date;
+    if (!date) {
       this.gamesOnSelectedDate = [];
       this.loadedScheduleDate = '';
+      this.scheduleLoadFailed = false;
       return;
     }
-    if (this.loadedScheduleDate === this.gameForm.date) {
+    if (this.loadedScheduleDate === date && !this.scheduleLoadFailed) {
       return;
     }
+
+    this.isLoadingSchedule = true;
     try {
-      this.gamesOnSelectedDate = await firstValueFrom(
-        this.basketballGameService.getGamesOnDate(this.gameForm.date)
-      ) || [];
+      const games = await firstValueFrom(this.basketballGameService.getGamesOnDate(date)) || [];
+      if (this.gameForm.date !== date) {
+        return this.loadScheduleForDate();
+      }
+      this.gamesOnSelectedDate = games;
+      this.loadedScheduleDate = date;
+      this.scheduleLoadFailed = false;
     } catch (error) {
       console.error('Error loading games for date:', error);
+      if (this.gameForm.date !== date) {
+        return this.loadScheduleForDate();
+      }
       this.gamesOnSelectedDate = [];
+      this.loadedScheduleDate = '';
+      this.scheduleLoadFailed = true;
+      this.errorMessage = SCHEDULE_CHECK_ERROR;
+    } finally {
+      if (this.gameForm.date === date) {
+        this.isLoadingSchedule = false;
+      }
     }
-    this.loadedScheduleDate = this.gameForm.date;
   }
 
   private isRefereeAvailable(referee: User): boolean {
@@ -643,6 +705,17 @@ export class EditGameModalComponent implements OnInit, OnChanges {
   }
 
   async saveGame() {
+    if (this.shouldShowNominations()) {
+      await this.refreshAvailability();
+      if (!this.nominationsBlocked) {
+        this.clearUnavailableSelections();
+      }
+      if (this.nominationsBlocked) {
+        this.errorMessage = this.availabilityBlockMessage();
+        return;
+      }
+    }
+
     if (this.isCreateMode) {
       await this.createGame();
       return;
@@ -972,6 +1045,11 @@ this.currentStep = 1;
    this.allAbsences = [];
    this.gamesOnSelectedDate = [];
    this.loadedScheduleDate = '';
+   this.absenceLoadFailed = false;
+   this.absencesLoaded = false;
+   this.scheduleLoadFailed = false;
+   this.isLoadingSchedule = false;
+   this.absencesRequest = null;
  }
 
  // Get minimum date (for editing, we allow past dates since the game might have already happened)
@@ -995,8 +1073,45 @@ this.currentStep = 1;
      this.updateAvailableReferees();
      return;
    }
+   if (this.isLoadingAbsences) {
+     return;
+   }
+   if (this.absenceLoadFailed || !this.absencesLoaded) {
+     await this.loadAbsences(false);
+   }
+   if (this.absenceLoadFailed || this.isLoadingAbsences) {
+     this.errorMessage = this.availabilityBlockMessage();
+     return;
+   }
+
    await this.loadScheduleForDate();
+   if (this.scheduleLoadFailed || this.loadedScheduleDate !== this.gameForm.date) {
+     this.errorMessage = this.availabilityBlockMessage();
+     return;
+   }
+
+   this.clearAvailabilityError();
    this.updateAvailableReferees();
+ }
+
+ private availabilityBlockMessage(): string {
+   if (this.absenceLoadFailed) {
+     return ABSENCE_CHECK_ERROR;
+   }
+   if (this.scheduleLoadFailed) {
+     return SCHEDULE_CHECK_ERROR;
+   }
+   return AVAILABILITY_PENDING_ERROR;
+ }
+
+ private clearAvailabilityError(): void {
+   if (
+     this.errorMessage === ABSENCE_CHECK_ERROR ||
+     this.errorMessage === SCHEDULE_CHECK_ERROR ||
+     this.errorMessage === AVAILABILITY_PENDING_ERROR
+   ) {
+     this.errorMessage = '';
+   }
  }
 
  private updateAvailableReferees() {
@@ -1038,13 +1153,16 @@ this.currentStep = 1;
  }
 
  // Update the onDateTimeChange method
- async onDateTimeChange() {
+  async onDateTimeChange() {
    if (!this.gameForm.date || !this.gameForm.time) {
      this.unavailableCounts = { sudci: 0, delegati: 0, pomocniSudci: 0 };
      return;
    }
 
    await this.refreshAvailability();
+   if (this.nominationsBlocked) {
+     return;
+   }
    this.clearUnavailableSelections();
  }
 

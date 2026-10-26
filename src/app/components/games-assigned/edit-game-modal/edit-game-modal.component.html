@@ -333,7 +333,7 @@
             type="button" 
             class="btn btn-success" 
             (click)="saveGame()" 
-            [disabled]="isLoading || isLoadingReferees || isLoadingAbsences">
+            [disabled]="isLoading || isLoadingReferees || availabilityLoading">
             <span *ngIf="!isLoading">
               {{ isCreateMode ? 'Kreiraj utakmicu' : 'Spremi' }}
             </span>
