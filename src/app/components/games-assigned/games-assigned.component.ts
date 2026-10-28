@@ -12,6 +12,7 @@ import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.componen
 import { KontrolaService } from '../../services/kontrola.service';
 import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
 import { firstValueFrom } from 'rxjs';
+import { assignedGameBucket } from './assignment-visibility';
 
 @Component({
   selector: 'app-games-assigned',
@@ -342,22 +343,18 @@ onGameCreated(result: any) {
       this.allGameHistory = games.filter(game => this.isGameInPast(game, now));
 
           } else {
-      // For referees, show only their assigned games
-      this.allPendingGames = games.filter(game => {
-        const myAssignment = this.getMyAssignment(game);
-        return myAssignment?.assignmentStatus === 'Pending';
-      });
+      // Officials only. Cancelled games are history, not open nominations.
+      this.allPendingGames = games.filter(game =>
+        assignedGameBucket(this.getMyAssignment(game)?.assignmentStatus, game.status, this.isGameUpcoming(game, now)) === 'pending'
+      );
 
-      this.allConfirmedGames = games.filter(game => {
-        const myAssignment = this.getMyAssignment(game);
-        return myAssignment?.assignmentStatus === 'Accepted' && this.isGameUpcoming(game, now);
-      });
+      this.allConfirmedGames = games.filter(game =>
+        assignedGameBucket(this.getMyAssignment(game)?.assignmentStatus, game.status, this.isGameUpcoming(game, now)) === 'confirmed'
+      );
 
-      this.allGameHistory = games.filter(game => {
-        const myAssignment = this.getMyAssignment(game);
-        return (myAssignment?.assignmentStatus === 'Accepted' && this.isGameInPast(game, now)) ||
-               myAssignment?.assignmentStatus === 'Rejected';
-      });
+      this.allGameHistory = games.filter(game =>
+        assignedGameBucket(this.getMyAssignment(game)?.assignmentStatus, game.status, this.isGameUpcoming(game, now)) === 'history'
+      );
 
           }
     
@@ -403,7 +400,7 @@ onGameCreated(result: any) {
       return;
     }
     const game = this.pendingGames.find(g => g._id === gameId);
-    if (!game) {
+    if (!game || game.status === 'Cancelled') {
       return;
     }
     this.gameToAccept = game;
@@ -641,6 +638,10 @@ onGameCreated(result: any) {
   }
 
   getStatusDisplay(game: BasketballGame): string {
+    if (game.status === 'Cancelled') {
+      return 'Otkazano';
+    }
+
     if (this.canSeeAllGames()) {
       if (game.status === 'Scheduled' && this.isGameInPast(game)) {
         return 'Odigrano'; // Past scheduled games are considered "played"
@@ -668,6 +669,10 @@ onGameCreated(result: any) {
   }
 
   getStatusClass(game: BasketballGame): string {
+    if (game.status === 'Cancelled') {
+      return 'status-rejected';
+    }
+
     if (this.canSeeAllGames()) {
       if (game.status === 'Scheduled' && this.isGameInPast(game)) {
         return 'status-accepted'; // Use green styling for "Odigrano"
@@ -677,7 +682,6 @@ onGameCreated(result: any) {
         case 'Scheduled': return 'status-pending';
         case 'Ongoing': return 'status-pending';
         case 'Completed': return 'status-accepted';
-        case 'Cancelled': return 'status-rejected';
         default: return '';
       }
     }
