@@ -17,6 +17,7 @@ import { AddQuestionModalComponent } from "../exams/add-question-modal/add-quest
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
 import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from '../../model/roles';
+import { assignedGameBucket } from '../games-assigned/assignment-visibility';
 
 @Component({
   selector: 'app-home',
@@ -190,7 +191,7 @@ private loadUserGames(): Promise<void> {
           const assignment = game.refereeAssignments.find(
             a => this.isCurrentUserAssignment(a)
           );
-          return assignment?.assignmentStatus === 'Pending';
+          return assignedGameBucket(assignment?.assignmentStatus, game.status, this.isGameUpcoming(game, now)) === 'pending';
         }).length;
 
         // Count upcoming games (accepted and future)
@@ -198,7 +199,7 @@ private loadUserGames(): Promise<void> {
           const assignment = game.refereeAssignments.find(
             a => this.isCurrentUserAssignment(a)
           );
-          return assignment?.assignmentStatus === 'Accepted' && this.isGameUpcoming(game, now);
+          return assignedGameBucket(assignment?.assignmentStatus, game.status, this.isGameUpcoming(game, now)) === 'confirmed';
         }).length;
 
         // Get recent completed games
@@ -207,7 +208,9 @@ private loadUserGames(): Promise<void> {
             const assignment = game.refereeAssignments.find(
               a => this.isCurrentUserAssignment(a)
             );
-            return assignment?.assignmentStatus === 'Accepted' && this.isGameInPast(game, now);
+            return assignment?.assignmentStatus === 'Accepted' &&
+              game.status !== 'Cancelled' &&
+              this.isGameInPast(game, now);
           })
           .sort((a, b) => {
             const dateA = this.getSafeDate(a.date).getTime();
