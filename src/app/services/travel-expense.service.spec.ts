@@ -46,13 +46,22 @@ describe('TravelExpenseService', () => {
     req.flush({ id: 'e1', state: 'Predano' });
   });
 
+  it('dohvaća sve naloge kao stranicu', () => {
+    service.getAllTravelExpenses().subscribe(list => {
+      expect(list.length).toBe(1);
+    });
+    const req = http.expectOne(`${base}?page=1&limit=100`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ expenses: [{ id: 'e1' }], total: 1, currentPage: 1, totalPages: 1 });
+  });
+
   it('dohvaća moje naloge u browseru', () => {
     service.getCurrentUserTravelExpenses().subscribe(list => {
       expect(list.length).toBe(1);
     });
-    const req = http.expectOne(`${base}/my`);
+    const req = http.expectOne(`${base}/my?page=1&limit=100`);
     expect(req.request.method).toBe('GET');
-    req.flush([{ id: 'e1' }]);
+    req.flush({ expenses: [{ id: 'e1' }], total: 1, currentPage: 1, totalPages: 1 });
   });
 
   it('odbija nalog s napomenom', () => {

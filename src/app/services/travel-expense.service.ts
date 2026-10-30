@@ -1,9 +1,17 @@
 import { TravelExpenseFilters, TravelExpense, EligibleTravelGame } from './../model/travel-expense.model';
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../environments/environment';
+
+interface PaginatedTravelExpenses {
+  expenses: TravelExpense[];
+  totalPages: number;
+  currentPage: number;
+  total: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -31,15 +39,23 @@ export class TravelExpenseService {
     return this.http.post<TravelExpense>(`${this.apiUrl}/travel-expense`, formData);
   }
 
-  getCurrentUserTravelExpenses(): Observable<TravelExpense[]> {
+  getCurrentUserTravelExpenses(page = 1, limit = 100): Observable<TravelExpense[]> {
     if (!isPlatformBrowser(this.platformId)) {
       return of([]);
     }
-    return this.http.get<TravelExpense[]>(`${this.apiUrl}/travel-expense/my`);
+    return this.http
+      .get<PaginatedTravelExpenses>(`${this.apiUrl}/travel-expense/my`, {
+        params: this.pageParams(page, limit)
+      })
+      .pipe(map((body) => this.unwrapExpenses(body)));
   }
 
-  getAllTravelExpenses(): Observable<TravelExpense[]> {
-    return this.http.get<TravelExpense[]>(`${this.apiUrl}/travel-expense`);
+  getAllTravelExpenses(page = 1, limit = 100): Observable<TravelExpense[]> {
+    return this.http
+      .get<PaginatedTravelExpenses>(`${this.apiUrl}/travel-expense`, {
+        params: this.pageParams(page, limit)
+      })
+      .pipe(map((body) => this.unwrapExpenses(body)));
   }
 
   getTravelExpenseById(expenseId: string): Observable<TravelExpense> {
@@ -77,6 +93,17 @@ export class TravelExpenseService {
     if (filters.state) queryParams.append('state', filters.state);
     const queryString = queryParams.toString();
     const url = queryString ? `${this.apiUrl}/travel-expense?${queryString}` : `${this.apiUrl}/travel-expense`;
-    return this.http.get<TravelExpense[]>(url);
+    return this.http.get<PaginatedTravelExpenses | TravelExpense[]>(url).pipe(map((body) => this.unwrapExpenses(body)));
+  }
+
+  private pageParams(page: number, limit: number): HttpParams {
+    return new HttpParams().set('page', String(page)).set('limit', String(limit));
+  }
+
+  private unwrapExpenses(body: PaginatedTravelExpenses | TravelExpense[] | null | undefined): TravelExpense[] {
+    if (Array.isArray(body)) {
+      return body;
+    }
+    return body?.expenses || [];
   }
 }
