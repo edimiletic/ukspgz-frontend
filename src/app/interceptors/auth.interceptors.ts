@@ -1,9 +1,11 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { catchError, throwError } from 'rxjs';
+import { catchError, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/login.service';
+
+const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -17,10 +19,22 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isSessionProbe = req.url.includes('/me');
 
   if (isBrowser) {
-    req = req.clone({ withCredentials: true });
+    const csrf = authService.csrfToken;
+    req = req.clone({
+      withCredentials: true,
+      setHeaders: csrf && MUTATING.has(req.method) ? { 'X-CSRF-Token': csrf } : {}
+    });
   }
 
   return next(req).pipe(
+    tap((event) => {
+      if (event instanceof HttpResponse) {
+        const token = event.headers.get('X-CSRF-Token');
+        if (token) {
+          authService.setCsrfToken(token);
+        }
+      }
+    }),
     catchError((error: HttpErrorResponse) => {
       if (
         isBrowser &&

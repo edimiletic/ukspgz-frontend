@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/login.service';
+import { PASSWORD_MIN_LENGTH, passwordPolicyError } from '../../utils/password-policy';
 
 @Component({
   selector: 'app-change-password-modal',
@@ -24,7 +25,7 @@ export class ChangePasswordModalComponent {
 
   readonly form = this.fb.nonNullable.group({
     currentPassword: ['', Validators.required],
-    newPassword: ['', [Validators.required, Validators.minLength(8)]],
+    newPassword: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]],
     confirmPassword: ['', Validators.required]
   });
 
@@ -43,8 +44,9 @@ export class ChangePasswordModalComponent {
       this.errorMessage = 'Unesi trenutnu i novu lozinku.';
       return;
     }
-    if (newPassword.length < 8) {
-      this.errorMessage = 'Lozinka mora imati najmanje 8 znakova.';
+    const policyError = passwordPolicyError(newPassword);
+    if (policyError) {
+      this.errorMessage = policyError;
       return;
     }
     if (newPassword !== confirmPassword) {

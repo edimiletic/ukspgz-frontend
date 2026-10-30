@@ -15,7 +15,18 @@ export class AuthService {
   private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  private csrfTokenValue = '';
   private isBrowser: boolean;
+
+  get csrfToken(): string {
+    return this.csrfTokenValue;
+  }
+
+  setCsrfToken(token: string | null | undefined): void {
+    if (token) {
+      this.csrfTokenValue = token;
+    }
+  }
 
   constructor(
     private http: HttpClient,
@@ -91,6 +102,7 @@ export class AuthService {
 
   clearSession(): void {
     this.discardLegacyToken();
+    this.csrfTokenValue = '';
     this.currentUserSubject.next(null);
   }
 

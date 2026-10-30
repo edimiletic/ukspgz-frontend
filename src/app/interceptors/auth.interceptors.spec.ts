@@ -12,7 +12,8 @@ describe('authInterceptor', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
-    auth = jasmine.createSpyObj('AuthService', ['clearSession']);
+    auth = jasmine.createSpyObj('AuthService', ['clearSession', 'setCsrfToken']);
+    Object.defineProperty(auth, 'csrfToken', { writable: true, value: '' });
     router = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
@@ -44,6 +45,23 @@ describe('authInterceptor', () => {
     expect(req.request.withCredentials).toBeTrue();
     expect(req.request.headers.has('Authorization')).toBeFalse();
     req.flush({ user: { _id: 'u1' } });
+  });
+
+  it('na mutating zahtjev stavlja CSRF header', () => {
+    (auth as { csrfToken: string }).csrfToken = 'tok-csrf';
+    http.post('/api/absence', {}).subscribe();
+    const req = httpMock.expectOne('/api/absence');
+    expect(req.request.headers.get('X-CSRF-Token')).toBe('tok-csrf');
+    req.flush({});
+  });
+
+  it('pamti CSRF token iz odgovora', () => {
+    http.get('/api/me').subscribe();
+    httpMock.expectOne('/api/me').flush(
+      { _id: 'u1' },
+      { headers: { 'X-CSRF-Token': 'from-me' } }
+    );
+    expect(auth.setCsrfToken).toHaveBeenCalledWith('from-me');
   });
 
   it('na 401 na API čisti sesiju i šalje na login', () => {

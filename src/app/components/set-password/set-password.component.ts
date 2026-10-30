@@ -4,6 +4,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/login.service';
+import { PASSWORD_MIN_LENGTH, passwordPolicyError } from '../../utils/password-policy';
 
 @Component({
   selector: 'app-set-password',
@@ -23,7 +24,7 @@ export class SetPasswordComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   readonly form = this.fb.nonNullable.group({
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]],
     confirmPassword: ['', Validators.required]
   });
 
@@ -43,8 +44,9 @@ export class SetPasswordComponent implements OnInit {
       return;
     }
     const { password, confirmPassword } = this.form.getRawValue();
-    if (!password || password.length < 8) {
-      this.errorMessage = 'Lozinka mora imati najmanje 8 znakova.';
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      this.errorMessage = policyError;
       return;
     }
     if (password !== confirmPassword) {

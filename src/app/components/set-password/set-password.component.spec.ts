@@ -29,16 +29,16 @@ describe('SetPasswordComponent', () => {
 
   it('šalje token i novu lozinku', () => {
     const component = fixture.componentInstance;
-    component.form.setValue({ password: 'Lozinka12', confirmPassword: 'Lozinka12' });
+    component.form.setValue({ password: 'Lozinka123', confirmPassword: 'Lozinka123' });
     auth.resetPassword.and.returnValue(of({ message: 'ok' }));
     component.onSubmit();
-    expect(auth.resetPassword).toHaveBeenCalledWith('tok-1', 'Lozinka12');
+    expect(auth.resetPassword).toHaveBeenCalledWith('tok-1', 'Lozinka123');
     expect(component.successMessage).toContain('ok');
   });
 
   it('traži podudaranje lozinki', () => {
     const component = fixture.componentInstance;
-    component.form.setValue({ password: 'Lozinka12', confirmPassword: 'drugo' });
+    component.form.setValue({ password: 'Lozinka123', confirmPassword: 'drugo' });
     component.onSubmit();
     expect(auth.resetPassword).not.toHaveBeenCalled();
     expect(component.errorMessage).toContain('ne podudaraju');
