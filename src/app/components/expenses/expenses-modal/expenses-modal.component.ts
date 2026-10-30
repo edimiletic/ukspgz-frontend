@@ -17,7 +17,7 @@ const PDF_EXTS = ['.pdf'];
 })
 export class ExpensesModalComponent implements OnChanges {
   @Input() isOpen = false;
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() success = new EventEmitter<{ reportId: string }>();
 
   eligibleGames: EligibleTravelGame[] = [];
@@ -124,7 +124,7 @@ export class ExpensesModalComponent implements OnChanges {
 
   onClose(): void {
     if (!this.isLoading) {
-      this.close.emit();
+      this.closed.emit();
     }
   }
 

@@ -41,7 +41,7 @@ import { GameNominationsStepComponent } from './game-nominations-step.component'
 export class EditGameModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() game: BasketballGame | null = null;
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() gameCreated = new EventEmitter<any>();
   @Output() gameUpdated = new EventEmitter<any>();
 
@@ -818,7 +818,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   // Modal management
   closeModal() {
-    this.close.emit();
+    this.closed.emit();
     this.resetForm();
   }
 

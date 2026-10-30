@@ -40,7 +40,7 @@ describe('VenueSearchComponent', () => {
     fixture.detectChanges();
     const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true, bubbles: true });
     spyOn(event, 'stopPropagation');
-    component.onInputKey(event);
+    component.onKeydown(event);
     expect(component.open).toBeFalse();
     expect(event.stopPropagation).toHaveBeenCalled();
   });

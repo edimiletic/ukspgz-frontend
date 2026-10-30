@@ -31,7 +31,7 @@ export class ConfirmationModalComponent {
     confirmButtonClass: 'btn-danger'
   };
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<unknown>();
 
   get accentClass(): string {
@@ -47,7 +47,7 @@ export class ConfirmationModalComponent {
 
   closeModal() {
     if (!this.isBusy) {
-      this.close.emit();
+      this.closed.emit();
     }
   }
 

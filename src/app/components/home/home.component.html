@@ -320,7 +320,7 @@
 </div>
 
 <!-- Game form modal -->
-<app-game-form-modal [isOpen]="isCreateGameModalOpen" (close)="closeCreateGameModal()"
+<app-game-form-modal [isOpen]="isCreateGameModalOpen" (closed)="closeCreateGameModal()"
   (gameCreated)="onGameCreated($event)">
 </app-game-form-modal>
 
@@ -335,12 +335,12 @@
   [isOpen]="isTimeAbsentModalOpen"
   (closeModalEvent)="closeTimeAbsentModal()"
   (absenceSaved)="onAbsenceSaved()"
-  (error)="onAbsenceError($event)">
+  (saveError)="onAbsenceError($event)">
 </app-time-absent-modal>
 
 <app-expenses-modal
   [isOpen]="isExpensesModalOpen"
-  (close)="closeExpensesModal()"
+  (closed)="closeExpensesModal()"
   (success)="onExpenseReportCreated($event)">
 </app-expenses-modal>
 
@@ -354,7 +354,7 @@
   busyText="Odbijanje..."
   [minLength]="10"
   [details]="rejectionDetails"
-  (close)="closeRejectionModal()"
+  (closed)="closeRejectionModal()"
   (confirm)="onRejectionConfirmed($event)">
 </app-reason-modal>
 
@@ -362,6 +362,6 @@
   [isOpen]="isAcceptModalOpen"
   [isBusy]="isResponding"
   [confirmationData]="acceptConfirmationData"
-  (close)="closeAcceptModal()"
+  (closed)="closeAcceptModal()"
   (confirm)="onAcceptConfirmed($event)">
 </app-confirmation-modal>

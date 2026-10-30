@@ -134,7 +134,7 @@
   [isOpen]="isConfirmOpen"
   [isBusy]="isConfirmBusy"
   [confirmationData]="confirmationData"
-  (close)="closeConfirmModal()"
+  (closed)="closeConfirmModal()"
   (confirm)="onConfirm($event)">
 </app-confirmation-modal>
 
@@ -148,6 +148,6 @@
   confirmText="Odbij i vrati"
   busyText="Slanje..."
   [minLength]="1"
-  (close)="closeRejectModal()"
+  (closed)="closeRejectModal()"
   (confirm)="onRejectConfirmed($event)">
 </app-reason-modal>

@@ -37,7 +37,7 @@ describe('ReasonModalComponent', () => {
 
   it('busy blokira close i confirm', () => {
     const closeSpy = jasmine.createSpy();
-    component.close.subscribe(closeSpy);
+    component.closed.subscribe(closeSpy);
     fixture.componentRef.setInput('isBusy', true);
     fixture.detectChanges();
     component.closeModal();

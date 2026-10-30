@@ -13,7 +13,7 @@ import { AuthService } from '../../services/login.service';
 })
 export class ChangePasswordModalComponent {
   @Input() isOpen = false;
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
 
   errorMessage = '';
   successMessage = '';
@@ -30,7 +30,7 @@ export class ChangePasswordModalComponent {
 
   onOverlayClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('modal-overlay') && !this.isBusy) {
-      this.close.emit();
+      this.closed.emit();
     }
   }
 

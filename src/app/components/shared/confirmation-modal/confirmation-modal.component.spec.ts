@@ -47,7 +47,7 @@ describe('ConfirmationModalComponent', () => {
   it('ne zatvara i ne potvrđuje dok je busy', () => {
     const closeSpy = jasmine.createSpy();
     const confirmSpy = jasmine.createSpy();
-    component.close.subscribe(closeSpy);
+    component.closed.subscribe(closeSpy);
     component.confirm.subscribe(confirmSpy);
     fixture.componentRef.setInput('isBusy', true);
     fixture.detectChanges();

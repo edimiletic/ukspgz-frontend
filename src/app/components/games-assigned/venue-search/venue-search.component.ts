@@ -119,6 +119,7 @@ export class VenueSearchComponent implements ControlValueAccessor {
 
     if (event.key === 'Escape' && this.open) {
       event.preventDefault();
+      event.stopPropagation();
       this.open = false;
       this.activeIndex = -1;
     }

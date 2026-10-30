@@ -33,7 +33,7 @@ export class ModalExpenseReportDetailsComponent implements OnChanges {
   @Input() isSaving = false;
   @Input() reportMonth = '';
   @Input() reportYear: number | string | null = null;
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() save = new EventEmitter<ExpenseItem>();
 
   private basketballGameService = inject(BasketballGameService);
@@ -332,7 +332,7 @@ onLocationChange() {
     }
     this.resetForm();
     this.clearError();
-    this.close.emit();
+    this.closed.emit();
   }
 
   onBackdropClick(event: Event) {

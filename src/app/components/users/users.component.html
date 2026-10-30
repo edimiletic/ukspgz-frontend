@@ -114,7 +114,7 @@
   [user]="editingUser"
   [users]="users"
   [serverError]="formError"
-  (close)="closeForm()"
+  (closed)="closeForm()"
   (save)="saveUser($event)"
   (requestResetLink)="editingUser && issueResetLink(editingUser)">
 </app-user-form-modal>
@@ -148,6 +148,6 @@
   [isOpen]="isDeleteOpen"
   [isBusy]="isDeleteBusy"
   [confirmationData]="confirmationData"
-  (close)="closeDelete()"
+  (closed)="closeDelete()"
   (confirm)="confirmDelete()">
 </app-confirmation-modal>

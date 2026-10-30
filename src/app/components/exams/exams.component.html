@@ -381,7 +381,7 @@
   [isOpen]="isDeleteAttemptModalOpen"
   [isBusy]="isConfirmBusy"
   [confirmationData]="confirmationData"
-  (close)="closeDeleteAttemptModal()"
+  (closed)="closeDeleteAttemptModal()"
   (confirm)="onDeleteAttemptConfirmed($event)">
 </app-confirmation-modal>
 
@@ -389,6 +389,6 @@
   [isOpen]="isDeleteQuestionModalOpen"
   [isBusy]="isConfirmBusy"
   [confirmationData]="confirmationData"
-  (close)="closeDeleteQuestionModal()"
+  (closed)="closeDeleteQuestionModal()"
   (confirm)="onDeleteQuestionConfirmed($event)">
 </app-confirmation-modal>

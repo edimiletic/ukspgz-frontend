@@ -57,7 +57,7 @@ export class UserFormModalComponent implements OnChanges {
   @Input() user: User | null = null;
   @Input() users: User[] = [];
   @Input() serverError = '';
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() save = new EventEmitter<UserFormSave>();
   @Output() requestResetLink = new EventEmitter<void>();
 
@@ -193,7 +193,7 @@ export class UserFormModalComponent implements OnChanges {
 
   onOverlayClick(event: Event): void {
     if (event.target === event.currentTarget && !this.isBusy) {
-      this.close.emit();
+      this.closed.emit();
     }
   }
 

@@ -512,9 +512,9 @@
 <!-- Modals - Only show for non-admin users -->
 <app-time-absent-modal *ngIf="canCreateOwnAbsence" [isOpen]="isAbsenceFormOpen" [absence]="absenceToEdit"
     (closeModalEvent)="closeModal()" (absenceSaved)="onAbsenceSaved()" (absenceUpdated)="onAbsenceUpdated()"
-    (error)="onModalError($event)">
+    (saveError)="onModalError($event)">
 </app-time-absent-modal>
 
 <app-confirmation-modal *ngIf="canCreateOwnAbsence" [isOpen]="isDeleteModalOpen" [isBusy]="isConfirmBusy"
-    [confirmationData]="confirmationData" (close)="closeDeleteModal()" (confirm)="onDeleteConfirmed($event)">
+    [confirmationData]="confirmationData" (closed)="closeDeleteModal()" (confirm)="onDeleteConfirmed($event)">
 </app-confirmation-modal>

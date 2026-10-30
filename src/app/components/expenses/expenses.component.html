@@ -216,7 +216,7 @@
 
 <app-expenses-modal
   [isOpen]="isModalOpen"
-  (close)="closeModal()"
+  (closed)="closeModal()"
   (success)="onReportCreated($event)">
 </app-expenses-modal>
 
@@ -224,6 +224,6 @@
   [isOpen]="isDeleteModalOpen"
   [isBusy]="isConfirmBusy"
   [confirmationData]="confirmationData"
-  (close)="closeDeleteModal()"
+  (closed)="closeDeleteModal()"
   (confirm)="onDeleteConfirmed($event)">
 </app-confirmation-modal>

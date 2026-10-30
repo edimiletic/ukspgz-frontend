@@ -19,7 +19,7 @@ export class TimeAbsentModalComponent implements OnChanges {
   @Output() closeModalEvent = new EventEmitter<void>();
   @Output() absenceSaved = new EventEmitter<void>();
   @Output() absenceUpdated = new EventEmitter<void>();
-  @Output() error = new EventEmitter<string>();
+  @Output() saveError = new EventEmitter<string>();
 
   todayDate: string;
   minEndDate = '';
@@ -95,7 +95,7 @@ export class TimeAbsentModalComponent implements OnChanges {
         this.currentUser = user;
       },
       error: () => {
-        this.error.emit('Greška pri dohvaćanju korisničkih podataka.');
+        this.saveError.emit('Greška pri dohvaćanju korisničkih podataka.');
       }
     });
   }
@@ -214,7 +214,7 @@ export class TimeAbsentModalComponent implements OnChanges {
       },
       error: (error) => {
         this.isSubmitting = false;
-        this.error.emit(this.getCreateErrorMessage(error));
+        this.saveError.emit(this.getCreateErrorMessage(error));
       }
     });
   }
@@ -240,7 +240,7 @@ export class TimeAbsentModalComponent implements OnChanges {
       },
       error: (error) => {
         this.isSubmitting = false;
-        this.error.emit(this.getUpdateErrorMessage(error));
+        this.saveError.emit(this.getUpdateErrorMessage(error));
       }
     });
   }

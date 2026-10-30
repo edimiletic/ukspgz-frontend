@@ -118,18 +118,18 @@
   busyText="Odbijanje..."
   [minLength]="10"
   [details]="rejectionDetails"
-  (close)="closeRejectionModal()"
+  (closed)="closeRejectionModal()"
   (confirm)="onRejectionConfirmed($event)">
 </app-reason-modal>
 
-<app-game-form-modal [isOpen]="isGameFormModalOpen" [game]="gameToEdit" (close)="closeGameFormModal()"
+<app-game-form-modal [isOpen]="isGameFormModalOpen" [game]="gameToEdit" (closed)="closeGameFormModal()"
   (gameCreated)="onGameCreated($event)" (gameUpdated)="onGameUpdated($event)">
 </app-game-form-modal>
 
 <app-confirmation-modal [isOpen]="isConfirmationModalOpen" [isBusy]="isConfirmBusy"
-  [confirmationData]="confirmationData" (close)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
+  [confirmationData]="confirmationData" (closed)="closeConfirmationModal()" (confirm)="onDeleteConfirmed($event)">
 </app-confirmation-modal>
 
 <app-confirmation-modal [isOpen]="isAcceptModalOpen" [isBusy]="isResponding"
-  [confirmationData]="acceptConfirmationData" (close)="closeAcceptModal()" (confirm)="onAcceptConfirmed($event)">
+  [confirmationData]="acceptConfirmationData" (closed)="closeAcceptModal()" (confirm)="onAcceptConfirmed($event)">
 </app-confirmation-modal>

@@ -23,7 +23,7 @@ export class ReasonModalComponent implements OnChanges {
   @Input() maxLength = 500;
   @Input() details: string[] = [];
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<string>();
 
   errorMessage = '';
@@ -60,7 +60,7 @@ export class ReasonModalComponent implements OnChanges {
     }
     this.form.reset({ reason: '' });
     this.errorMessage = '';
-    this.close.emit();
+    this.closed.emit();
   }
 
   confirmAction(): void {
