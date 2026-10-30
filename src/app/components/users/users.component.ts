@@ -202,6 +202,7 @@ export class UsersComponent implements OnInit {
     }
     const done = () => {
       this.inviteCopied = true;
+      this.showSuccess('Link je kopiran. Zalijepi ga korisniku (npr. WhatsApp).');
       this.cdr.markForCheck();
     };
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {

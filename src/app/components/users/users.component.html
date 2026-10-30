@@ -132,6 +132,9 @@
       Stari link prestaje vrijediti čim napraviš novi.
     </p>
     <input type="text" [value]="inviteUrl" readonly />
+    <p class="invite-copy-status" *ngIf="inviteCopied" role="status">
+      Link je kopiran. Zalijepi ga korisniku (npr. WhatsApp).
+    </p>
     <div class="invite-actions">
       <button type="button" class="btn-create" (click)="copyInvite()">
         {{ inviteCopied ? 'Kopirano' : 'Kopiraj link' }}
