@@ -112,6 +112,8 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     refereeAssignments?: Array<{ userId: any; assignmentStatus: string }>;
   }> = [];
   private loadedScheduleDate = '';
+  private scheduleRequestId = 0;
+  private clearSelectionsAfterSchedule = false;
 
   constructor(
     private basketballGameService: BasketballGameService,
@@ -355,24 +357,38 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     return typeof assignment.userId === 'object' ? assignment.userId._id : String(assignment.userId);
   }
 
-  private async loadScheduleForDate(): Promise<void> {
+  private async loadScheduleForDate(): Promise<boolean> {
     if (!this.gameForm.date) {
+      this.scheduleRequestId++;
       this.gamesOnSelectedDate = [];
       this.loadedScheduleDate = '';
-      return;
+      return true;
     }
     if (this.loadedScheduleDate === this.gameForm.date) {
-      return;
+      // Drop an older in-flight lookup so it cannot overwrite this date.
+      this.scheduleRequestId++;
+      return true;
     }
+
+    const requestedDate = this.gameForm.date;
+    const requestId = ++this.scheduleRequestId;
+    let games: typeof this.gamesOnSelectedDate = [];
     try {
-      this.gamesOnSelectedDate = await firstValueFrom(
-        this.basketballGameService.getGamesOnDate(this.gameForm.date)
+      games = await firstValueFrom(
+        this.basketballGameService.getGamesOnDate(requestedDate)
       ) || [];
     } catch (error) {
       console.error('Error loading games for date:', error);
-      this.gamesOnSelectedDate = [];
+      games = [];
     }
-    this.loadedScheduleDate = this.gameForm.date;
+
+    if (requestId !== this.scheduleRequestId || this.gameForm.date !== requestedDate) {
+      return false;
+    }
+
+    this.gamesOnSelectedDate = games;
+    this.loadedScheduleDate = requestedDate;
+    return true;
   }
 
   private isRefereeAvailable(referee: User): boolean {
@@ -972,6 +988,8 @@ this.currentStep = 1;
    this.allAbsences = [];
    this.gamesOnSelectedDate = [];
    this.loadedScheduleDate = '';
+   this.scheduleRequestId++;
+   this.clearSelectionsAfterSchedule = false;
  }
 
  // Get minimum date (for editing, we allow past dates since the game might have already happened)
@@ -995,8 +1013,15 @@ this.currentStep = 1;
      this.updateAvailableReferees();
      return;
    }
-   await this.loadScheduleForDate();
+   const applied = await this.loadScheduleForDate();
+   if (!applied) {
+     return;
+   }
    this.updateAvailableReferees();
+   if (this.clearSelectionsAfterSchedule) {
+     this.clearSelectionsAfterSchedule = false;
+     this.clearUnavailableSelections();
+   }
  }
 
  private updateAvailableReferees() {
@@ -1044,8 +1069,8 @@ this.currentStep = 1;
      return;
    }
 
+   this.clearSelectionsAfterSchedule = true;
    await this.refreshAvailability();
-   this.clearUnavailableSelections();
  }
 
  private clearUnavailableSelections() {
