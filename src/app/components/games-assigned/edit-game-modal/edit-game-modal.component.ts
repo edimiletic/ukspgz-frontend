@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/login.service';
 import { CatalogService } from '../../../services/catalog.service';
 import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
 import { firstValueFrom } from 'rxjs';
-import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isAdminUser, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
+import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isAdminUser, isRefereeBookedOnGame, isTopProfessionalCompetition, isWithinNominationCap, userHasRole } from '../../../model/roles';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
@@ -109,6 +109,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     _id: string;
     time: string;
     competition: string;
+    status?: string;
     refereeAssignments?: Array<{ userId: any; assignmentStatus: string }>;
   }> = [];
   private loadedScheduleDate = '';
@@ -350,11 +351,6 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     });
   }
 
-  private assignmentUserId(assignment: { userId: any }): string {
-    if (!assignment?.userId) return '';
-    return typeof assignment.userId === 'object' ? assignment.userId._id : String(assignment.userId);
-  }
-
   private async loadScheduleForDate(): Promise<void> {
     if (!this.gameForm.date) {
       this.gamesOnSelectedDate = [];
@@ -404,18 +400,12 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       if (this.game && String(game._id) === String(this.game._id)) {
         return false;
       }
-      if (!timesOverlap(game.time, this.gameForm.time)) {
-        return false;
-      }
-      if (!isBlockingScheduleConflict(game.competition, this.gameForm.competition)) {
-        return false;
-      }
-      return (game.refereeAssignments || []).some(assignment => {
-        if (!['Accepted', 'Pending'].includes(assignment.assignmentStatus)) {
-          return false;
-        }
-        return this.assignmentUserId(assignment) === referee._id;
-      });
+      return isRefereeBookedOnGame(
+        game,
+        referee._id,
+        this.gameForm.time,
+        this.gameForm.competition
+      );
     });
   }
 

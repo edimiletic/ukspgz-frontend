@@ -13,6 +13,7 @@ import {
   isAdminUser,
   isBlockingScheduleConflict,
   isEligibleForCompetition,
+  isRefereeBookedOnGame,
   isWithinNominationCap,
   normalizeRoleAssignments,
   pickPrimaryRole,
@@ -148,6 +149,39 @@ describe('roles', () => {
     it('timesOverlap koristi prozor od 60 minuta', () => {
       expect(timesOverlap('18:00', '18:30')).toBeTrue();
       expect(timesOverlap('18:00', '19:00')).toBeFalse();
+    });
+
+    it('otkazana utakmica ne drži suca zauzetim', () => {
+      const cancelled = {
+        status: 'Cancelled',
+        time: '18:00',
+        competition: 'SuperSport Premijer liga',
+        refereeAssignments: [{ userId: { _id: 'ref-1' }, assignmentStatus: 'Accepted' }]
+      };
+      expect(isRefereeBookedOnGame(cancelled, 'ref-1', '18:00', 'SuperSport Premijer liga')).toBeFalse();
+    });
+
+    it('prihvaćena ili čekajuća nominacija na aktivnoj utakmici blokira isti termin', () => {
+      const scheduled = {
+        status: 'Scheduled',
+        time: '18:00',
+        competition: 'PRVA MUŠKA LIGA',
+        refereeAssignments: [{ userId: 'ref-1', assignmentStatus: 'Pending' }]
+      };
+      expect(isRefereeBookedOnGame(scheduled, 'ref-1', '18:30', 'PRVA MUŠKA LIGA')).toBeTrue();
+      expect(isRefereeBookedOnGame(scheduled, 'ref-2', '18:30', 'PRVA MUŠKA LIGA')).toBeFalse();
+    });
+
+    it('odbijena nominacija i niža liga ne blokiraju', () => {
+      const scheduled = {
+        status: 'Scheduled',
+        time: '18:00',
+        competition: '3X3',
+        refereeAssignments: [{ userId: { _id: 'ref-1' }, assignmentStatus: 'Rejected' }]
+      };
+      expect(isRefereeBookedOnGame(scheduled, 'ref-1', '18:00', '3X3')).toBeFalse();
+      scheduled.refereeAssignments[0].assignmentStatus = 'Accepted';
+      expect(isRefereeBookedOnGame(scheduled, 'ref-1', '18:00', 'SuperSport Premijer liga')).toBeFalse();
     });
 
     it('isEligibleForCompetition: sudac unutar capa, kontrolor samo top lige', () => {
