@@ -122,6 +122,39 @@ export const timesOverlap = (timeA?: string | null, timeB?: string | null, windo
   return Math.abs(toMinutes(timeA) - toMinutes(timeB)) < windowMinutes;
 };
 
+export const isRefereeBookedOnGame = (
+  game: {
+    status?: string | null;
+    time?: string | null;
+    competition?: string | null;
+    refereeAssignments?: Array<{ userId?: any; assignmentStatus?: string | null }> | null;
+  } | null | undefined,
+  refereeId: string,
+  candidateTime?: string | null,
+  candidateCompetition?: string | null
+): boolean => {
+  if (!game || game.status === 'Cancelled' || !refereeId) {
+    return false;
+  }
+  if (!timesOverlap(game.time, candidateTime)) {
+    return false;
+  }
+  if (!isBlockingScheduleConflict(game.competition, candidateCompetition)) {
+    return false;
+  }
+  return (game.refereeAssignments || []).some((assignment) => {
+    if (assignment?.assignmentStatus !== 'Accepted' && assignment?.assignmentStatus !== 'Pending') {
+      return false;
+    }
+    const userId = assignment?.userId;
+    if (!userId) {
+      return false;
+    }
+    const assignedId = typeof userId === 'object' ? userId._id : userId;
+    return String(assignedId || '') === String(refereeId);
+  });
+};
+
 export const TOP_PROFESSIONAL_COMPETITIONS = [
   'SuperSport Premijer liga',
   'PREMIJER ŽENSKA LIGA',
