@@ -32,13 +32,27 @@ Sesijski kolačić je cross-site. Na API-ju mora biti:
 - `FRONTEND_URL` = isti origin (invite mailovi)
 - `COOKIE_SECURE=true`
 - `COOKIE_SAMESITE=none`
+- odgovor mora vratiti `X-CSRF-Token` i izložiti ga pregledniku (`Access-Control-Expose-Headers`)
 
-`withCredentials` je uključen na svim HTTP pozivima.
+`withCredentials` je uključen na svim HTTP pozivima u pregledniku. Upisi (`POST`, `PUT`, `PATCH`, `DELETE`) šalju `X-CSRF-Token` tek kad ga je neki uspješan odgovor već donio. Detalj je u [Sesija i lozinke](docs/sesija-i-lozinke.md).
+
+Podnožje prikazuje naziv saveza, tekuću godinu i mailto iz `supportEmail` u `src/app/components/footer/footer.component.ts`.
+
+## Dokumentacija
+
+- [Uloge, rute i nominacije](docs/uloge-i-nominacije.md)
+- [Sesija i lozinke](docs/sesija-i-lozinke.md)
+- [Ispiti, odsustvo i putni nalozi](docs/ispiti-odsustvo-putni.md)
+- [Statistika, katalog i osobe za nominaciju](docs/statistika-katalog-osobe.md)
 
 ## Testovi i lint
+
+CI (`.github/workflows/ci.yml`) i Docker build koriste Node 22.
 
 ```bash
 npm run lint
 npm run test:ci
 npm run build
 ```
+
+`test:ci` pokreće Karmu u launcheru `ChromeHeadlessCI`. U Angular predlošku literalni `@` (npr. u primjeru e-pošte) mora biti `&#64;`, inače produkcijski build padne.
