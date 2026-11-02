@@ -12,6 +12,9 @@ import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.componen
 import { KontrolaService } from '../../services/kontrola.service';
 import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
 import { firstValueFrom } from 'rxjs';
+import { AbsenceService } from '../../services/absence.service';
+import { Absence } from '../../model/absence.model';
+import { calendarDay, findCoveringAbsence } from './assignment-acceptance.helpers';
 
 @Component({
   selector: 'app-games-assigned',
@@ -103,7 +106,8 @@ isMobileFiltersOpen: boolean = false;
   constructor(
     private basketballGameService: BasketballGameService,
     private authService: AuthService,
-    private kontrolaService: KontrolaService
+    private kontrolaService: KontrolaService,
+    private absenceService: AbsenceService
   ) {}
 
   ngOnInit() {
@@ -438,7 +442,45 @@ onGameCreated(result: any) {
     if (!gameId || this.isResponding) {
       return;
     }
-    this.respondToAssignment(gameId, 'Accepted');
+    const game = this.gameToAccept?._id === gameId
+      ? this.gameToAccept
+      : this.pendingGames.find(item => item._id === gameId);
+    if (!game) {
+      return;
+    }
+    if (!calendarDay(game.date)) {
+      this.showError('Datum utakmice nije ispravan. Nominacija nije prihvaćena.');
+      return;
+    }
+
+    this.isResponding = true;
+    this.absenceService.getCurrentUserAbsences().subscribe({
+      next: (absences) => {
+        if (!Array.isArray(absences)) {
+          this.isResponding = false;
+          this.showError('Provjera odsustva nije uspjela. Nominacija nije prihvaćena.');
+          return;
+        }
+        if (findCoveringAbsence(this.absencesForCurrentUser(absences), game.date)) {
+          this.isResponding = false;
+          this.showError('Ne možete prihvatiti nominaciju jer imate odsustvo na datum utakmice.');
+          return;
+        }
+        this.respondToAssignment(gameId, 'Accepted');
+      },
+      error: () => {
+        this.isResponding = false;
+        this.showError('Provjera odsustva nije uspjela. Nominacija nije prihvaćena.');
+      }
+    });
+  }
+
+  private absencesForCurrentUser(absences: Absence[]): Absence[] {
+    const code = this.currentUser?.personalCode;
+    if (!code) {
+      return absences;
+    }
+    return absences.filter(absence => !absence.userPersonalCode || absence.userPersonalCode === code);
   }
 
   rejectAssignment(gameId: string) {
