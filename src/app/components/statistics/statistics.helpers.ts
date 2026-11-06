@@ -85,6 +85,28 @@ export function currentSeasonLabel(date = new Date()): string {
   return `${startYear}/${startYear + 1}`;
 }
 
+export function toCalendarDay(value?: string | null): string {
+  if (!value) return '';
+  const dateOnly = /^(\d{4}-\d{2}-\d{2})$/.exec(value.trim());
+  if (dateOnly) return dateOnly[1];
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function isWithinCalendarRange(
+  value: string | null | undefined,
+  range: { start: string; end: string }
+): boolean {
+  if (!range.start || !range.end) return true;
+  const day = toCalendarDay(value);
+  if (!day) return false;
+  return day >= range.start && day <= range.end;
+}
+
 export function getDateRange(filters: DateRangeFilters): { start: string; end: string } {
   const currentYear = parseInt(filters.selectedYear, 10);
 

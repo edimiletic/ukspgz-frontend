@@ -25,6 +25,7 @@ import {
   emptyExpenseStats,
   emptyGradeStats,
   getDateRange,
+  isWithinCalendarRange,
   processKontrolaData
 } from './statistics.helpers';
 
@@ -144,18 +145,17 @@ export class StatisticsComponent implements OnInit {
         kontrolori: referees.filter(ref => userHasRole(ref, 'Kontrolor'))
       };
 
-      const filters: any = {};
-      if (this.selectedCompetition) {
-        filters.competition = this.selectedCompetition;
-      }
       const dateRange = getDateRange(this.dateFilters());
-      if (dateRange.start && dateRange.end) {
-        filters.startDate = dateRange.start;
-        filters.endDate = dateRange.end;
-      }
-
-      const gamesResponse = await firstValueFrom(this.basketballGameService.getAllGames(filters));
-      const games = gamesResponse?.games || [];
+      const loadedGames = await firstValueFrom(
+        this.basketballGameService.getEveryGame(
+          this.selectedCompetition ? { competition: this.selectedCompetition } : undefined
+        )
+      ) || [];
+      // The games API has no start/end range filter, so the selected period is applied here.
+      const games = loadedGames.filter(game =>
+        isWithinCalendarRange(game.date, dateRange) &&
+        (!this.selectedCompetition || game.competition === this.selectedCompetition)
+      );
       this.refereeStats = calculateRefereeStats(games, referees, this.selectedRole);
       this.competitionStats = calculateCompetitionStats(games, this.selectedRole);
       this.totalGamesInPeriod = games.length;
@@ -171,7 +171,7 @@ export class StatisticsComponent implements OnInit {
 
   async loadAbsenceStatistics() {
     try {
-      const absences = await firstValueFrom(this.absenceService.getAllAbsences()) || [];
+      const absences = await firstValueFrom(this.absenceService.getEveryAbsence()) || [];
       this.absenceStats = calculateAbsenceStats(
         absences,
         this.availableReferees,

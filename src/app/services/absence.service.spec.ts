@@ -43,6 +43,21 @@ describe('AbsenceService', () => {
     req.flush([{ _id: 'a1' }]);
   });
 
+  it('getEveryAbsence spaja sve stranice', () => {
+    const ids: string[] = [];
+    service.getEveryAbsence().subscribe(list => {
+      ids.push(...list.map(absence => absence._id));
+    });
+
+    const first = http.expectOne(`${base}?page=1&limit=200`);
+    first.flush({ absences: [{ _id: 'a1' }], totalPages: 2, currentPage: 1, total: 2 });
+
+    const second = http.expectOne(`${base}?page=2&limit=200`);
+    second.flush({ absences: [{ _id: 'a2' }], totalPages: 2, currentPage: 2, total: 2 });
+
+    expect(ids).toEqual(['a1', 'a2']);
+  });
+
   it('getAllAbsences iz paginiranog odgovora vraća samo listu', () => {
     service.getAllAbsences(2, 20).subscribe(list => {
       expect(list.length).toBe(1);

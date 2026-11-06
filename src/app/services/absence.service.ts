@@ -2,8 +2,8 @@ import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from './../model/
 // src/app/services/absence.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { EMPTY, Observable, defer } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 
@@ -51,6 +51,31 @@ export class AbsenceService {
     }
 
     return this.http.get<PaginatedAbsenceResponse>(`${this.apiUrl}/absence?${queryParams}`);
+  }
+
+  // Server default page size is 10. Callers that decide availability or totals
+  // must read every page or later absences silently disappear.
+  getEveryAbsence(): Observable<Absence[]> {
+    const limit = 200;
+    const maxPages = 100;
+    const fetchPage = (page: number) => this.getAllAbsencesPaginated(page, limit);
+
+    return defer(() => {
+      let page = 1;
+      return fetchPage(page).pipe(
+        expand((response) => {
+          const totalPages = Number(response?.totalPages) || 1;
+          const batch = response?.absences || [];
+          if (batch.length === 0 || page >= totalPages || page >= maxPages) {
+            return EMPTY;
+          }
+          page += 1;
+          return fetchPage(page);
+        }),
+        map(response => response?.absences || []),
+        reduce((all, absences) => all.concat(absences), [] as Absence[])
+      );
+    });
   }
 
   // Update an existing absence

@@ -1,7 +1,8 @@
 // src/app/services/basketball-game.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable, defer } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame } from '../model/basketballGame.model';
 import { environment } from '../../environments/environment';
 @Injectable({
@@ -31,6 +32,31 @@ private apiUrl = environment.apiUrl + '/basketball-games';
     }
 
     return this.http.get<{games: BasketballGame[], pagination: any}>(`${this.apiUrl}${queryParams}`);
+  }
+
+  // The list endpoint pages at 20 and sorts oldest-first. Follow every page so
+  // schedules, dashboards, and statistics are not limited to that first page.
+  getEveryGame(filters?: GameFilters): Observable<BasketballGame[]> {
+    const limit = 100;
+    const maxPages = 100;
+    const fetchPage = (page: number) => this.getAllGames({ ...filters, page, limit });
+
+    return defer(() => {
+      let page = 1;
+      return fetchPage(page).pipe(
+        expand((response) => {
+          const totalPages = Number(response?.pagination?.totalPages) || 1;
+          const batch = response?.games || [];
+          if (batch.length === 0 || page >= totalPages || page >= maxPages) {
+            return EMPTY;
+          }
+          page += 1;
+          return fetchPage(page);
+        }),
+        map(response => response?.games || []),
+        reduce((all, games) => all.concat(games), [] as BasketballGame[])
+      );
+    });
   }
 
   // Get game by ID

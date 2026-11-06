@@ -35,6 +35,41 @@ describe('BasketballGameService', () => {
     req.flush({ games: [], pagination: {} });
   });
 
+  it('getEveryGame spaja sve stranice', () => {
+    const collected: string[] = [];
+    service.getEveryGame({ competition: '3X3' }).subscribe(games => {
+      collected.push(...games.map(game => game._id));
+    });
+
+    const first = http.expectOne(r =>
+      r.url.includes('page=1') && r.url.includes('limit=100') && r.url.includes('competition=3X3')
+    );
+    first.flush({
+      games: [{ _id: 'g1' }],
+      pagination: { currentPage: 1, totalPages: 2, totalGames: 2, hasNext: true }
+    });
+
+    const second = http.expectOne(r => r.url.includes('page=2') && r.url.includes('limit=100'));
+    second.flush({
+      games: [{ _id: 'g2' }],
+      pagination: { currentPage: 2, totalPages: 2, totalGames: 2, hasNext: false }
+    });
+
+    expect(collected).toEqual(['g1', 'g2']);
+  });
+
+  it('getEveryGame staje na jednoj stranici kad nema totalPages', () => {
+    let count = -1;
+    service.getEveryGame().subscribe(games => {
+      count = games.length;
+    });
+    http.expectOne(r => r.url.includes('page=1')).flush({
+      games: [{ _id: 'g1' }],
+      pagination: {}
+    });
+    expect(count).toBe(1);
+  });
+
   it('kreira, ažurira i briše utakmicu', () => {
     const payload = {
       homeTeam: 'A',
