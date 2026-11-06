@@ -9,6 +9,7 @@ import {
   emptyExpenseStats,
   emptyGradeStats,
   getDateRange,
+  isWithinCalendarRange,
   getGradeClass,
   getGradeText,
   getRankClass,
@@ -57,6 +58,19 @@ describe('statistics.helpers', () => {
     it('vraća custom raspon', () => {
       expect(getDateRange(filters({ selectedPeriod: 'custom' })))
         .toEqual({ start: '2026-01-10', end: '2026-01-20' });
+    });
+  });
+
+  describe('isWithinCalendarRange', () => {
+    const range = { start: '2026-09-01', end: '2026-09-30' };
+
+    it('uspoređuje kalendarske dane i prazan raspon propušta sve', () => {
+      expect(isWithinCalendarRange('2026-09-15', range)).toBeTrue();
+      expect(isWithinCalendarRange('2026-08-31', range)).toBeFalse();
+      expect(isWithinCalendarRange('2026-10-01', range)).toBeFalse();
+      expect(isWithinCalendarRange('2026-09-15T12:00:00.000Z', range)).toBeTrue();
+      expect(isWithinCalendarRange('', range)).toBeFalse();
+      expect(isWithinCalendarRange('2026-01-01', { start: '', end: '' })).toBeTrue();
     });
   });
 
