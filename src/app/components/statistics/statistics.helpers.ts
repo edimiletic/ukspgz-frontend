@@ -199,6 +199,36 @@ export function calculateCompetitionStats(games: any[], selectedRole: string): C
     .sort((a, b) => b.totalGames - a.totalGames);
 }
 
+function calendarParts(value: string): { year: number; month: number; day: number } | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+  return { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) };
+}
+
+// Date-only strings are UTC midnight. A period end of "2026-08-31" must include
+// the rest of that calendar day, otherwise afternoon expenses and absences fall out.
+function inclusiveRange(start: string, end: string): { start: Date; end: Date } {
+  const startParts = calendarParts(start);
+  const endParts = calendarParts(end);
+  const startDate = startParts
+    ? new Date(startParts.year, startParts.month - 1, startParts.day, 0, 0, 0, 0)
+    : new Date(start);
+  const endDate = endParts
+    ? new Date(endParts.year, endParts.month - 1, endParts.day, 23, 59, 59, 999)
+    : new Date(end);
+  return { start: startDate, end: endDate };
+}
+
+function localMonthKey(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function calculateAbsenceStats(
   absences: any[],
   available: AvailableReferees,
@@ -207,8 +237,7 @@ export function calculateAbsenceStats(
 ): AbsenceStats {
   let filtered = absences;
   if (dateRange.start && dateRange.end) {
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
+    const { start: startDate, end: endDate } = inclusiveRange(dateRange.start, dateRange.end);
     filtered = absences.filter(absence => {
       const absenceStart = new Date(absence.startDate);
       const absenceEnd = new Date(absence.endDate);
@@ -232,7 +261,7 @@ export function calculateAbsenceStats(
     stats.totalDays += days;
     const refereeName = refereeMap.get(absence.userPersonalCode) || `Unknown (${absence.userPersonalCode})`;
     stats.byReferee[refereeName] = (stats.byReferee[refereeName] || 0) + days;
-    const month = startDate.toISOString().substring(0, 7);
+    const month = localMonthKey(absence.startDate);
     stats.byMonth[month] = (stats.byMonth[month] || 0) + days;
   });
 
@@ -247,8 +276,7 @@ export function calculateExpenseStats(
 ): ExpenseStats {
   let filtered = expenses;
   if (dateRange.start && dateRange.end) {
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
+    const { start: startDate, end: endDate } = inclusiveRange(dateRange.start, dateRange.end);
     filtered = expenses.filter(expense => {
       const expenseDate = new Date(expense.createdAt || expense.dateFrom);
       return expenseDate >= startDate && expenseDate <= endDate;
@@ -282,7 +310,7 @@ export function calculateExpenseStats(
     stats.byReferee[refereeName].count++;
     stats.byReferee[refereeName].amount += expenseAmount;
 
-    const monthKey = new Date(expense.createdAt || expense.dateFrom).toISOString().substring(0, 7);
+    const monthKey = localMonthKey(expense.createdAt || expense.dateFrom);
     if (!stats.byMonth[monthKey]) {
       stats.byMonth[monthKey] = { count: 0, amount: 0 };
     }
