@@ -169,6 +169,20 @@ describe('statistics.helpers', () => {
       expect(stats.totalDays).toBe(3);
       expect(stats.byReferee['Marko M']).toBe(3);
     });
+
+    it('broji odsustvo koje pada na zadnji dan razdoblja', () => {
+      const available = {
+        sudci: [referee('s1', 'Sudac', { personalCode: '111', name: 'Marko', surname: 'M' })],
+        delegati: [],
+        pomocniSudci: [],
+        kontrolori: []
+      };
+      const stats = calculateAbsenceStats([
+        { userPersonalCode: '111', startDate: '2026-01-31T08:00:00.000Z', endDate: '2026-01-31T18:00:00.000Z' },
+        { userPersonalCode: '111', startDate: '2026-02-01T08:00:00.000Z', endDate: '2026-02-01T18:00:00.000Z' }
+      ], available, 'Sudac', { start: '2026-01-01', end: '2026-01-31' });
+      expect(stats.totalAbsences).toBe(1);
+    });
   });
 
   describe('calculateExpenseStats', () => {
@@ -196,6 +210,39 @@ describe('statistics.helpers', () => {
       expect(stats.totalAmount).toBe(15.5);
       expect(stats.byReferee['Iva I'].amount).toBe(15.5);
       expect(stats.byStatus['Predano']).toBe(1);
+      expect(stats.byMonth['2026-01'].amount).toBe(15.5);
+    });
+
+    it('uključuje trošak podnesen tijekom zadnjeg dana razdoblja', () => {
+      const available = {
+        sudci: [referee('s1', 'Sudac', { name: 'Iva', surname: 'I' })],
+        delegati: [],
+        pomocniSudci: [],
+        kontrolori: []
+      };
+      const expenses = [
+        {
+          userId: 's1',
+          createdAt: '2026-01-31T10:00:00.000Z',
+          state: 'Potvrđeno',
+          type: 'Troškovno izvješće suca',
+          expenses: [{ amount: '40' }]
+        },
+        {
+          userId: 's1',
+          createdAt: '2026-02-01T00:30:00.000Z',
+          state: 'Potvrđeno',
+          type: 'Troškovno izvješće suca',
+          expenses: [{ amount: '99' }]
+        }
+      ];
+      const stats = calculateExpenseStats(expenses, available, 'Sudac', {
+        start: '2026-01-01',
+        end: '2026-01-31'
+      });
+      expect(stats.totalExpenses).toBe(1);
+      expect(stats.totalAmount).toBe(40);
+      expect(stats.byMonth['2026-01'].amount).toBe(40);
     });
   });
 
