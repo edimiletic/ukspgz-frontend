@@ -199,20 +199,45 @@ export function calculateCompetitionStats(games: any[], selectedRole: string): C
     .sort((a, b) => b.totalGames - a.totalGames);
 }
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+function utcDay(value: string | Date): number {
+  const date = new Date(value);
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+}
+
+function inclusiveUtcDays(startMs: number, endMs: number): number {
+  return Math.round((endMs - startMs) / MS_PER_DAY) + 1;
+}
+
+function addUtcDaysByMonth(byMonth: Record<string, number>, startMs: number, endMs: number): void {
+  let cursor = startMs;
+  while (cursor <= endMs) {
+    const cursorDate = new Date(cursor);
+    const monthKey = cursorDate.toISOString().substring(0, 7);
+    const monthEnd = Date.UTC(cursorDate.getUTCFullYear(), cursorDate.getUTCMonth() + 1, 0);
+    const segmentEnd = Math.min(monthEnd, endMs);
+    byMonth[monthKey] = (byMonth[monthKey] || 0) + inclusiveUtcDays(cursor, segmentEnd);
+    cursor = segmentEnd + MS_PER_DAY;
+  }
+}
+
 export function calculateAbsenceStats(
   absences: any[],
   available: AvailableReferees,
   selectedRole: string,
   dateRange: { start: string; end: string }
 ): AbsenceStats {
+  const hasRange = !!(dateRange.start && dateRange.end);
+  const rangeStart = hasRange ? utcDay(dateRange.start) : NaN;
+  const rangeEnd = hasRange ? utcDay(dateRange.end) : NaN;
+
   let filtered = absences;
-  if (dateRange.start && dateRange.end) {
-    const startDate = new Date(dateRange.start);
-    const endDate = new Date(dateRange.end);
+  if (hasRange) {
     filtered = absences.filter(absence => {
-      const absenceStart = new Date(absence.startDate);
-      const absenceEnd = new Date(absence.endDate);
-      return absenceStart <= endDate && absenceEnd >= startDate;
+      const absenceStart = utcDay(absence.startDate);
+      const absenceEnd = utcDay(absence.endDate);
+      return absenceStart <= rangeEnd && absenceEnd >= rangeStart;
     });
   }
 
@@ -226,14 +251,20 @@ export function calculateAbsenceStats(
   stats.totalAbsences = roleFiltered.length;
 
   roleFiltered.forEach(absence => {
-    const startDate = new Date(absence.startDate);
-    const endDate = new Date(absence.endDate);
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    let startMs = utcDay(absence.startDate);
+    let endMs = utcDay(absence.endDate);
+    if (hasRange) {
+      startMs = Math.max(startMs, rangeStart);
+      endMs = Math.min(endMs, rangeEnd);
+    }
+    if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) {
+      return;
+    }
+    const days = inclusiveUtcDays(startMs, endMs);
     stats.totalDays += days;
     const refereeName = refereeMap.get(absence.userPersonalCode) || `Unknown (${absence.userPersonalCode})`;
     stats.byReferee[refereeName] = (stats.byReferee[refereeName] || 0) + days;
-    const month = startDate.toISOString().substring(0, 7);
-    stats.byMonth[month] = (stats.byMonth[month] || 0) + days;
+    addUtcDaysByMonth(stats.byMonth, startMs, endMs);
   });
 
   return stats;
