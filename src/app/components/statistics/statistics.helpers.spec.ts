@@ -168,6 +168,48 @@ describe('statistics.helpers', () => {
       expect(stats.totalAbsences).toBe(1);
       expect(stats.totalDays).toBe(3);
       expect(stats.byReferee['Marko M']).toBe(3);
+      expect(stats.byMonth['2026-01']).toBe(3);
+    });
+
+    it('broji samo dane unutar odabranog razdoblja', () => {
+      const available = {
+        sudci: [referee('s1', 'Sudac', { personalCode: '111', name: 'Marko', surname: 'M' })],
+        delegati: [],
+        pomocniSudci: [],
+        kontrolori: []
+      };
+      const absences = [
+        { userPersonalCode: '111', startDate: '2025-12-20', endDate: '2026-01-05' },
+        { userPersonalCode: '111', startDate: '2026-01-30', endDate: '2026-02-02' }
+      ];
+      const stats = calculateAbsenceStats(absences, available, 'Sudac', {
+        start: '2026-01-01',
+        end: '2026-01-31'
+      });
+      expect(stats.totalAbsences).toBe(2);
+      expect(stats.totalDays).toBe(7);
+      expect(stats.byReferee['Marko M']).toBe(7);
+      expect(stats.byMonth['2026-01']).toBe(7);
+      expect(stats.byMonth['2025-12']).toBeUndefined();
+      expect(stats.byMonth['2026-02']).toBeUndefined();
+    });
+
+    it('dijeli dane po mjesecima unutar sezone', () => {
+      const available = {
+        sudci: [referee('s1', 'Sudac', { personalCode: '111', name: 'Marko', surname: 'M' })],
+        delegati: [],
+        pomocniSudci: [],
+        kontrolori: []
+      };
+      const stats = calculateAbsenceStats(
+        [{ userPersonalCode: '111', startDate: '2026-01-30', endDate: '2026-02-02' }],
+        available,
+        'Sudac',
+        { start: '2025-09-01', end: '2026-08-31' }
+      );
+      expect(stats.totalDays).toBe(4);
+      expect(stats.byMonth['2026-01']).toBe(2);
+      expect(stats.byMonth['2026-02']).toBe(2);
     });
   });
 
