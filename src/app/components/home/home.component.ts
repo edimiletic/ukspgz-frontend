@@ -17,6 +17,7 @@ import { AddQuestionModalComponent } from "../exams/add-question-modal/add-quest
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
 import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from '../../model/roles';
+import { isAbsenceActive } from './absence-activity';
 
 @Component({
   selector: 'app-home',
@@ -249,11 +250,7 @@ private loadUserAbsences(): Promise<void> {
       next: (absences) => {
         const now = new Date();
         this.currentAbsences = absences
-          .filter(absence => {
-            const startDate = new Date(absence.startDate);
-            const endDate = new Date(absence.endDate);
-            return startDate <= now && endDate >= now;
-          })
+          .filter(absence => isAbsenceActive(absence, now))
           .sort((a, b) => {
             const dateA = this.getSafeDate(a.createdAt).getTime();
             const dateB = this.getSafeDate(b.createdAt).getTime();
@@ -346,11 +343,7 @@ private loadAdminAbsences(): Promise<void> {
         this.adminStats.totalAbsences = absences.length;
         const now = new Date();
         this.currentAbsences = absences
-          .filter(absence => {
-            const startDate = new Date(absence.startDate);
-            const endDate = new Date(absence.endDate);
-            return startDate <= now && endDate >= now;
-          })
+          .filter(absence => isAbsenceActive(absence, now))
           .sort((a, b) => {
             const dateA = this.getSafeDate(a.createdAt).getTime();
             const dateB = this.getSafeDate(b.createdAt).getTime();
