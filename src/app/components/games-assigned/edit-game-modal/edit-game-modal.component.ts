@@ -721,7 +721,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       }
 
       this.gameCreated.emit({ ...createdGame, message });
-      this.closeModal();
+      this.completeAndClose();
     } catch (error: any) {
       console.error('Error creating game:', error);
       this.errorMessage = error?.error?.error || 'Greška pri kreiranju utakmice. Molimo pokušajte ponovo.';
@@ -736,6 +736,19 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       return;
     }
 
+    const gameId = this.game._id;
+    const gameData = {
+      homeTeam: this.gameForm.homeTeam.trim(),
+      awayTeam: this.gameForm.awayTeam.trim(),
+      date: this.gameForm.date,
+      time: this.gameForm.time,
+      venue: this.gameForm.venue.trim(),
+      competition: this.gameForm.competition,
+      status: this.gameForm.status,
+      notes: this.gameForm.notes.trim()
+    };
+    const canUpdateDetails = this.canManageCalendar();
+
     this.isLoading = true;
     this.errorMessage = '';
 
@@ -743,22 +756,11 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       let updatedGame = this.game;
 
       const assignmentResult = this.shouldShowNominations()
-        ? await this.updateRefereeAssignments()
+        ? await this.updateRefereeAssignments(gameId)
         : { newAssignments: 0, releasedNominations: [] as Array<{ homeTeam: string; awayTeam: string; competition: string }> };
 
-      if (this.canManageCalendar()) {
-        const gameData = {
-          homeTeam: this.gameForm.homeTeam.trim(),
-          awayTeam: this.gameForm.awayTeam.trim(),
-          date: this.gameForm.date,
-          time: this.gameForm.time,
-          venue: this.gameForm.venue.trim(),
-          competition: this.gameForm.competition,
-          status: this.gameForm.status,
-          notes: this.gameForm.notes.trim()
-        };
-
-        updatedGame = await firstValueFrom(this.basketballGameService.updateGame(this.game._id, gameData)) || this.game;
+      if (canUpdateDetails) {
+        updatedGame = await firstValueFrom(this.basketballGameService.updateGame(gameId, gameData)) || updatedGame;
       }
 
       let successMessage = 'Utakmica je uspješno ažurirana!';
@@ -778,7 +780,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
         ...updatedGame,
         message: successMessage
       });
-      this.closeModal();
+      this.completeAndClose();
 
     } catch (error) {
       console.error('Error updating game:', error);
@@ -799,7 +801,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
     return roles;
   }
 
-  private async updateRefereeAssignments() {
+  private async updateRefereeAssignments(gameId: string) {
     if (!this.game) return;
 
     const currentAssignments = this.game.refereeAssignments;
@@ -869,7 +871,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       if (!desired) {
         removedUserIds.push(assignmentUserId(currentAssignment));
         try {
-          await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
+          await firstValueFrom(this.basketballGameService.removeRefereeAssignment(gameId, currentAssignment._id));
         } catch (error) {
           throw error;
         }
@@ -878,7 +880,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
       if (desired.position && desired.position !== currentAssignment.position) {
         try {
-          await firstValueFrom(this.basketballGameService.updateRefereeAssignment(this.game._id, currentAssignment._id, {
+          await firstValueFrom(this.basketballGameService.updateRefereeAssignment(gameId, currentAssignment._id, {
             position: desired.position
           }));
         } catch (error) {
@@ -899,7 +901,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       }
 
       try {
-        const result: any = await firstValueFrom(this.basketballGameService.assignReferee(this.game._id, {
+        const result: any = await firstValueFrom(this.basketballGameService.assignReferee(gameId, {
           userId: newAssignment.userId,
           role: newAssignment.role,
           position: newAssignment.position
@@ -920,7 +922,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     if (removedUserIds.length && actuallyNewUsers.length) {
       try {
-        await firstValueFrom(this.basketballGameService.notifyColleagueReplacement(this.game._id, {
+        await firstValueFrom(this.basketballGameService.notifyColleagueReplacement(gameId, {
           removedUserIds,
           addedUserIds: actuallyNewUsers
         }));
@@ -938,6 +940,18 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   // Modal management
   closeModal() {
+    if (this.isLoading) {
+      return;
+    }
+    this.dismissModal();
+  }
+
+  private completeAndClose() {
+    this.isLoading = false;
+    this.dismissModal();
+  }
+
+  private dismissModal() {
     this.close.emit();
     this.resetForm();
   }
