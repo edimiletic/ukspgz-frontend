@@ -193,11 +193,12 @@ export const userHasRoleForCompetition = (
   competition?: string | null
 ): boolean => {
   if (isAdminUser(userOrRole)) return true;
+  const wanted = competition ? canonicalCompetition(competition) : '';
   return normalizeRoleAssignments(userOrRole).some((assignment) => {
     if (assignment.name !== roleName) return false;
-    if (!competition) return true;
+    if (!wanted) return true;
     if (!assignment.competitions.length) return true;
-    return assignment.competitions.includes(competition);
+    return assignment.competitions.includes(wanted);
   });
 };
 
@@ -245,7 +246,7 @@ export const canViewFullKontrola = (
   canNominateOfficials(userOrRole, competition);
 
 export const isTopProfessionalCompetition = (competition?: string | null): boolean =>
-  !!competition && TOP_PROFESSIONAL_COMPETITIONS.includes(competition);
+  !!competition && TOP_PROFESSIONAL_COMPETITIONS.includes(canonicalCompetition(competition));
 
 export const isEligibleForCompetition = (
   user?: RoleSource & { najvisaLiga?: string | null } | null,

@@ -13,6 +13,7 @@ import {
   isAdminUser,
   isBlockingScheduleConflict,
   isEligibleForCompetition,
+  isTopProfessionalCompetition,
   isWithinNominationCap,
   normalizeRoleAssignments,
   pickPrimaryRole,
@@ -98,6 +99,21 @@ describe('roles', () => {
     it('userHasRoleForCompetition: prazna lista natjecanja znači sva', () => {
       expect(userHasRoleForCompetition(user({ name: 'Povjerenik natjecanja' }), 'Povjerenik natjecanja', '3X3'))
         .toBeTrue();
+    });
+
+    it('FAVBET Premijer liga je ista liga kao SuperSport za dozvole i kontrolora', () => {
+      const legacyCalendar = user({ name: 'Povjerenik natjecanja', competitions: ['FAVBET PREMIJER LIGA'] });
+      const officialsPov = user({ name: 'Povjerenik za službene osobe', competitions: ['SuperSport Premijer liga'] });
+
+      expect(canManageCalendar(legacyCalendar, 'FAVBET PREMIJER LIGA')).toBeTrue();
+      expect(canManageCalendar(legacyCalendar, 'SuperSport Premijer liga')).toBeTrue();
+      expect(canManageCalendar(legacyCalendar, '3X3')).toBeFalse();
+      expect(canNominateOfficials(officialsPov, 'FAVBET PREMIJER LIGA')).toBeTrue();
+      expect(isTopProfessionalCompetition('FAVBET PREMIJER LIGA')).toBeTrue();
+      expect(isEligibleForCompetition(
+        { roles: [{ name: 'Kontrolor', competitions: [] }], najvisaLiga: 'SuperSport Premijer liga' },
+        'FAVBET PREMIJER LIGA'
+      )).toBeTrue();
     });
 
     it('povjerenici vide sve utakmice i statistiku', () => {

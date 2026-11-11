@@ -10,7 +10,7 @@ import { AuthService } from '../../../services/login.service';
 import { CatalogService } from '../../../services/catalog.service';
 import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
 import { firstValueFrom } from 'rxjs';
-import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isAdminUser, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
+import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, canonicalCompetition, getCalendarCompetitions, isAdminUser, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
@@ -82,8 +82,9 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   get competitions(): string[] {
     const calendarCompetitions = getCalendarCompetitions(this.authService.currentUserValue);
-    if (this.gameForm.competition && !calendarCompetitions.includes(this.gameForm.competition)) {
-      return [this.gameForm.competition, ...calendarCompetitions];
+    const current = canonicalCompetition(this.gameForm.competition);
+    if (current && !calendarCompetitions.includes(current)) {
+      return [current, ...calendarCompetitions];
     }
     return calendarCompetitions.length ? calendarCompetitions : ALL_COMPETITIONS;
   }
@@ -170,8 +171,9 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
   get catalogTeamNames(): string[] {
     if (!this.gameForm.competition) return [];
+    const selectedCompetition = canonicalCompetition(this.gameForm.competition);
     return this.teams
-      .filter((team) => team.competitions.includes(this.gameForm.competition))
+      .filter((team) => team.competitions.some((competition) => canonicalCompetition(competition) === selectedCompetition))
       .map((team) => team.name)
       .sort((a, b) => a.localeCompare(b, 'hr'));
   }
@@ -265,7 +267,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       date: this.game.date.split('T')[0], // Convert to YYYY-MM-DD format
       time: this.game.time,
       venue: this.game.venue,
-      competition: this.game.competition,
+      competition: canonicalCompetition(this.game.competition),
       notes: this.game.notes || '',
       status: this.game.status
     };
