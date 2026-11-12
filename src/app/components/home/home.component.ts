@@ -341,7 +341,7 @@ private loadAdminExpenses(): Promise<void> {
 
 private loadAdminAbsences(): Promise<void> {
   return new Promise((resolve, reject) => {
-    this.absenceService.getAllAbsences().subscribe({
+    this.absenceService.getEveryAbsence().subscribe({
       next: (absences) => {
         this.adminStats.totalAbsences = absences.length;
         const now = new Date();
