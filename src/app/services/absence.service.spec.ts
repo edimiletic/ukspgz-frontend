@@ -51,6 +51,42 @@ describe('AbsenceService', () => {
     req.flush({ absences: [{ _id: 'a1' }], totalPages: 1, currentPage: 2, total: 1 });
   });
 
+  it('getEveryAbsence spaja sve stranice odsustava', () => {
+    const received: Array<Array<{ _id: string }>> = [];
+    service.getEveryAbsence(2).subscribe(list => received.push(list));
+
+    http.expectOne(`${base}?page=1&limit=2`).flush({
+      absences: [{ _id: 'a1' }, { _id: 'a2' }],
+      totalPages: 2,
+      currentPage: 1,
+      total: 3
+    });
+    http.expectOne(`${base}?page=2&limit=2`).flush({
+      absences: [{ _id: 'a3' }],
+      totalPages: 2,
+      currentPage: 2,
+      total: 3
+    });
+
+    expect(received).toEqual([[{ _id: 'a1' }, { _id: 'a2' }, { _id: 'a3' }]]);
+    http.expectNone(`${base}?page=3&limit=2`);
+  });
+
+  it('getEveryAbsence staje nakon jedne stranice kad ih nema više', () => {
+    const received: Array<Array<{ _id: string }>> = [];
+    service.getEveryAbsence().subscribe(list => received.push(list));
+
+    http.expectOne(`${base}?page=1&limit=100`).flush({
+      absences: [{ _id: 'a1' }],
+      totalPages: 1,
+      currentPage: 1,
+      total: 1
+    });
+
+    expect(received).toEqual([[{ _id: 'a1' }]]);
+    http.expectNone(`${base}?page=2&limit=100`);
+  });
+
   it('ažurira i briše po _id', () => {
     service.updateAbsence({ _id: 'a1', reason: 'bolest' }).subscribe();
     const update = http.expectOne(`${base}/a1`);

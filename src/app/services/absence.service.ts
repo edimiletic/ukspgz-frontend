@@ -2,8 +2,8 @@ import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from './../model/
 // src/app/services/absence.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 
@@ -33,11 +33,37 @@ export class AbsenceService {
     return this.http.get<Absence[]>(`${this.apiUrl}/absence/my`);
   }
 
-  // Get all absences (admin functionality) - Updated to handle pagination
+  // One page of absences. Callers that need the full set must use getEveryAbsence.
   getAllAbsences(page = 1, limit = 100): Observable<Absence[]> {
-    return this.http.get<PaginatedAbsenceResponse>(`${this.apiUrl}/absence?page=${page}&limit=${limit}`).pipe(
-      map(response => response.absences) // Extract just the absences array
+    return this.fetchAbsencePage(page, limit).pipe(
+      map(response => response.absences || [])
     );
+  }
+
+  // The list endpoint is paginated. Availability, statistics, and the absence
+  // overview all need every record; stopping after the default page hides
+  // later absences and lets those officials be nominated while they are away.
+  getEveryAbsence(pageSize = 100): Observable<Absence[]> {
+    const maxPages = 200;
+    const collect = (page: number): Observable<Absence[]> =>
+      this.fetchAbsencePage(page, pageSize).pipe(
+        switchMap(response => {
+          const absences = response?.absences || [];
+          const totalPages = Math.max(1, Number(response?.totalPages) || 1);
+          if (page >= totalPages || absences.length === 0 || page >= maxPages) {
+            return of(absences);
+          }
+          return collect(page + 1).pipe(
+            map(rest => absences.concat(rest))
+          );
+        })
+      );
+
+    return collect(1);
+  }
+
+  private fetchAbsencePage(page: number, limit: number): Observable<PaginatedAbsenceResponse> {
+    return this.http.get<PaginatedAbsenceResponse>(`${this.apiUrl}/absence?page=${page}&limit=${limit}`);
   }
 
   // Get all absences with pagination info (for future use)

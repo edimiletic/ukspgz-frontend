@@ -171,7 +171,7 @@ export class StatisticsComponent implements OnInit {
 
   async loadAbsenceStatistics() {
     try {
-      const absences = await firstValueFrom(this.absenceService.getAllAbsences()) || [];
+      const absences = await firstValueFrom(this.absenceService.getEveryAbsence()) || [];
       this.absenceStats = calculateAbsenceStats(
         absences,
         this.availableReferees,
