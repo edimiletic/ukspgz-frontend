@@ -1,7 +1,8 @@
 // src/app/services/basketball-game.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { GameFilters, RespondAssignmentRequest, AssignRefereeRequest, CreateGameRequest, RefereeAssignment, BasketballGame } from '../model/basketballGame.model';
 import { environment } from '../../environments/environment';
 @Injectable({
@@ -31,6 +32,32 @@ private apiUrl = environment.apiUrl + '/basketball-games';
     }
 
     return this.http.get<{games: BasketballGame[], pagination: any}>(`${this.apiUrl}${queryParams}`);
+  }
+
+  // Callers that staff, count, or report on the full calendar cannot stop at page 1.
+  getEveryGame(filters?: Omit<GameFilters, 'page' | 'limit'>): Observable<BasketballGame[]> {
+    const limit = 100;
+    const maxPages = 500;
+
+    const loadFrom = (page: number): Observable<BasketballGame[]> =>
+      this.getAllGames({ ...filters, page, limit }).pipe(
+        switchMap(response => {
+          const games = response?.games ?? [];
+          const totalPages = Number(response?.pagination?.totalPages);
+          const hasNext = response?.pagination?.hasNext === true
+            || (Number.isFinite(totalPages) && page < totalPages);
+
+          if (!hasNext || games.length === 0 || page >= maxPages) {
+            return of(games);
+          }
+
+          return loadFrom(page + 1).pipe(
+            map(rest => games.concat(rest))
+          );
+        })
+      );
+
+    return loadFrom(1);
   }
 
   // Get game by ID

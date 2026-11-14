@@ -297,16 +297,16 @@ private loadUserExams(): Promise<void> {
 
 private loadAdminGames(): Promise<void> {
   return new Promise((resolve, reject) => {
-    this.gameService.getAllGames().subscribe({
-      next: (response) => {
-        const games = response.games;
+    this.gameService.getEveryGame().subscribe({
+      next: (games) => {
+        const list = games || [];
         const now = new Date();
         
-        this.adminStats.totalGames = games.length;
-        this.dashboardStats.upcomingGames = games.filter(game => this.isGameUpcoming(game, now)).length;
-        this.dashboardStats.completedGames = games.filter(game => this.isGameInPast(game, now)).length;
+        this.adminStats.totalGames = list.length;
+        this.dashboardStats.upcomingGames = list.filter(game => this.isGameUpcoming(game, now)).length;
+        this.dashboardStats.completedGames = list.filter(game => this.isGameInPast(game, now)).length;
         
-        this.recentGames = games
+        this.recentGames = [...list]
           .sort((a, b) => {
             const dateA = this.getSafeDate(a.createdAt || a.date).getTime();
             const dateB = this.getSafeDate(b.createdAt || b.date).getTime();

@@ -5,6 +5,7 @@ import {
   calculateRefereeStats,
   categoryLabel,
   currentSeasonLabel,
+  filterGamesByDateRange,
   emptyAbsenceStats,
   emptyExpenseStats,
   emptyGradeStats,
@@ -57,6 +58,21 @@ describe('statistics.helpers', () => {
     it('vraća custom raspon', () => {
       expect(getDateRange(filters({ selectedPeriod: 'custom' })))
         .toEqual({ start: '2026-01-10', end: '2026-01-20' });
+    });
+  });
+
+  describe('filterGamesByDateRange', () => {
+    it('zadržava utakmice čiji kalendarski datum pada u raspon, uključujući granice', () => {
+      const games = [
+        { _id: 'before', date: '2026-01-09T00:00:00.000Z' },
+        { _id: 'start', date: '2026-01-10' },
+        { _id: 'mid', date: '2026-01-15T00:00:00.000Z' },
+        { _id: 'end', date: '2026-01-20T00:00:00.000Z' },
+        { _id: 'after', date: '2026-01-21' }
+      ];
+
+      expect(filterGamesByDateRange(games, { start: '2026-01-10', end: '2026-01-20' }).map(game => game._id))
+        .toEqual(['start', 'mid', 'end']);
     });
   });
 

@@ -24,6 +24,7 @@ import {
   emptyAvailableReferees,
   emptyExpenseStats,
   emptyGradeStats,
+  filterGamesByDateRange,
   getDateRange,
   processKontrolaData
 } from './statistics.helpers';
@@ -149,13 +150,10 @@ export class StatisticsComponent implements OnInit {
         filters.competition = this.selectedCompetition;
       }
       const dateRange = getDateRange(this.dateFilters());
-      if (dateRange.start && dateRange.end) {
-        filters.startDate = dateRange.start;
-        filters.endDate = dateRange.end;
-      }
-
-      const gamesResponse = await firstValueFrom(this.basketballGameService.getAllGames(filters));
-      const games = gamesResponse?.games || [];
+      const games = filterGamesByDateRange(
+        await firstValueFrom(this.basketballGameService.getEveryGame(filters)) || [],
+        dateRange
+      );
       this.refereeStats = calculateRefereeStats(games, referees, this.selectedRole);
       this.competitionStats = calculateCompetitionStats(games, this.selectedRole);
       this.totalGamesInPeriod = games.length;
