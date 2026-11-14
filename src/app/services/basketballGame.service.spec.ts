@@ -35,6 +35,47 @@ describe('BasketballGameService', () => {
     req.flush({ games: [], pagination: {} });
   });
 
+  it('getEveryGame spaja sve stranice i zadržava filter', () => {
+    let games: { _id: string }[] = [];
+    service.getEveryGame({ competition: '3X3' }).subscribe(list => {
+      games = list;
+    });
+
+    const first = http.expectOne(r =>
+      r.url.includes('page=1') && r.url.includes('limit=100') && r.url.includes('competition=3X3')
+    );
+    first.flush({
+      games: [{ _id: 'g1' }],
+      pagination: { currentPage: 1, totalPages: 2, hasNext: true, totalGames: 2 }
+    });
+
+    const second = http.expectOne(r =>
+      r.url.includes('page=2') && r.url.includes('competition=3X3')
+    );
+    second.flush({
+      games: [{ _id: 'g2' }],
+      pagination: { currentPage: 2, totalPages: 2, hasNext: false, totalGames: 2 }
+    });
+
+    expect(games.map(game => game._id)).toEqual(['g1', 'g2']);
+  });
+
+  it('getEveryGame ne traži sljedeću stranicu kad je prva zadnja', () => {
+    let games: { _id: string }[] = [];
+    service.getEveryGame().subscribe(list => {
+      games = list;
+    });
+
+    const first = http.expectOne(r => r.url.includes('page=1') && r.url.includes('limit=100'));
+    first.flush({
+      games: [{ _id: 'g1' }],
+      pagination: { currentPage: 1, totalPages: 1, hasNext: false, totalGames: 1 }
+    });
+
+    http.expectNone(r => r.url.includes('page=2'));
+    expect(games.map(game => game._id)).toEqual(['g1']);
+  });
+
   it('kreira, ažurira i briše utakmicu', () => {
     const payload = {
       homeTeam: 'A',

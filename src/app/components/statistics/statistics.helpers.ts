@@ -85,6 +85,23 @@ export function currentSeasonLabel(date = new Date()): string {
   return `${startYear}/${startYear + 1}`;
 }
 
+export function calendarDateKey(value?: string | null): string {
+  if (!value) return '';
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : '';
+}
+
+export function filterGamesByDateRange<T extends { date?: string | null }>(
+  games: T[],
+  range: { start: string; end: string }
+): T[] {
+  if (!range.start || !range.end) return games;
+  return games.filter(game => {
+    const key = calendarDateKey(game?.date);
+    return key >= range.start && key <= range.end;
+  });
+}
+
 export function getDateRange(filters: DateRangeFilters): { start: string; end: string } {
   const currentYear = parseInt(filters.selectedYear, 10);
 
