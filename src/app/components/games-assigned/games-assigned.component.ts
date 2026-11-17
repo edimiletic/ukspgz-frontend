@@ -12,6 +12,7 @@ import { KontrolaModalComponent } from "./kontrola-modal/kontrola-modal.componen
 import { KontrolaService } from '../../services/kontrola.service';
 import { ViewKontrolaModalComponent } from "./view-kontrola-modal/view-kontrola-modal.component";
 import { firstValueFrom } from 'rxjs';
+import { formatCalendarDate, gameKickoff, sameCalendarDay } from '../../utils/calendar-date';
 
 @Component({
   selector: 'app-games-assigned',
@@ -366,10 +367,7 @@ onGameCreated(result: any) {
   }
 
   private getGameDateTime(game: BasketballGame): Date {
-    const dateTime = new Date(game.date);
-    const [hours = '0', minutes = '0'] = (game.time || '00:00').split(':');
-    dateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
-    return dateTime;
+    return gameKickoff(game.date, game.time);
   }
 
   private isGameInPast(game: BasketballGame, now = new Date()): boolean {
@@ -502,17 +500,12 @@ onGameCreated(result: any) {
 
   // Helper methods for display
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('hr-HR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatCalendarDate(dateString) || 'N/A';
   }
 
   formatDateTime(dateString: string, timeString: string): string {
-    const date = new Date(dateString);
-    return `${date.toLocaleDateString('hr-HR')} ${timeString}`;
+    const date = formatCalendarDate(dateString);
+    return date ? `${date} ${timeString}` : timeString;
   }
 
   getTeamsDisplay(game: BasketballGame): string {
@@ -752,17 +745,8 @@ onGameCreated(result: any) {
       }
 
       // Date filter - EXACT match
-      if (this.filterValues.date) {
-        const filterDate = new Date(this.filterValues.date);
-        const gameDate = new Date(game.date);
-        
-        // Compare only the date part (ignore time)
-        filterDate.setHours(0, 0, 0, 0);
-        gameDate.setHours(0, 0, 0, 0);
-        
-        if (filterDate.getTime() !== gameDate.getTime()) {
-          return false;
-        }
+      if (this.filterValues.date && !sameCalendarDay(this.filterValues.date, game.date)) {
+        return false;
       }
 
       return true;

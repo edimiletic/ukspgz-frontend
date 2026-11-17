@@ -5,6 +5,7 @@ import { AbsenceService } from '../../../services/absence.service';
 import { AuthService } from '../../../services/login.service';
 import { User } from '../../../model/user.model';
 import { Absence, AbsenceCreateRequest, AbsenceUpdateRequest } from '../../../model/absence.model';
+import { calendarDayStart, formatCalendarDate } from '../../../utils/calendar-date';
 
 @Component({
   selector: 'app-time-absent-modal',
@@ -100,12 +101,14 @@ export class TimeAbsentModalComponent implements OnChanges {
 
   isAbsenceFinished(): boolean {
     if (!this.absence) return false;
-    return this.startOfDay(new Date(this.absence.endDate)).getTime() < this.startOfDay(new Date()).getTime();
+    const end = calendarDayStart(this.absence.endDate);
+    return !!end && end.getTime() < this.startOfDay(new Date()).getTime();
   }
 
   hasAbsenceStarted(): boolean {
     if (!this.absence) return false;
-    return this.startOfDay(new Date(this.absence.startDate)).getTime() <= this.startOfDay(new Date()).getTime();
+    const start = calendarDayStart(this.absence.startDate);
+    return !!start && start.getTime() <= this.startOfDay(new Date()).getTime();
   }
 
   private startOfDay(date: Date): Date {
@@ -134,11 +137,7 @@ export class TimeAbsentModalComponent implements OnChanges {
   }
 
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('hr-HR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatCalendarDate(dateString);
   }
 
   isFormValid(): boolean {

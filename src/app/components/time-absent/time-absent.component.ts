@@ -10,6 +10,7 @@ import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { GAME_ASSIGNMENT_ROLES, canSeeAllGames, isAdminUser } from '../../model/roles';
+import { classifyAbsence, formatCalendarDate, sameCalendarDay } from '../../utils/calendar-date';
 
 
 interface AbsenceWithUser extends Absence {
@@ -167,28 +168,18 @@ isMobileFiltersOpen: boolean = false;
 
   private categorizeAbsences(absences: AbsenceWithUser[]) {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
 
     this.allFutureAbsences = [];
     this.allOngoingAbsences = [];
     this.allPastAbsences = [];
 
     absences.forEach(absence => {
-      const startDate = new Date(absence.startDate);
-      const endDate = new Date(absence.endDate);
-      
-      // Reset time for accurate date comparison
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-
-      if (startDate > today) {
-        // Future absence
+      const window = classifyAbsence(absence.startDate, absence.endDate, today);
+      if (window === 'future') {
         this.allFutureAbsences.push(absence);
-      } else if (startDate <= today && endDate >= today) {
-        // Ongoing absence
+      } else if (window === 'ongoing') {
         this.allOngoingAbsences.push(absence);
       } else {
-        // Past absence
         this.allPastAbsences.push(absence);
       }
     });
@@ -342,31 +333,12 @@ isMobileFiltersOpen: boolean = false;
       }
 
       // Start date filter - EXACT match
-      if (this.filterValues.startDate) {
-        const filterStartDate = new Date(this.filterValues.startDate);
-        const absenceStartDate = new Date(absence.startDate);
-        
-        // Compare only the date part (ignore time)
-        filterStartDate.setHours(0, 0, 0, 0);
-        absenceStartDate.setHours(0, 0, 0, 0);
-        
-        if (filterStartDate.getTime() !== absenceStartDate.getTime()) {
-          return false;
-        }
+      if (this.filterValues.startDate && !sameCalendarDay(this.filterValues.startDate, absence.startDate)) {
+        return false;
       }
 
-      // End date filter - EXACT match
-      if (this.filterValues.endDate) {
-        const filterEndDate = new Date(this.filterValues.endDate);
-        const absenceEndDate = new Date(absence.endDate);
-        
-        // Compare only the date part (ignore time)
-        filterEndDate.setHours(0, 0, 0, 0);
-        absenceEndDate.setHours(0, 0, 0, 0);
-        
-        if (filterEndDate.getTime() !== absenceEndDate.getTime()) {
-          return false;
-        }
+      if (this.filterValues.endDate && !sameCalendarDay(this.filterValues.endDate, absence.endDate)) {
+        return false;
       }
 
       return true;
@@ -415,12 +387,7 @@ if (window.innerWidth <= 693) {
   // }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('hr-HR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return formatCalendarDate(dateString);
   }
 
   openModal() {

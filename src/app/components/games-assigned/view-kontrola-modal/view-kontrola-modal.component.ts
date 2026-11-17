@@ -4,10 +4,11 @@ import { BasketballGame } from '../../../model/basketballGame.model';
 import { ViewKontrolaData } from '../../../model/kontrola.model';
 import { KontrolaService } from '../../../services/kontrola.service';
 import { firstValueFrom } from 'rxjs';
+import { CalendarDatePipe } from '../../../utils/calendar-date.pipe';
 
 @Component({
   selector: 'app-view-kontrola-modal',
-  imports: [CommonModule],
+  imports: [CommonModule, CalendarDatePipe],
   templateUrl: './view-kontrola-modal.component.html',
   styleUrl: './view-kontrola-modal.component.scss'
 })

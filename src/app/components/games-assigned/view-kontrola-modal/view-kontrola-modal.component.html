@@ -34,7 +34,7 @@
         <div class="game-details">
           <div class="game-title">{{ kontrolaData.gameInfo.homeTeam }} vs {{ kontrolaData.gameInfo.awayTeam }}</div>
           <div class="game-meta">
-            <span><i class="fas fa-calendar"></i> {{ kontrolaData.gameInfo.date | date:'dd.MM.yyyy' }}</span>
+            <span><i class="fas fa-calendar"></i> {{ kontrolaData.gameInfo.date | calendarDate }}</span>
             <span><i class="fas fa-clock"></i> {{ kontrolaData.gameInfo.time }}</span>
             <span><i class="fas fa-map-marker-alt"></i> {{ kontrolaData.gameInfo.venue }}</span>
           </div>

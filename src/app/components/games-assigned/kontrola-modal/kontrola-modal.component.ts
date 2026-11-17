@@ -6,12 +6,13 @@ import { firstValueFrom } from 'rxjs';
 import { BasketballGame } from '../../../model/basketballGame.model';
 import { KontrolaService } from '../../../services/kontrola.service';
 import { KontrolaData, RefereeGrade } from '../../../model/kontrola.model';
+import { CalendarDatePipe } from '../../../utils/calendar-date.pipe';
 
 
 
 @Component({
   selector: 'app-kontrola-modal',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CalendarDatePipe],
   templateUrl: './kontrola-modal.component.html',
   styleUrl: './kontrola-modal.component.scss'
 })
