@@ -17,6 +17,7 @@ import { AddQuestionModalComponent } from "../exams/add-question-modal/add-quest
 import { TimeAbsentModalComponent } from "../time-absent/time-absent-modal/time-absent-modal.component";
 import { ExpensesModalComponent } from "../expenses/expenses-modal/expenses-modal.component";
 import { canManageCalendar, canSeeAllGames, formatRoleLabel, isAdminUser } from '../../model/roles';
+import { formatCalendarDate, gameKickoff } from '../../utils/calendar-date';
 
 @Component({
   selector: 'app-home',
@@ -379,12 +380,7 @@ private loadAdminAbsences(): Promise<void> {
   // Formatting helpers
 formatDate(dateString: string | undefined): string {
   if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('hr-HR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  return formatCalendarDate(dateString) || 'N/A';
 }
 
 formatDateTime(dateString: string | undefined): string {
@@ -456,10 +452,7 @@ private getSafeDate(dateString: string | undefined, fallback: string | Date = ne
 }
 
 private getGameDateTime(game: BasketballGame): Date {
-  const dateTime = new Date(game.date);
-  const [hours = '0', minutes = '0'] = (game.time || '00:00').split(':');
-  dateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
-  return dateTime;
+  return gameKickoff(game.date, game.time);
 }
 
 private isGameInPast(game: BasketballGame, now = new Date()): boolean {

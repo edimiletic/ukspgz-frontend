@@ -28,7 +28,7 @@
       <div class="game-info" *ngIf="game && currentPage === 0">
         <div class="game-details">
           <span class="game-title">{{ game.homeTeam }} vs {{ game.awayTeam }}</span>
-          <span class="game-meta">{{ game.date | date:'dd.MM.yyyy' }} u {{ game.time }} - {{ game.venue }}</span>
+          <span class="game-meta">{{ game.date | calendarDate }} u {{ game.time }} - {{ game.venue }}</span>
         </div>
       </div>
 

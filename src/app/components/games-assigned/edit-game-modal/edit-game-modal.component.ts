@@ -10,6 +10,7 @@ import { AuthService } from '../../../services/login.service';
 import { CatalogService } from '../../../services/catalog.service';
 import { CatalogTeam, CatalogVenue } from '../../../model/catalog.model';
 import { firstValueFrom } from 'rxjs';
+import { calendarDayEnd, calendarDayStart } from '../../../utils/calendar-date';
 import { ALL_COMPETITIONS, canManageCalendar, canNominateAssistants, canNominateOfficials, getCalendarCompetitions, isAdminUser, isBlockingScheduleConflict, isTopProfessionalCompetition, isWithinNominationCap, timesOverlap, userHasRole } from '../../../model/roles';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -380,18 +381,18 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       return true;
     }
 
-    const selectedGameDate = new Date(this.gameForm.date);
-    selectedGameDate.setHours(0, 0, 0, 0);
+    const selectedGameDate = calendarDayStart(this.gameForm.date);
 
-    const hasAbsenceConflict = this.allAbsences.some(absence => {
+    const hasAbsenceConflict = !!selectedGameDate && this.allAbsences.some(absence => {
       if (absence.userPersonalCode !== referee.personalCode) {
         return false;
       }
 
-      const startDate = new Date(absence.startDate);
-      const endDate = new Date(absence.endDate);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
+      const startDate = calendarDayStart(absence.startDate);
+      const endDate = calendarDayEnd(absence.endDate);
+      if (!startDate || !endDate) {
+        return false;
+      }
 
       return selectedGameDate >= startDate && selectedGameDate <= endDate;
     });
