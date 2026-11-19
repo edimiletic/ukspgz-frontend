@@ -15,6 +15,7 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
 import { VenueSearchComponent } from '../venue-search/venue-search.component';
+import { planCrewSync } from './crew-sync';
 
 @Component({
   selector: 'app-game-form-modal',
@@ -852,65 +853,48 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       });
     }
 
-    const currentUserIds = new Set(currentAssignments.map(a => a.userId._id));
-    const newUserIds = newAssignments.map(a => a.userId);
-    const newlyAssignedUsers = newUserIds.filter(userId => !currentUserIds.has(userId));
-    const assignmentUserId = (assignment: { userId: any }) =>
-      typeof assignment.userId === 'object' ? assignment.userId._id : assignment.userId;
-    const assignmentKey = (userId: string, role: string) => `${userId}:${role}`;
-
     const currentManaged = currentAssignments.filter(assignment => managedRoles.includes(assignment.role));
-    const removedUserIds: string[] = [];
+    const plan = planCrewSync(
+      currentManaged.map(assignment => ({
+        id: assignment._id,
+        userId: this.assignmentUserId(assignment),
+        role: assignment.role,
+        position: assignment.position,
+        status: assignment.assignmentStatus
+      })),
+      newAssignments.map(assignment => ({
+        userId: assignment.userId,
+        role: assignment.role,
+        position: assignment.position
+      }))
+    );
 
-    for (const currentAssignment of currentManaged) {
-      const key = assignmentKey(assignmentUserId(currentAssignment), currentAssignment.role);
-      const desired = newAssignments.find(assignment => assignmentKey(assignment.userId, assignment.role) === key);
+    for (const removal of plan.remove) {
+      await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, removal.id));
+    }
 
-      if (!desired) {
-        removedUserIds.push(assignmentUserId(currentAssignment));
-        try {
-          await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
-        } catch (error) {
-          throw error;
-        }
-        continue;
-      }
-
-      if (desired.position && desired.position !== currentAssignment.position) {
-        try {
-          await firstValueFrom(this.basketballGameService.updateRefereeAssignment(this.game._id, currentAssignment._id, {
-            position: desired.position
-          }));
-        } catch (error) {
-          console.warn('Error updating assignment position:', error);
-        }
+    for (const positionUpdate of plan.positionUpdates) {
+      try {
+        await firstValueFrom(this.basketballGameService.updateRefereeAssignment(this.game._id, positionUpdate.id, {
+          position: positionUpdate.position
+        }));
+      } catch (error) {
+        console.warn('Error updating assignment position:', error);
       }
     }
 
-    const actuallyNewUsers: string[] = [];
     const releasedNominations: Array<{ homeTeam: string; awayTeam: string; competition: string }> = [];
-    
-    for (const newAssignment of newAssignments) {
-      const alreadyAssigned = currentManaged.some(assignment =>
-        assignmentKey(assignmentUserId(assignment), assignment.role) === assignmentKey(newAssignment.userId, newAssignment.role)
-      );
-      if (alreadyAssigned) {
-        continue;
-      }
 
+    for (const newAssignment of plan.add) {
       try {
         const result: any = await firstValueFrom(this.basketballGameService.assignReferee(this.game._id, {
           userId: newAssignment.userId,
-          role: newAssignment.role,
+          role: newAssignment.role as RefereeAssignmentData['role'],
           position: newAssignment.position
         }));
 
         if (result?.releasedNominations?.length) {
           releasedNominations.push(...result.releasedNominations);
-        }
-
-        if (newlyAssignedUsers.includes(newAssignment.userId)) {
-          actuallyNewUsers.push(newAssignment.userId);
         }
       } catch (error) {
         console.error('Error adding assignment:', error);
@@ -918,12 +902,9 @@ export class EditGameModalComponent implements OnInit, OnChanges {
       }
     }
 
-    if (removedUserIds.length && actuallyNewUsers.length) {
+    if (plan.replacementNotice) {
       try {
-        await firstValueFrom(this.basketballGameService.notifyColleagueReplacement(this.game._id, {
-          removedUserIds,
-          addedUserIds: actuallyNewUsers
-        }));
+        await firstValueFrom(this.basketballGameService.notifyColleagueReplacement(this.game._id, plan.replacementNotice));
       } catch (error) {
         console.warn('Error notifying remaining officials about replacement:', error);
       }
@@ -931,7 +912,7 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     return {
       totalAssignments: newAssignments.length,
-      newAssignments: actuallyNewUsers.length,
+      newAssignments: plan.addedUserIds.length,
       releasedNominations
     };
   }
