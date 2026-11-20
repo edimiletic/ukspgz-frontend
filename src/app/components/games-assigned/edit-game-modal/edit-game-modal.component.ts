@@ -15,6 +15,7 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { FormsModule } from '@angular/forms';
 import { TimeSelectComponent } from '../time-select/time-select.component';
 import { VenueSearchComponent } from '../venue-search/venue-search.component';
+import { CREW_ORDER_ERROR, CrewOrderError, maxCrewPosition, planPositionMoves } from './position-moves';
 
 @Component({
   selector: 'app-game-form-modal',
@@ -782,7 +783,9 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     } catch (error) {
       console.error('Error updating game:', error);
-      this.errorMessage = 'Greška pri ažuriranju utakmice. Molimo pokušajte ponovo.';
+      this.errorMessage = error instanceof CrewOrderError
+        ? error.message
+        : 'Greška pri ažuriranju utakmice. Molimo pokušajte ponovo.';
     } finally {
       this.isLoading = false;
     }
@@ -861,30 +864,47 @@ export class EditGameModalComponent implements OnInit, OnChanges {
 
     const currentManaged = currentAssignments.filter(assignment => managedRoles.includes(assignment.role));
     const removedUserIds: string[] = [];
+    const desiredFor = (assignment: { userId: any; role: string }) =>
+      newAssignments.find(candidate =>
+        assignmentKey(candidate.userId, candidate.role) === assignmentKey(assignmentUserId(assignment), assignment.role)
+      );
 
+    const stayersByRole = new Map<string, Array<{ id: string; position: number; desired: number }>>();
     for (const currentAssignment of currentManaged) {
-      const key = assignmentKey(assignmentUserId(currentAssignment), currentAssignment.role);
-      const desired = newAssignments.find(assignment => assignmentKey(assignment.userId, assignment.role) === key);
-
+      const desired = desiredFor(currentAssignment);
       if (!desired) {
-        removedUserIds.push(assignmentUserId(currentAssignment));
-        try {
-          await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
-        } catch (error) {
-          throw error;
-        }
         continue;
       }
+      const slots = stayersByRole.get(currentAssignment.role) ?? [];
+      slots.push({
+        id: currentAssignment._id,
+        position: currentAssignment.position,
+        desired: desired.position || currentAssignment.position
+      });
+      stayersByRole.set(currentAssignment.role, slots);
+    }
 
-      if (desired.position && desired.position !== currentAssignment.position) {
-        try {
-          await firstValueFrom(this.basketballGameService.updateRefereeAssignment(this.game._id, currentAssignment._id, {
-            position: desired.position
-          }));
-        } catch (error) {
-          console.warn('Error updating assignment position:', error);
-        }
+    const positionMoves: Array<{ id: string; position: number }> = [];
+    for (const [role, slots] of stayersByRole) {
+      const planned = planPositionMoves(slots, maxCrewPosition(role));
+      if (!planned) {
+        throw new CrewOrderError(CREW_ORDER_ERROR);
       }
+      positionMoves.push(...planned);
+    }
+
+    for (const currentAssignment of currentManaged) {
+      if (desiredFor(currentAssignment)) {
+        continue;
+      }
+      removedUserIds.push(assignmentUserId(currentAssignment));
+      await firstValueFrom(this.basketballGameService.removeRefereeAssignment(this.game._id, currentAssignment._id));
+    }
+
+    for (const move of positionMoves) {
+      await firstValueFrom(this.basketballGameService.updateRefereeAssignment(this.game._id, move.id, {
+        position: move.position
+      }));
     }
 
     const actuallyNewUsers: string[] = [];
