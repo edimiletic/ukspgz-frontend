@@ -6,6 +6,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BasketballGame } from '../../../model/basketballGame.model';
 import { BasketballGameService } from '../../../services/basketballGame.service';
+import { AuthService } from '../../../services/login.service';
+import { isAcceptedAssignment } from './expense-claim';
 
 @Component({
   selector: 'app-modal-expense-report-details',
@@ -21,6 +23,7 @@ export class ModalExpenseReportDetailsComponent implements OnChanges {
   @Output() save = new EventEmitter<ExpenseItem>();
 
   private basketballGameService = inject(BasketballGameService);
+  private authService = inject(AuthService);
 
   // Toggle between input methods
   inputMethod: 'manual' | 'location' = 'location';
@@ -175,8 +178,9 @@ export class ModalExpenseReportDetailsComponent implements OnChanges {
     this.isLoadingGames = true;
     this.basketballGameService.getMyAssignments().subscribe({
       next: (games) => {
+        const userId = this.authService.getCurrentUserId();
         this.availableGames = games
-          .filter(game => game.status !== 'Cancelled' && this.gameMatchesReport(game))
+          .filter(game => isAcceptedAssignment(game, userId) && this.gameMatchesReport(game))
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         this.isLoadingGames = false;
       },
